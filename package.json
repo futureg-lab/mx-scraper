@@ -1,0 +1,31 @@
+{
+  "name": "mx-scraper",
+  "version": "1.0.0",
+  "description": "website scraper",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test",
+    "start": "npx tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/afmika/mx-scraper.git"
+  },
+  "keywords": [
+    "web-scraping",
+    "manga",
+    "plugin"
+  ],
+	"engines": {
+		"node": ">=12"
+	},
+  "author": "afmika",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/afmika/mx-scraper/issues"
+  },
+  "homepage": "https://github.com/afmika/mx-scraper#readme",
+  "devDependencies": {
+    "typescript": "^4.7.4"
+  }
+}

@@ -1,6 +1,11 @@
 import { MXPlugin } from "./interfaces/MXPlugin";
 
 export class MXScraper {
+    
+    constructor () {
+        this.initPlugins ();
+    }
+
     initPlugins () {
 
     }

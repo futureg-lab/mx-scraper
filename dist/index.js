@@ -3,6 +3,7 @@ exports.__esModule = true;
 exports.MXScraper = void 0;
 var MXScraper = /** @class */ (function () {
     function MXScraper() {
+        this.initPlugins();
     }
     MXScraper.prototype.initPlugins = function () {
     };

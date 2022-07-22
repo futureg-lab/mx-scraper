@@ -6,7 +6,15 @@ export interface MXPlugin {
     version : string;
     target_url : string;
 
-    fetchBook () : Book;
+    /**
+     * @param option fetch all, fetch a specific chapter... etc
+     */
+    fetchBook (option : Option) : Book;
+
+    /**
+     * @param term search keyword
+     * @param option search option
+     */
     search (term : string, option : Option) : Book[];
     
     sortChapters () : void;

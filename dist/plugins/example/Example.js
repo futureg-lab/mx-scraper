@@ -9,7 +9,7 @@ var Example = /** @class */ (function () {
         this.version = '1.0.0';
         this.target_url = 'https://some_website.com';
     }
-    Example.prototype.fetchBook = function () {
+    Example.prototype.fetchBook = function (option) {
         return null;
     };
     Example.prototype.search = function (term, option) {

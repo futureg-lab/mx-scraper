@@ -15,7 +15,7 @@ export class Example implements MXPlugin {
         this.target_url = 'https://some_website.com';
     }
 
-    fetchBook () : Book {
+    fetchBook (option : Option) : Book {
         return null;
     }
 

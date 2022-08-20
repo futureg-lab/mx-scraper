@@ -1,13 +1,24 @@
 import { MXPlugin } from "./interfaces/MXPlugin";
+import { Example } from "./plugins/example/Example";
 
 export class MXScraper {
-    
+    plugins : MXPlugin[] = [];    
     constructor () {
         this.initPlugins ();
     }
 
+    /**
+     * Register avalaible plugins
+     */
     initPlugins () {
+        this.register (new Example());
+    }
 
+    /**
+     * @param plugin Plugin to register
+     */
+    register (plugin : MXPlugin) {
+        this.plugins.push (plugin);
     }
 
     /**

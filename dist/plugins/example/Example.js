@@ -13,7 +13,7 @@ var Example = /** @class */ (function () {
         return null;
     };
     Example.prototype.search = function (term, option) {
-        return null;
+        return [];
     };
     Example.prototype.sortChapters = function () {
         return null;

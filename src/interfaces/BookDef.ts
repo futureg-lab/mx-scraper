@@ -1,3 +1,6 @@
+/**
+ * Abstraction of a 'Book' object
+ */
 interface Book {
     title : string;
     description : string;
@@ -6,6 +9,9 @@ interface Book {
     metadatas : Metadata[];
 }
 
+/**
+ * Abstraction of a 'Chapter' owned by a Book object
+ */
 interface Chapter {
     title : string;
     description : string;
@@ -15,6 +21,9 @@ interface Chapter {
     parent : Book;
 }
 
+/**
+ * Abstraction of a 'Page' owned by a Chapter object
+ */
 interface Page {
     title : string;
     url : string;
@@ -22,21 +31,33 @@ interface Page {
     parent : Chapter;
 }
 
+/**
+ * 'Tag' abstraction, defined mainly defined by its name
+ */
 interface Tag {
     name : string;
     metadatas : Metadata[]; 
 }
 
+/**
+ * Any Metadata type should implement this interface
+ */
 interface Metadata {
     label : string;
     content : any;
 }
 
+/**
+ * Describes an Author
+ */
 interface Author {
     name : string;
     description : string;
 }
 
+/**
+ * Abstraction of the 'any' type
+ */
 interface Option extends Object {
 }
 

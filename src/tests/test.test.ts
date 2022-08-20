@@ -1,5 +1,3 @@
-import { MXScraper } from "..";
-
 function add (a : number, b : number) {
     return a + b;
 }

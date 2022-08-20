@@ -1,5 +1,6 @@
 import { Book, Option, Metadata } from "../../interfaces/BookDef";
 import { MXPlugin } from "../../interfaces/MXPlugin";
+import { CustomOption } from "./CustomOption";
 
 export class Example implements MXPlugin {
     title : string;
@@ -15,12 +16,12 @@ export class Example implements MXPlugin {
         this.target_url = 'https://some_website.com';
     }
 
-    fetchBook (option : Option) : Book {
+    fetchBook (option : number) : Book {
         return null;
     }
 
     search (term : string, option : Option) : Book[] {
-        return null;
+        return [];
     }
     
     sortChapters () : void {

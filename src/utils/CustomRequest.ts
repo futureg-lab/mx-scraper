@@ -1,4 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios';
+import { FlareSolverrClient, FlareSolverrCommand } from './FlareSolverrClient';
 
 export interface FlareSolverrProxyOption {
     proxy_url : string;
@@ -20,27 +21,24 @@ export class CustomRequest {
     }
 
     /**
-     * @private
+     * Create a session id for the current CustomRequest instance
      */
-    async createProxySession () {
-        let axios_req_conf : AxiosRequestConfig = {
-            url : this.proxy.proxy_url, // change the target to the solver
-            method : 'POST',
-            headers : {
-                'Content-Type' : 'application/json'
-            },
-            data : {
-                cmd : 'request.create',
-            }
-        };
-        const {data} = await axios(axios_req_conf);
+    async initProxySession () {
+        const solver = new FlareSolverrClient (this.proxy.proxy_url);
+        if (!this.proxy.session_id)
+            this.proxy.session_id = await solver.createSession ();
     }
 
     /**
-     * 
+     * Destroy a session (assuming initProxySession was called first)
      */
     async destroyProxySession () {
-
+        const solver = new FlareSolverrClient (this.proxy.proxy_url);
+        const id = this.proxy.session_id;
+        if (id) {
+            await solver.destroySession (id);
+            this.proxy.session_id = undefined;
+        }
     }
 
     /**
@@ -53,28 +51,26 @@ export class CustomRequest {
             method : 'GET'
         };
         if (this.proxy) {
-            axios_req_conf = {
-                url : this.proxy.proxy_url, // change the target to the solver
-                method : 'POST',
-                headers : {
-                    'Content-Type' : 'application/json'
-                },
-                data : {
-                    cmd : 'request.get',
-                    url : target_url,
-                    maxTimeout : this.proxy.timeout || 60000
-                }
-            }
+            const solver = new FlareSolverrClient (this.proxy.proxy_url);
+            const cmd : FlareSolverrCommand = {
+                cmd : 'request.get',
+                url : target_url
+            };
+            // use an existing session if defined (assuming initProxySession was called)
+            if (this.proxy.session_id)
+                cmd.session = this.proxy.session_id;
+            const {solution} = await solver.performCommand (cmd);
+            return solution.response;
         }
         // the data field contains the response
         const {data} = await axios(axios_req_conf);
-        return this.proxy ? data.solution?.response : data;
+        return data;
     }
 
     /**
      * @param target_url 
      */
     async download (target_url : string) {
-
+        throw Error ('Yet to be implemented');
     }
 }

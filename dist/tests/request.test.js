@@ -68,3 +68,28 @@ test('Perform a get request using a proxy on example.com', function () { return 
         }
     });
 }); });
+test('Perform a get request using an existing session on example.com', function () { return __awaiter(void 0, void 0, void 0, function () {
+    var option, request, text_response;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                option = {
+                    proxy_url: 'http://localhost:8191/v1'
+                };
+                request = new CustomRequest_1.CustomRequest(option);
+                return [4 /*yield*/, request.initProxySession()];
+            case 1:
+                _a.sent();
+                expect(request.proxy.session_id).toBeDefined();
+                return [4 /*yield*/, request.get('http://www.example.com/')];
+            case 2:
+                text_response = _a.sent();
+                return [4 /*yield*/, request.destroyProxySession()];
+            case 3:
+                _a.sent();
+                expect(request.proxy.session_id).toBeUndefined();
+                expect(text_response).toContain('example');
+                return [2 /*return*/];
+        }
+    });
+}); });

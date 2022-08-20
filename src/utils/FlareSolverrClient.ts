@@ -1,9 +1,10 @@
 import axios, { AxiosRequestConfig } from "axios";
 
-interface FlareSolverrCommand {
+export interface FlareSolverrCommand {
     cmd : string;
     url? : string;
     maxTimeout? : string;
+    session? : string;
 };
 
 export class FlareSolverrClient {

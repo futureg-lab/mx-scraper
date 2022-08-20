@@ -38,6 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 exports.CustomRequest = void 0;
 var axios_1 = require("axios");
+var FlareSolverrClient_1 = require("./FlareSolverrClient");
 /**
  * A request wrapper for axios for 'GET' requests
  */
@@ -50,39 +51,45 @@ var CustomRequest = /** @class */ (function () {
         this.proxy = option;
     }
     /**
-     * @private
+     * Create a session id for the current CustomRequest instance
      */
-    CustomRequest.prototype.createProxySession = function () {
+    CustomRequest.prototype.initProxySession = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var axios_req_conf, data;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var solver, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
-                        axios_req_conf = {
-                            url: this.proxy.proxy_url,
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            data: {
-                                cmd: 'request.create'
-                            }
-                        };
-                        return [4 /*yield*/, (0, axios_1["default"])(axios_req_conf)];
+                        solver = new FlareSolverrClient_1.FlareSolverrClient(this.proxy.proxy_url);
+                        if (!!this.proxy.session_id) return [3 /*break*/, 2];
+                        _a = this.proxy;
+                        return [4 /*yield*/, solver.createSession()];
                     case 1:
-                        data = (_a.sent()).data;
-                        return [2 /*return*/];
+                        _a.session_id = _b.sent();
+                        _b.label = 2;
+                    case 2: return [2 /*return*/];
                 }
             });
         });
     };
     /**
-     *
+     * Destroy a session (assuming initProxySession was called first)
      */
     CustomRequest.prototype.destroyProxySession = function () {
         return __awaiter(this, void 0, void 0, function () {
+            var solver, id;
             return __generator(this, function (_a) {
-                return [2 /*return*/];
+                switch (_a.label) {
+                    case 0:
+                        solver = new FlareSolverrClient_1.FlareSolverrClient(this.proxy.proxy_url);
+                        id = this.proxy.session_id;
+                        if (!id) return [3 /*break*/, 2];
+                        return [4 /*yield*/, solver.destroySession(id)];
+                    case 1:
+                        _a.sent();
+                        this.proxy.session_id = undefined;
+                        _a.label = 2;
+                    case 2: return [2 /*return*/];
+                }
             });
         });
     };
@@ -91,34 +98,32 @@ var CustomRequest = /** @class */ (function () {
      * @returns
      */
     CustomRequest.prototype.get = function (target_url) {
-        var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var axios_req_conf, data;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var axios_req_conf, solver, cmd, solution, data;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
                         axios_req_conf = {
                             url: target_url,
                             method: 'GET'
                         };
-                        if (this.proxy) {
-                            axios_req_conf = {
-                                url: this.proxy.proxy_url,
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                data: {
-                                    cmd: 'request.get',
-                                    url: target_url,
-                                    maxTimeout: this.proxy.timeout || 60000
-                                }
-                            };
-                        }
-                        return [4 /*yield*/, (0, axios_1["default"])(axios_req_conf)];
+                        if (!this.proxy) return [3 /*break*/, 2];
+                        solver = new FlareSolverrClient_1.FlareSolverrClient(this.proxy.proxy_url);
+                        cmd = {
+                            cmd: 'request.get',
+                            url: target_url
+                        };
+                        // use an existing session if defined (assuming initProxySession was called)
+                        if (this.proxy.session_id)
+                            cmd.session = this.proxy.session_id;
+                        return [4 /*yield*/, solver.performCommand(cmd)];
                     case 1:
-                        data = (_b.sent()).data;
-                        return [2 /*return*/, this.proxy ? (_a = data.solution) === null || _a === void 0 ? void 0 : _a.response : data];
+                        solution = (_a.sent()).solution;
+                        return [2 /*return*/, solution.response];
+                    case 2: return [4 /*yield*/, (0, axios_1["default"])(axios_req_conf)];
+                    case 3:
+                        data = (_a.sent()).data;
+                        return [2 /*return*/, data];
                 }
             });
         });
@@ -129,7 +134,7 @@ var CustomRequest = /** @class */ (function () {
     CustomRequest.prototype.download = function (target_url) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                return [2 /*return*/];
+                throw Error('Yet to be implemented');
             });
         });
     };

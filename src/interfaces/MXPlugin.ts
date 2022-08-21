@@ -1,3 +1,4 @@
+import { CustomRequest } from "../utils/CustomRequest";
 import { Book, PluginOption, Metadata, SearchOption } from "./BookDef";
 
 export interface MXPlugin {
@@ -7,20 +8,25 @@ export interface MXPlugin {
     target_url : string;
     unique_identifier : string;
     option : PluginOption;
+    request : CustomRequest;
 
     /**
      * @param identifier fetch all, fetch a specific chapter... etc
      */
-    fetchBook (identifier : string) : Book;
+    fetchBook (identifier : string) : Promise<Book>;
 
     /**
      * @param term search keyword
      * @param option search option
      */
-    search (term : string, option : SearchOption) : Book[];
+    search (term : string, option : SearchOption) : Promise<Book[]>;
 
-    config (option : PluginOption) : void;
+    configure (option : PluginOption) : Promise<void>;
     
-    sortChapters () : void;
     getMetaDatas () : Metadata[];
+
+    /**
+     * Useful if there are remaining sessions
+     */
+    destructor () : Promise<void>;
 }

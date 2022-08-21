@@ -48,8 +48,15 @@ var CustomRequest = /** @class */ (function () {
      */
     function CustomRequest(option) {
         this.proxy = null;
-        this.proxy = option;
+        if (option)
+            this.configureProxy(option);
     }
+    /**
+     * @param option proxy option {proxy_url, timeout?, session_id?}
+     */
+    CustomRequest.prototype.configureProxy = function (option) {
+        this.proxy = option;
+    };
     /**
      * Create a session id for the current CustomRequest instance
      */

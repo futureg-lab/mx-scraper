@@ -1,5 +1,8 @@
 const config = {
     CLOUDFARE_PROXY_HOST : 'http://localhost:8191/v1',
+    LOAD_PLUGINS : [
+        'NHentai'
+    ],
     PLUGIN_PROXY_ENABLE : {
         'nhentai' : true
     },

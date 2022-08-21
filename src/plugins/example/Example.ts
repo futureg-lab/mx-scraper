@@ -1,5 +1,6 @@
 import { Book, PluginOption, Metadata, SearchOption } from "../../interfaces/BookDef";
 import { MXPlugin } from "../../interfaces/MXPlugin";
+import { CustomRequest } from "../../utils/CustomRequest";
 
 export class Example implements MXPlugin {
     title : string;
@@ -8,6 +9,7 @@ export class Example implements MXPlugin {
     target_url : string;
     unique_identifier : string;
     option : PluginOption;
+    request : CustomRequest;
 
     constructor () {
         // let's define some variables
@@ -18,23 +20,24 @@ export class Example implements MXPlugin {
         this.target_url = 'https://example.com';
     }
 
-    config (option : PluginOption) : void {
+    async configure (option : PluginOption) : Promise<void> {
         this.option = option;
     }
 
-    fetchBook (identifier : string) : Book {
+    fetchBook (identifier : string) : Promise<Book> {
         return null;
     }
 
-    search (term : string, option : SearchOption) : Book[] {
+    async search (term : string, option : SearchOption) : Promise<Book[]> {
         return [];
-    }
-    
-    sortChapters () : void {
-        return null;
     }
 
     getMetaDatas () : Metadata[] {
         return null;
+    }
+
+    async destructor () {
+        if (this.request.proxy.session_id)
+            this.request.destroyProxySession ();
     }
 }

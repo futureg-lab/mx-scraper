@@ -6,24 +6,23 @@ import { config } from "./utils/environement";
 export class MXScraper {
     plugins : MXPlugin[] = [];    
     constructor () {
-        this.initPlugins ();
     }
 
     /**
      * Register avalaible plugins
      */
-    initPlugins () {
-        this.register (new Example());
-        this.register (new NHentai());
+    async initPlugins () {
+        await this.register (new Example());
+        await this.register (new NHentai());
     }
 
     /**
      * @param plugin Plugin to register
      */
-    register (plugin : MXPlugin) {
+    async register (plugin : MXPlugin) {
         const current_id = plugin.unique_identifier;
         if (config.PLUGIN_PROXY_ENABLE[current_id]) {
-            plugin.config ({
+            await plugin.configure ({
                 useFlareSolverr : true,
                 enableUniqueSession : true
             });
@@ -63,5 +62,10 @@ export class MXScraper {
      */
     getAllPlugins () : MXPlugin[] {
         return this.plugins;
+    }
+
+    async destructor () {
+        for (let plugin of this.plugins)
+            await plugin.destructor();
     }
 }

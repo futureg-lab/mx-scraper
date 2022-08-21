@@ -2,7 +2,7 @@ import {CheerioAPI, load} from "cheerio";
 import { Book, PluginOption, Metadata, SearchOption } from "../../interfaces/BookDef";
 import { MXPlugin } from "../../interfaces/MXPlugin";
 import { CustomRequest, FlareSolverrProxyOption } from "../../utils/CustomRequest";
-import { config } from "../../utils/environement";
+import { config } from "../../utils/environment ";
 
 export class NHentai implements MXPlugin {
     title : string;

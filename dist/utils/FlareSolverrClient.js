@@ -38,7 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 exports.FlareSolverrClient = void 0;
 var axios_1 = require("axios");
-var environement_1 = require("./environement");
+var environment_1 = require("./environment ");
 ;
 var FlareSolverrClient = /** @class */ (function () {
     /**
@@ -59,7 +59,7 @@ var FlareSolverrClient = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         if (!command.maxTimeout)
-                            command.maxTimeout = environement_1.config.CLOUDFARE_MAX_TIMEOUT;
+                            command.maxTimeout = environment_1.config.CLOUDFARE_MAX_TIMEOUT;
                         axios_req_conf = {
                             url: this.base_url,
                             method: 'POST',

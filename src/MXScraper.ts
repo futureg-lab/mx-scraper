@@ -1,7 +1,7 @@
 import { MXPlugin } from "./interfaces/MXPlugin";
 import { Example } from "./plugins/example/Example";
 import { NHentai } from "./plugins/nhentai/NHentai";
-import { config } from "./utils/environement";
+import { config } from "./utils/environment ";
 
 export class MXScraper {
     plugins : MXPlugin[] = [];    

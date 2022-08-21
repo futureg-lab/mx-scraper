@@ -39,7 +39,7 @@ exports.__esModule = true;
 exports.NHentai = void 0;
 var cheerio_1 = require("cheerio");
 var CustomRequest_1 = require("../../utils/CustomRequest");
-var environement_1 = require("../../utils/environement");
+var environment_1 = require("../../utils/environment ");
 var NHentai = /** @class */ (function () {
     function NHentai() {
         // let's define some variables
@@ -59,8 +59,8 @@ var NHentai = /** @class */ (function () {
                         this.option = option;
                         if (!this.option.useFlareSolverr) return [3 /*break*/, 2];
                         solver_option = {
-                            proxy_url: environement_1.config.CLOUDFARE_PROXY_HOST,
-                            timeout: environement_1.config.CLOUDFARE_MAX_TIMEOUT
+                            proxy_url: environment_1.config.CLOUDFARE_PROXY_HOST,
+                            timeout: environment_1.config.CLOUDFARE_MAX_TIMEOUT
                         };
                         this.request.configureProxy(solver_option);
                         return [4 /*yield*/, this.request.initProxySession()];

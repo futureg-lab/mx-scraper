@@ -39,7 +39,7 @@ exports.__esModule = true;
 exports.MXScraper = void 0;
 var Example_1 = require("./plugins/example/Example");
 var NHentai_1 = require("./plugins/nhentai/NHentai");
-var environement_1 = require("./utils/environement");
+var environment_1 = require("./utils/environment ");
 var MXScraper = /** @class */ (function () {
     function MXScraper() {
         this.plugins = [];
@@ -72,7 +72,7 @@ var MXScraper = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         current_id = plugin.constructor.name;
-                        if (!environement_1.config.PLUGIN_PROXY_ENABLE[current_id]) return [3 /*break*/, 2];
+                        if (!environment_1.config.PLUGIN_PROXY_ENABLE[current_id]) return [3 /*break*/, 2];
                         return [4 /*yield*/, plugin.configure({
                                 useFlareSolverr: true,
                                 enableUniqueSession: true

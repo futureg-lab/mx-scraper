@@ -37,6 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 exports.NHentai = void 0;
+var cheerio_1 = require("cheerio");
 var CustomRequest_1 = require("../../utils/CustomRequest");
 var environement_1 = require("../../utils/environement");
 var NHentai = /** @class */ (function () {
@@ -73,7 +74,7 @@ var NHentai = /** @class */ (function () {
     };
     NHentai.prototype.fetchBook = function (hentai_id) {
         return __awaiter(this, void 0, void 0, function () {
-            var url, response_html;
+            var url, response_html, $, book;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -81,7 +82,16 @@ var NHentai = /** @class */ (function () {
                         return [4 /*yield*/, this.request.get(url)];
                     case 1:
                         response_html = _a.sent();
-                        return [2 /*return*/, null];
+                        $ = (0, cheerio_1.load)(response_html);
+                        console.info(response_html);
+                        book = {
+                            title: '',
+                            authors: [],
+                            chapters: [],
+                            description: '',
+                            metadatas: {}
+                        };
+                        return [2 /*return*/, book];
                 }
             });
         });

@@ -1,3 +1,4 @@
+import {CheerioAPI, load} from "cheerio";
 import { Book, PluginOption, Metadata, SearchOption } from "../../interfaces/BookDef";
 import { MXPlugin } from "../../interfaces/MXPlugin";
 import { CustomRequest, FlareSolverrProxyOption } from "../../utils/CustomRequest";
@@ -37,8 +38,22 @@ export class NHentai implements MXPlugin {
     async fetchBook (hentai_id : string) : Promise<Book> {
         const url = this.target_url + 'g/' + hentai_id;
         let response_html = await this.request.get(url);
+        const $ : CheerioAPI = load (response_html);
+        console.info(response_html);
+        // $('script').each((i, script) => {
+        //     load(script);
+        // });
 
-        return null;
+        const book : Book = <Book> {
+            title : '',
+            authors : [],
+            chapters : [],
+            description : '',
+            metadatas : {
+
+            }
+        };
+        return book;
     }
 
     async search (term : string, option : SearchOption) : Promise<Book[]> {

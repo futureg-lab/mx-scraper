@@ -20,7 +20,7 @@ export class MXScraper {
      * @param plugin Plugin to register
      */
     async register (plugin : MXPlugin) {
-        const current_id = plugin.unique_identifier;
+        const current_id = plugin.constructor.name;
         if (config.PLUGIN_PROXY_ENABLE[current_id]) {
             await plugin.configure ({
                 useFlareSolverr : true,
@@ -30,7 +30,7 @@ export class MXScraper {
 
         
         // duplicate id check
-        const list = this.plugins.map((plugin : MXPlugin) => plugin.unique_identifier);
+        const list = this.plugins.map((plugin : MXPlugin) => plugin.constructor.name);
         if (list.includes(current_id))
             throw Error ('Duplicate id : Unable de register plugin id ' + current_id);
         
@@ -51,7 +51,7 @@ export class MXScraper {
      * @returns 
      */
     getPluginByIdentifier (id : string) : MXPlugin {
-        const res = this.plugins.filter((plugin : MXPlugin) => plugin.unique_identifier == id);
+        const res = this.plugins.filter((plugin : MXPlugin) => plugin.constructor.name == id);
         if (res.length == 0)
             return null;
         return res[0];

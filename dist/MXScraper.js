@@ -71,7 +71,7 @@ var MXScraper = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        current_id = plugin.unique_identifier;
+                        current_id = plugin.constructor.name;
                         if (!environement_1.config.PLUGIN_PROXY_ENABLE[current_id]) return [3 /*break*/, 2];
                         return [4 /*yield*/, plugin.configure({
                                 useFlareSolverr: true,
@@ -81,7 +81,7 @@ var MXScraper = /** @class */ (function () {
                         _a.sent();
                         _a.label = 2;
                     case 2:
-                        list = this.plugins.map(function (plugin) { return plugin.unique_identifier; });
+                        list = this.plugins.map(function (plugin) { return plugin.constructor.name; });
                         if (list.includes(current_id))
                             throw Error('Duplicate id : Unable de register plugin id ' + current_id);
                         this.plugins.push(plugin);
@@ -104,7 +104,7 @@ var MXScraper = /** @class */ (function () {
      * @returns
      */
     MXScraper.prototype.getPluginByIdentifier = function (id) {
-        var res = this.plugins.filter(function (plugin) { return plugin.unique_identifier == id; });
+        var res = this.plugins.filter(function (plugin) { return plugin.constructor.name == id; });
         if (res.length == 0)
             return null;
         return res[0];

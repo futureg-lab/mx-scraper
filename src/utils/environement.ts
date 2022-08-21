@@ -4,7 +4,7 @@ const config = {
         'NHentai'
     ],
     PLUGIN_PROXY_ENABLE : {
-        'nhentai' : true
+        'NHentai' : true
     },
     CLOUDFARE_MAX_TIMEOUT : 60000
 };

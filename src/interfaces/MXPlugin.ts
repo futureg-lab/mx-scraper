@@ -6,7 +6,6 @@ export interface MXPlugin {
     author : string;
     version : string;
     target_url : string;
-    unique_identifier : string;
     option : PluginOption;
     request : CustomRequest;
 

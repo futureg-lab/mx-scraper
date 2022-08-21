@@ -7,7 +7,7 @@ var environement_1 = require("./utils/environement");
 var MXScraper = /** @class */ (function () {
     function MXScraper() {
         this.plugins = [];
-        // this.initPlugins ();
+        this.initPlugins();
     }
     /**
      * Register avalaible plugins
@@ -29,9 +29,8 @@ var MXScraper = /** @class */ (function () {
         }
         // duplicate id check
         var list = this.plugins.map(function (plugin) { return plugin.unique_identifier; });
-        console.info(list);
-        // if (list.includes(current_id))
-        //     throw Error ('Duplicate id : Unable de register plugin id ' + current_id);
+        if (list.includes(current_id))
+            throw Error('Duplicate id : Unable de register plugin id ' + current_id);
         this.plugins.push(plugin);
     };
     /**

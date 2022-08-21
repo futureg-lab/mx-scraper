@@ -6,7 +6,7 @@ import { config } from "./utils/environement";
 export class MXScraper {
     plugins : MXPlugin[] = [];    
     constructor () {
-        // this.initPlugins ();
+        this.initPlugins ();
     }
 
     /**
@@ -32,9 +32,8 @@ export class MXScraper {
         
         // duplicate id check
         const list = this.plugins.map((plugin : MXPlugin) => plugin.unique_identifier);
-        console.info(list);
-        // if (list.includes(current_id))
-        //     throw Error ('Duplicate id : Unable de register plugin id ' + current_id);
+        if (list.includes(current_id))
+            throw Error ('Duplicate id : Unable de register plugin id ' + current_id);
         
         this.plugins.push (plugin);
     }

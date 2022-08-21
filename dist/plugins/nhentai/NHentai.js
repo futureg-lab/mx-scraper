@@ -8,7 +8,7 @@ var NHentai = /** @class */ (function () {
         this.title = 'NHentai';
         this.author = 'afmika';
         this.version = '1.0.0';
-        this.unique_identifier = 'example';
+        this.unique_identifier = 'nhentai';
         this.target_url = 'https://nhentai.net/';
     }
     NHentai.prototype.config = function (option) {

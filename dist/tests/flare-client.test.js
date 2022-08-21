@@ -51,11 +51,12 @@ test('Create/Destroy FlareSolverr browser session', function () { return __await
                 return [4 /*yield*/, solver.createSession()];
             case 2:
                 session_id = _a.sent();
-                console.info('Session id ', session_id, ' created !');
+                // console.info ('Session id ', session_id, ' created !');
                 return [4 /*yield*/, solver.destroySession(session_id)];
             case 3:
+                // console.info ('Session id ', session_id, ' created !');
                 _a.sent();
-                console.info('Session id ', session_id, ' destroyed !');
+                // console.info ('Session id ', session_id, ' destroyed !');
                 expect(session_id).toBeDefined();
                 return [3 /*break*/, 5];
             case 4:
@@ -66,7 +67,7 @@ test('Create/Destroy FlareSolverr browser session', function () { return __await
         }
     });
 }); });
-test('Throw an error when destroying non existing session', function () { return __awaiter(void 0, void 0, void 0, function () {
+test('Throw an error when destroying a non-existing session', function () { return __awaiter(void 0, void 0, void 0, function () {
     var solver, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -108,13 +109,11 @@ test('Create/Destroy and list 2 FlareSolverr browser sessions', function () { re
             case 3:
                 _d.apply(_c, [_e.sent()]);
                 expect(sessions).toHaveLength(2);
-                console.info(sessions.length, ' sessions created !');
                 return [4 /*yield*/, solver.getSessions()];
             case 4:
                 list = _e.sent();
                 result = list.filter(function (id) { return sessions.includes(id); });
                 expect(result).toHaveLength(sessions.length);
-                console.info(result.length, ' found !', result.join(' and '));
                 _i = 0, sessions_1 = sessions;
                 _e.label = 5;
             case 5:
@@ -127,9 +126,7 @@ test('Create/Destroy and list 2 FlareSolverr browser sessions', function () { re
             case 7:
                 _i++;
                 return [3 /*break*/, 5];
-            case 8:
-                console.info(sessions.length, ' sessions destroyed !');
-                return [3 /*break*/, 10];
+            case 8: return [3 /*break*/, 10];
             case 9:
                 err_3 = _e.sent();
                 fail(err_3);

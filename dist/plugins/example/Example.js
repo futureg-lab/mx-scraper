@@ -5,11 +5,15 @@ var Example = /** @class */ (function () {
     function Example() {
         // let's define some variables
         this.title = 'Plugin Example';
+        this.unique_identifier = 'example';
         this.author = 'afmika';
         this.version = '1.0.0';
-        this.target_url = 'https://some_website.com';
+        this.target_url = 'https://example.com';
     }
-    Example.prototype.fetchBook = function (option) {
+    Example.prototype.config = function (option) {
+        this.option = option;
+    };
+    Example.prototype.fetchBook = function (identifier) {
         return null;
     };
     Example.prototype.search = function (term, option) {

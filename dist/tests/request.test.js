@@ -38,21 +38,29 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 var CustomRequest_1 = require("../utils/CustomRequest");
 test('Perform a get request without a proxy on example.com', function () { return __awaiter(void 0, void 0, void 0, function () {
-    var request, text_response;
+    var request, text_response, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 request = new CustomRequest_1.CustomRequest();
-                return [4 /*yield*/, request.get('http://www.example.com/')];
+                _a.label = 1;
             case 1:
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, request.get('http://www.example.com/')];
+            case 2:
                 text_response = _a.sent();
                 expect(text_response).toContain('example');
-                return [2 /*return*/];
+                return [3 /*break*/, 4];
+            case 3:
+                err_1 = _a.sent();
+                fail(err_1);
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
 test('Perform a get request using a proxy on example.com', function () { return __awaiter(void 0, void 0, void 0, function () {
-    var option, request, text_response;
+    var option, request, text_response, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -60,16 +68,24 @@ test('Perform a get request using a proxy on example.com', function () { return 
                     proxy_url: 'http://localhost:8191/v1'
                 };
                 request = new CustomRequest_1.CustomRequest(option);
-                return [4 /*yield*/, request.get('http://www.example.com/')];
+                _a.label = 1;
             case 1:
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, request.get('http://www.example.com/')];
+            case 2:
                 text_response = _a.sent();
                 expect(text_response).toContain('example');
-                return [2 /*return*/];
+                return [3 /*break*/, 4];
+            case 3:
+                err_2 = _a.sent();
+                fail(err_2);
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
 test('Perform a get request using an existing session on example.com', function () { return __awaiter(void 0, void 0, void 0, function () {
-    var option, request, text_response;
+    var option, request, text_response, err_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -77,19 +93,27 @@ test('Perform a get request using an existing session on example.com', function 
                     proxy_url: 'http://localhost:8191/v1'
                 };
                 request = new CustomRequest_1.CustomRequest(option);
-                return [4 /*yield*/, request.initProxySession()];
+                _a.label = 1;
             case 1:
+                _a.trys.push([1, 5, , 6]);
+                return [4 /*yield*/, request.initProxySession()];
+            case 2:
                 _a.sent();
                 expect(request.proxy.session_id).toBeDefined();
                 return [4 /*yield*/, request.get('http://www.example.com/')];
-            case 2:
+            case 3:
                 text_response = _a.sent();
                 return [4 /*yield*/, request.destroyProxySession()];
-            case 3:
+            case 4:
                 _a.sent();
                 expect(request.proxy.session_id).toBeUndefined();
                 expect(text_response).toContain('example');
-                return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 5:
+                err_3 = _a.sent();
+                fail(err_3);
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); });

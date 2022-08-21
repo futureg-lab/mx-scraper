@@ -1,0 +1,9 @@
+const config = {
+    CLOUDFARE_PROXY_HOST : 'http://localhost:8191/v1',
+    PLUGIN_PROXY_ENABLE : {
+        'nhentai' : true
+    },
+    CLOUDFARE_MAX_TIMEOUT : 60000
+};
+
+export {config};

@@ -58,8 +58,13 @@ interface Author {
 /**
  * Abstraction of the 'any' type
  */
-interface Option extends Object {
+interface PluginOption extends Object {
+    useFlareSolverr : boolean;
+    enableUniqueSession : boolean;
 }
 
-export {Book, Chapter, Page, Tag, Metadata, Option};
+interface SearchOption extends Object {
+}
+
+export {Book, Chapter, Page, Tag, Metadata, PluginOption, SearchOption};
  

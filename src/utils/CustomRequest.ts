@@ -17,6 +17,14 @@ export class CustomRequest {
      * @param option Custom proxy configuration
      */
     constructor (option? : FlareSolverrProxyOption) {
+        if (option)
+            this.configureProxy(option);
+    }
+
+    /**
+     * @param option proxy option {proxy_url, timeout?, session_id?}
+     */
+    configureProxy (option : FlareSolverrProxyOption) {
         this.proxy = option;
     }
 

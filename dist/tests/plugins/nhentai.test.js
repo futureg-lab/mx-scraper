@@ -36,46 +36,26 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.Example = void 0;
-var Example = /** @class */ (function () {
-    function Example() {
-        // let's define some variables
-        this.title = 'Plugin Example';
-        this.unique_identifier = 'example';
-        this.author = 'afmika';
-        this.version = '1.0.0';
-        this.target_url = 'https://example.com';
-    }
-    Example.prototype.configure = function (option) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                this.option = option;
-                return [2 /*return*/];
-            });
-        });
-    };
-    Example.prototype.fetchBook = function (identifier) {
-        return null;
-    };
-    Example.prototype.search = function (term, option) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, []];
-            });
-        });
-    };
-    Example.prototype.getMetaDatas = function () {
-        return null;
-    };
-    Example.prototype.destructor = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                if (this.request.proxy.session_id)
-                    this.request.destroyProxySession();
-                return [2 /*return*/];
-            });
-        });
-    };
-    return Example;
-}());
-exports.Example = Example;
+var MXScraper_1 = require("../../MXScraper");
+test('NHentai book should have a value', function () { return __awaiter(void 0, void 0, void 0, function () {
+    var engine, nhentai, book, err_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                engine = new MXScraper_1.MXScraper();
+                return [4 /*yield*/, engine.initPlugins()];
+            case 1:
+                _a.sent();
+                nhentai = engine.getPluginByIdentifier('NHentai');
+                book = nhentai.fetchBook('177013');
+                expect(book != null).toBeTruthy();
+                return [3 /*break*/, 3];
+            case 2:
+                err_1 = _a.sent();
+                fail(err_1);
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); });

@@ -1,9 +1,10 @@
 import axios, { AxiosRequestConfig } from "axios";
+import { config } from "./environement";
 
 export interface FlareSolverrCommand {
     cmd : string;
     url? : string;
-    maxTimeout? : string;
+    maxTimeout? : number;
     session? : string;
 };
 
@@ -21,6 +22,8 @@ export class FlareSolverrClient {
      * @returns 
      */
     async performCommand (command : FlareSolverrCommand) {
+        if (!command.maxTimeout)
+            command.maxTimeout = config.CLOUDFARE_MAX_TIMEOUT;
         const axios_req_conf : AxiosRequestConfig = {
             url : this.base_url, // change the target to the solver
             method : 'POST',

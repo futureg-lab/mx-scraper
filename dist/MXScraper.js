@@ -36,91 +36,108 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.NHentai = void 0;
-var cheerio_1 = require("cheerio");
-var CustomRequest_1 = require("../../utils/CustomRequest");
-var environement_1 = require("../../utils/environement");
-var NHentai = /** @class */ (function () {
-    function NHentai() {
-        // let's define some variables
-        this.title = 'NHentai';
-        this.author = 'afmika';
-        this.version = '1.0.0';
-        this.unique_identifier = 'nhentai';
-        this.target_url = 'https://nhentai.net/';
-        this.request = new CustomRequest_1.CustomRequest();
+exports.MXScraper = void 0;
+var Example_1 = require("./plugins/example/Example");
+var NHentai_1 = require("./plugins/nhentai/NHentai");
+var environement_1 = require("./utils/environement");
+var MXScraper = /** @class */ (function () {
+    function MXScraper() {
+        this.plugins = [];
     }
-    NHentai.prototype.configure = function (option) {
+    /**
+     * Register avalaible plugins
+     */
+    MXScraper.prototype.initPlugins = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var solver_option;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0:
-                        this.option = option;
-                        if (!this.option.useFlareSolverr) return [3 /*break*/, 2];
-                        solver_option = {
-                            proxy_url: environement_1.config.CLOUDFARE_PROXY_HOST,
-                            timeout: environement_1.config.CLOUDFARE_MAX_TIMEOUT
-                        };
-                        this.request.configureProxy(solver_option);
-                        return [4 /*yield*/, this.request.initProxySession()];
+                    case 0: return [4 /*yield*/, this.register(new Example_1.Example())];
                     case 1:
-                        _a.sent(); // init session if there are none
-                        _a.label = 2;
-                    case 2: return [2 /*return*/];
+                        _a.sent();
+                        return [4 /*yield*/, this.register(new NHentai_1.NHentai())];
+                    case 2:
+                        _a.sent();
+                        return [2 /*return*/];
                 }
             });
         });
     };
-    NHentai.prototype.fetchBook = function (hentai_id) {
+    /**
+     * @param plugin Plugin to register
+     */
+    MXScraper.prototype.register = function (plugin) {
         return __awaiter(this, void 0, void 0, function () {
-            var url, response_html, $, book;
+            var current_id, list;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        url = this.target_url + 'g/' + hentai_id;
-                        return [4 /*yield*/, this.request.get(url)];
-                    case 1:
-                        response_html = _a.sent();
-                        $ = (0, cheerio_1.load)(response_html);
-                        console.info(response_html);
-                        book = {
-                            title: '',
-                            authors: [],
-                            chapters: [],
-                            description: '',
-                            metadatas: {}
-                        };
-                        return [2 /*return*/, book];
-                }
-            });
-        });
-    };
-    NHentai.prototype.search = function (term, option) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, []];
-            });
-        });
-    };
-    NHentai.prototype.getMetaDatas = function () {
-        return null;
-    };
-    NHentai.prototype.destructor = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (!this.request.proxy.session_id) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this.request.destroyProxySession()];
+                        current_id = plugin.constructor.name;
+                        if (!environement_1.config.PLUGIN_PROXY_ENABLE[current_id]) return [3 /*break*/, 2];
+                        return [4 /*yield*/, plugin.configure({
+                                useFlareSolverr: true,
+                                enableUniqueSession: true
+                            })];
                     case 1:
                         _a.sent();
                         _a.label = 2;
-                    case 2: return [2 /*return*/];
+                    case 2:
+                        list = this.plugins.map(function (plugin) { return plugin.constructor.name; });
+                        if (list.includes(current_id))
+                            throw Error('Duplicate id : Unable de register plugin id ' + current_id);
+                        this.plugins.push(plugin);
+                        return [2 /*return*/];
                 }
             });
         });
     };
-    return NHentai;
+    /**
+     * Search plugins for a specific url
+     * @param url Target url
+     * @returns An array of plugins
+     */
+    MXScraper.prototype.searchPluginFor = function (url, exact_match) {
+        if (exact_match === void 0) { exact_match = false; }
+        return [];
+    };
+    /**
+     * @param id plugin unique id
+     * @returns
+     */
+    MXScraper.prototype.getPluginByIdentifier = function (id) {
+        var res = this.plugins.filter(function (plugin) { return plugin.constructor.name == id; });
+        if (res.length == 0)
+            return null;
+        return res[0];
+    };
+    /**
+     * Get a list of all plugins available
+     */
+    MXScraper.prototype.getAllPlugins = function () {
+        return this.plugins;
+    };
+    MXScraper.prototype.destructor = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var _i, _a, plugin;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _i = 0, _a = this.plugins;
+                        _b.label = 1;
+                    case 1:
+                        if (!(_i < _a.length)) return [3 /*break*/, 4];
+                        plugin = _a[_i];
+                        return [4 /*yield*/, plugin.destructor()];
+                    case 2:
+                        _b.sent();
+                        _b.label = 3;
+                    case 3:
+                        _i++;
+                        return [3 /*break*/, 1];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    return MXScraper;
 }());
-exports.NHentai = NHentai;
+exports.MXScraper = MXScraper;

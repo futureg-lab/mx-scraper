@@ -8,6 +8,7 @@
     "start": "npx tsc --watch"
   },
   "jest": {
+    "testTimeout" : 60000,
     "verbose": true,
     "modulePathIgnorePatterns": [
       "src"

@@ -60,7 +60,7 @@ interface Author {
  */
 interface PluginOption extends Object {
     useFlareSolverr : boolean;
-    enableUniqueSession : boolean;
+    useThisSessionId? : string;
 }
 
 interface SearchOption extends Object {

@@ -26,10 +26,9 @@ export class MXScraper {
      */
     async register (plugin : MXPlugin) {
         const current_id = plugin.constructor.name;
-        if (config.PLUGIN_PROXY_ENABLE[current_id]) {
+        if (config.PLUGIN_PROXY_ENABLE.includes(current_id)) {
             await plugin.configure ({
-                useFlareSolverr : true,
-                enableUniqueSession : true
+                useFlareSolverr : true
             });
         }
         

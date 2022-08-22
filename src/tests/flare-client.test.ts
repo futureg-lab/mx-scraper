@@ -38,17 +38,17 @@ test('Create/Destroy and list 2 FlareSolverr browser sessions', async () => {
         sessions.push(await solver.createSession ());
         sessions.push(await solver.createSession ());
         expect(sessions).toHaveLength(2);
-        // console.info (sessions.length, ' sessions created !');
+        console.info (sessions.length, ' sessions created !');
 
         // list
         const list = await solver.getSessions ();
         const result = list.filter(id => sessions.includes(id));
         expect(result).toHaveLength(sessions.length);
-        // console.info (result.length, ' found !', result.join(' and '));
+        console.info (result.length, ' found !', result.join(' and '));
 
         for (let id of sessions)
-        await solver.destroySession (id);
-        // console.info (sessions.length, ' sessions destroyed !');
+            await solver.destroySession (id);
+        console.info (sessions.length, ' sessions destroyed !');
     } catch (err) {
         fail(err);
     }

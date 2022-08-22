@@ -14,3 +14,7 @@ npm start
 npm build
 npm test
 ```
+## Sandbox tests examples
+```
+npm run ts-node src/sandbox/flare-session.ts
+```

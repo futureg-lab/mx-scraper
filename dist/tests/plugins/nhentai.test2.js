@@ -42,22 +42,20 @@ test('NHentai book should have a value', function () { return __awaiter(void 0, 
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 3, , 4]);
+                _a.trys.push([0, 2, , 3]);
                 engine = new MXScraper_1.MXScraper();
-                return [4 /*yield*/, engine.initFromPluginFolder()];
+                return [4 /*yield*/, engine.initPlugins()];
             case 1:
                 _a.sent();
                 nhentai = engine.getPluginByIdentifier('NHentai');
-                return [4 /*yield*/, nhentai.fetchBook('177013')];
-            case 2:
-                book = _a.sent();
+                book = nhentai.fetchBook('177013');
                 expect(book != null).toBeTruthy();
-                return [3 /*break*/, 4];
-            case 3:
+                return [3 /*break*/, 3];
+            case 2:
                 err_1 = _a.sent();
                 fail(err_1);
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
         }
     });
 }); });

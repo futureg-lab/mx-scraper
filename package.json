@@ -8,11 +8,12 @@
     "start": "npx tsc --watch"
   },
   "jest": {
-    "testTimeout" : 60000,
+    "testTimeout": 60000,
     "verbose": true,
     "modulePathIgnorePatterns": [
-      "src"
-    ]
+      "dist"
+    ],
+    "preset" : "ts-jest"
   },
   "repository": {
     "type": "git",
@@ -36,6 +37,7 @@
     "@babel/preset-typescript": "^7.18.6",
     "@types/jest": "^28.1.7",
     "jest": "^28.1.3",
+    "ts-jest": "^28.0.8",
     "typescript": "^4.7.4"
   },
   "dependencies": {

@@ -38,8 +38,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 exports.NHentai = void 0;
 var cheerio_1 = require("cheerio");
-var CustomRequest_1 = require("../../utils/CustomRequest");
-var environement_1 = require("../../utils/environement");
+var CustomRequest_1 = require("../utils/CustomRequest");
+var environment_1 = require("../utils/environment ");
 var NHentai = /** @class */ (function () {
     function NHentai() {
         // let's define some variables
@@ -59,8 +59,8 @@ var NHentai = /** @class */ (function () {
                         this.option = option;
                         if (!this.option.useFlareSolverr) return [3 /*break*/, 2];
                         solver_option = {
-                            proxy_url: environement_1.config.CLOUDFARE_PROXY_HOST,
-                            timeout: environement_1.config.CLOUDFARE_MAX_TIMEOUT
+                            proxy_url: environment_1.config.CLOUDFARE_PROXY_HOST,
+                            timeout: environment_1.config.CLOUDFARE_MAX_TIMEOUT
                         };
                         this.request.configureProxy(solver_option);
                         return [4 /*yield*/, this.request.initProxySession()];
@@ -83,7 +83,7 @@ var NHentai = /** @class */ (function () {
                     case 1:
                         response_html = _a.sent();
                         $ = (0, cheerio_1.load)(response_html);
-                        console.info(response_html);
+                        console.info(response_html.length, ' characters fetched !');
                         book = {
                             title: '',
                             authors: [],

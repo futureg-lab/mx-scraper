@@ -1,7 +1,6 @@
 import { MXPlugin } from "./interfaces/MXPlugin";
-import { Example } from "./plugins/example/Example";
-import { NHentai } from "./plugins/nhentai/NHentai";
-import { config } from "./utils/environement";
+import { Example } from "./plugins/Example";
+import { config } from "./utils/environment ";
 
 export class MXScraper {
     plugins : MXPlugin[] = [];    
@@ -11,9 +10,15 @@ export class MXScraper {
     /**
      * Register avalaible plugins
      */
-    async initPlugins () {
-        await this.register (new Example());
-        await this.register (new NHentai());
+    async initFromPluginFolder () {
+        const list_to_load = config.LOAD_PLUGINS;
+        for (let name of list_to_load) {
+            const module = await import('./plugins/' + name);
+            if (!module[name])
+                throw Error ('Plugin error : plugin "' + name + "' not found in ./plugins/");
+            const instance = <MXPlugin> (new module[name]);
+            await this.register (instance);
+        }
     }
 
     /**
@@ -27,12 +32,11 @@ export class MXScraper {
                 enableUniqueSession : true
             });
         }
-
         
         // duplicate id check
         const list = this.plugins.map((plugin : MXPlugin) => plugin.constructor.name);
         if (list.includes(current_id))
-            throw Error ('Duplicate id : Unable de register plugin id ' + current_id);
+            throw Error ('Plugin error : Unable de register plugin id ' + current_id);
         
         this.plugins.push (plugin);
     }

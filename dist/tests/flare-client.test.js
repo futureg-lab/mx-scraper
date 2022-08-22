@@ -36,9 +36,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-var environement_1 = require("../utils/environement");
+var environment_1 = require("../utils/environment ");
 var FlareSolverrClient_1 = require("../utils/FlareSolverrClient");
-var local_proxy = environement_1.config.CLOUDFARE_PROXY_HOST;
+var local_proxy = environment_1.config.CLOUDFARE_PROXY_HOST;
 test('Create/Destroy FlareSolverr browser session', function () { return __awaiter(void 0, void 0, void 0, function () {
     var solver, session_id, err_1;
     return __generator(this, function (_a) {

@@ -37,7 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var MXScraper_1 = require("../MXScraper");
-var Example_1 = require("../plugins/example/Example");
+var Example_1 = require("../plugins/Example");
 test('MXScraper should have more than 1 plugin', function () { return __awaiter(void 0, void 0, void 0, function () {
     var engine, plugins, err_1;
     return __generator(this, function (_a) {
@@ -45,7 +45,7 @@ test('MXScraper should have more than 1 plugin', function () { return __awaiter(
             case 0:
                 _a.trys.push([0, 2, , 3]);
                 engine = new MXScraper_1.MXScraper();
-                return [4 /*yield*/, engine.initPlugins()];
+                return [4 /*yield*/, engine.initFromPluginFolder()];
             case 1:
                 _a.sent();
                 plugins = engine.getAllPlugins();
@@ -69,7 +69,7 @@ test('Registering duplicate ids should fail', function () { return __awaiter(voi
             case 0:
                 _a.trys.push([0, 3, , 4]);
                 engine = new MXScraper_1.MXScraper();
-                return [4 /*yield*/, engine.initPlugins()];
+                return [4 /*yield*/, engine.initFromPluginFolder()];
             case 1:
                 _a.sent();
                 return [4 /*yield*/, engine.register(new Example_1.Example())];

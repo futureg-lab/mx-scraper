@@ -1,8 +1,8 @@
 import {CheerioAPI, load} from "cheerio";
-import { Book, PluginOption, Metadata, SearchOption } from "../../interfaces/BookDef";
-import { MXPlugin } from "../../interfaces/MXPlugin";
-import { CustomRequest, FlareSolverrProxyOption } from "../../utils/CustomRequest";
-import { config } from "../../utils/environement";
+import { Book, PluginOption, Metadata, SearchOption } from "../interfaces/BookDef";
+import { MXPlugin } from "../interfaces/MXPlugin";
+import { CustomRequest, FlareSolverrProxyOption } from "../utils/CustomRequest";
+import { config } from "../utils/environment ";
 
 export class NHentai implements MXPlugin {
     title : string;
@@ -39,7 +39,7 @@ export class NHentai implements MXPlugin {
         const url = this.target_url + 'g/' + hentai_id;
         let response_html = await this.request.get(url);
         const $ : CheerioAPI = load (response_html);
-        console.info(response_html);
+        console.info(response_html.length, ' characters fetched !');
         // $('script').each((i, script) => {
         //     load(script);
         // });

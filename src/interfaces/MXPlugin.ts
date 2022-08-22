@@ -1,5 +1,5 @@
 import { CustomRequest } from "../utils/CustomRequest";
-import { Book, PluginOption, Metadata, SearchOption } from "./BookDef";
+import { Book, PluginOption, SearchOption } from "./BookDef";
 
 export interface MXPlugin {
     title : string;
@@ -22,8 +22,6 @@ export interface MXPlugin {
 
     configure (option : PluginOption) : Promise<void>;
     
-    getMetaDatas () : Metadata[];
-
     /**
      * Useful if there are remaining sessions
      */

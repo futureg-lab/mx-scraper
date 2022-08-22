@@ -1,25 +1,20 @@
 import {CheerioAPI, load} from "cheerio";
-import { Book, PluginOption, Metadata, SearchOption } from "../interfaces/BookDef";
+import { Book, PluginOption, Metadata, SearchOption, Tag, Page, TitleAlias, Chapter } from "../interfaces/BookDef";
 import { MXPlugin } from "../interfaces/MXPlugin";
 import { CustomRequest, FlareSolverrProxyOption } from "../utils/CustomRequest";
-import { config } from "../utils/environment ";
+import { config } from "../environment";
 
 export class NHentai implements MXPlugin {
-    title : string;
-    author : string;
-    version : string;
-    target_url : string;
-    unique_identifier : string;
+    title : string = 'NHentai';
+    author : string = 'afmika';
+    version : string = '1.0.0';
+    target_url : string = 'https://nhentai.net/';
     option : PluginOption;
     request : CustomRequest;
 
+    private gallery_url : string = 'https://i3.nhentai.net/galleries/';
+
     constructor () {
-        // let's define some variables
-        this.title = 'NHentai';
-        this.author = 'afmika';
-        this.version = '1.0.0';
-        this.unique_identifier = 'nhentai';
-        this.target_url = 'https://nhentai.net/';
         this.request = new CustomRequest();
     }
 
@@ -38,39 +33,111 @@ export class NHentai implements MXPlugin {
 
     async fetchBook (hentai_id : string) : Promise<Book> {
         const url = this.target_url + 'g/' + hentai_id;
-        const json = await this.fetchJsonFrom (hentai_id);
+        const response_html = await this.request.get (url);
+        const $ : CheerioAPI = load (response_html);
+        console.info(response_html.length, ' characters fetched !');
 
-        // const $ : CheerioAPI = load (response_html);
-        // console.info(response_html.length, ' characters fetched !');
-        console.info(json, ' characters fetched !');
-        // $('script').each((i, script) => {
-        //     load(script);
-        // });
+        // fetch the json object
+        let json = null;
+        $('script').each((i, element) => {
+            const text = $(element).text();
+            if (/JSON\.parse/.test(text)) {
+                const [ , temp] = text.match(/JSON\.parse\("(.+?)"\)/i);
+                json = JSON.parse(temp.replace(/\\u0022/g, '"'))
+                return;
+            }
+        });
+        
+        // titles
+        const titles : TitleAlias[] = [];
+        for (let lang in json.title) {
+            if (json.title[lang] == '') continue;
+            titles.push(<TitleAlias>{
+                title : json.title[lang],
+                description : lang
+            });
+        }
+        const curr_title = json.title['english'] || titles[0];
 
+        // author ?
+        const [ , author] = curr_title.match(/\[(.+?)\]/);
+
+        // tags ?
+        const tags : Tag [] = json['tags'].map(tag => <Tag>{
+            name: tag.name,
+            metadatas : Object.keys(tag).map(key => <Metadata>{
+                label : key,
+                content : tag[key]
+            })
+        });
+
+        // book setup
         const book : Book = <Book> {
-            title : '',
-            authors : [],
+            url : url,
+            title : curr_title,
+            title_aliases : titles,
+            authors : [ author ],
             chapters : [],
             description : '',
-            metadatas : {
-
-            }
+            tags : tags,
+            metadatas : [<Metadata>{
+                label : 'json',
+                content : json
+            }]
         };
+
+        // chapter
+        const chapter = await this.constructChapterFrom (book, json);
+        book.chapters.push(chapter);
+        
         return book;
     }
 
-    async fetchJsonFrom (hentai_id : string) {
-        const url = this.target_url + 'api/gallery/' + hentai_id;
-        const json_text = await this.request.get(url);
-        return json_text;
+    private async constructChapterFrom (book : Book, json : any) : Promise<Chapter> {
+        // TODO
+        // asert book defined
+        // asert book.title defined
+        // asert book.url defined
+        const chapter = <Chapter> {
+            title : book.title,
+            number : 1,
+            pages : [],
+            description : '',
+            parent : book, // attach to its parent
+            url : book.url
+        };
+
+        const type_map = {
+            'p' : 'png', 
+            'j' : 'jpg',
+            'g' : 'gif'
+        };
+        const trivial_case = Object.values (type_map);
+
+        // pages
+        for (let i = 0; i < json.images.pages.length; i++) {
+            const page_number = 1 + i;
+            const meta_image = json.images.pages[i];
+            const meta_type = meta_image['t'];
+            console.log(meta_type, i)
+            const filename_chunk = [
+                page_number,
+                trivial_case.includes(meta_type) ? 
+                    meta_type : (type_map[meta_type] || '')
+            ];
+            chapter.pages.push(<Page> {
+                title : '' + page_number,
+                number : page_number,
+                parent : chapter,
+                url : this.gallery_url + json.media_id + '/' + filename_chunk.join('.')
+            });
+        }
+
+        return chapter;
     }
 
     async search (term : string, option : SearchOption) : Promise<Book[]> {
-        return [];
-    }
-
-    getMetaDatas () : Metadata[] {
-        return null;
+        throw Error ('Yet to be implemented');
     }
 
     async destructor () {

@@ -7,7 +7,8 @@ const config = {
     PLUGIN_PROXY_ENABLE : [
         'NHentai' 
     ],
-    CLOUDFARE_MAX_TIMEOUT : 60000
+    CLOUDFARE_MAX_TIMEOUT : 120000,
+    UNIQUE_SESSION : '3b265890-2245-11ed-a545-a38a2193908e'
 };
 
 export {config};

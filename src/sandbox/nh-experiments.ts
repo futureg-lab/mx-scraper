@@ -2,23 +2,20 @@ import { PluginOption } from "../interfaces/BookDef";
 import { MXScraper } from "../MXScraper";
 import { NHentai } from "../plugins/NHentai";
 import { FlareSolverrProxyOption } from "../utils/CustomRequest";
-import { config } from "../utils/environment ";
+import { config } from "../environment";
 import { FlareSolverrClient } from "../utils/FlareSolverrClient";
 
 (async () => {
     try {
-        // const engine = new MXScraper ();
-        // await engine.initFromPluginFolder();
-        // const nhentai = <NHentai> engine.getPluginByIdentifier ('NHentai');
+        const engine = new MXScraper ();
+        // init plugin
+        const use_sess_config = true;
+        await engine.initFromPluginFolder(use_sess_config);
 
-        // using nhentai directly will allow us to force assign a session
-        const nhentai = new NHentai();
-        nhentai.configure(<PluginOption>{
-            useFlareSolverr : true,
-            useThisSessionId : '38a41520-2232-11ed-b316-47b0b963912e'
-        });
+        const nhentai = <NHentai> engine.getPluginByIdentifier ('NHentai');
         const book = await nhentai.fetchBook ('177013');
         console.log(book);
+        console.log(book.chapters[0])
 
         // nhentai.destructor();
     } catch (err) {

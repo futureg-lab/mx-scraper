@@ -4,7 +4,7 @@
   "description": "website scraper",
   "main": "index.js",
   "scripts": {
-    "test": "npx jest",
+    "test": "npx jest --runInBand",
     "start": "npx tsc --watch",
     "ts-node" : "ts-node"
   },

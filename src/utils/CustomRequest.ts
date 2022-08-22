@@ -37,6 +37,10 @@ export class CustomRequest {
             this.proxy.session_id = await solver.createSession ();
     }
 
+    hasExistingSession () {
+        return (this.proxy != null) && (this.proxy.session_id != undefined);
+    }
+
     /**
      * Destroy a session (assuming initProxySession was called first)
      */

@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "npx jest",
-    "start": "npx tsc --watch"
+    "start": "npx tsc --watch",
+    "ts-node" : "ts-node"
   },
   "jest": {
     "testTimeout": 60000,
@@ -13,7 +14,7 @@
     "modulePathIgnorePatterns": [
       "dist"
     ],
-    "preset" : "ts-jest"
+    "preset": "ts-jest"
   },
   "repository": {
     "type": "git",
@@ -38,6 +39,7 @@
     "@types/jest": "^28.1.7",
     "jest": "^28.1.3",
     "ts-jest": "^28.0.8",
+    "ts-node": "^10.9.1",
     "typescript": "^4.7.4"
   },
   "dependencies": {

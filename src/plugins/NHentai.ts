@@ -28,7 +28,8 @@ export class NHentai implements MXPlugin {
         if (this.option.useFlareSolverr) {
             const solver_option : FlareSolverrProxyOption = <FlareSolverrProxyOption>{
                 proxy_url : config.CLOUDFARE_PROXY_HOST,
-                timeout : config.CLOUDFARE_MAX_TIMEOUT
+                timeout : config.CLOUDFARE_MAX_TIMEOUT,
+                session_id : this.option.useThisSessionId || undefined
             };
             this.request.configureProxy (solver_option);
             await this.request.initProxySession (); // init session if there are none
@@ -37,9 +38,11 @@ export class NHentai implements MXPlugin {
 
     async fetchBook (hentai_id : string) : Promise<Book> {
         const url = this.target_url + 'g/' + hentai_id;
-        let response_html = await this.request.get(url);
-        const $ : CheerioAPI = load (response_html);
-        console.info(response_html.length, ' characters fetched !');
+        const json = await this.fetchJsonFrom (hentai_id);
+
+        // const $ : CheerioAPI = load (response_html);
+        // console.info(response_html.length, ' characters fetched !');
+        console.info(json, ' characters fetched !');
         // $('script').each((i, script) => {
         //     load(script);
         // });
@@ -54,6 +57,12 @@ export class NHentai implements MXPlugin {
             }
         };
         return book;
+    }
+
+    async fetchJsonFrom (hentai_id : string) {
+        const url = this.target_url + 'api/gallery/' + hentai_id;
+        const json_text = await this.request.get(url);
+        return json_text;
     }
 
     async search (term : string, option : SearchOption) : Promise<Book[]> {

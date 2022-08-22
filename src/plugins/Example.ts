@@ -1,6 +1,6 @@
-import { Book, PluginOption, Metadata, SearchOption } from "../../interfaces/BookDef";
-import { MXPlugin } from "../../interfaces/MXPlugin";
-import { CustomRequest } from "../../utils/CustomRequest";
+import { Book, PluginOption, Metadata, SearchOption } from "../interfaces/BookDef";
+import { MXPlugin } from "../interfaces/MXPlugin";
+import { CustomRequest } from "../utils/CustomRequest";
 
 export class Example implements MXPlugin {
     title : string;

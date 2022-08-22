@@ -37,8 +37,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 exports.MXScraper = void 0;
-var Example_1 = require("./plugins/example/Example");
-var NHentai_1 = require("./plugins/nhentai/NHentai");
 var environment_1 = require("./utils/environment ");
 var MXScraper = /** @class */ (function () {
     function MXScraper() {
@@ -47,17 +45,32 @@ var MXScraper = /** @class */ (function () {
     /**
      * Register avalaible plugins
      */
-    MXScraper.prototype.initPlugins = function () {
+    MXScraper.prototype.initFromPluginFolder = function () {
         return __awaiter(this, void 0, void 0, function () {
+            var list_to_load, _i, list_to_load_1, name_1, module_1, instance;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.register(new Example_1.Example())];
+                    case 0:
+                        list_to_load = environment_1.config.LOAD_PLUGINS;
+                        _i = 0, list_to_load_1 = list_to_load;
+                        _a.label = 1;
                     case 1:
-                        _a.sent();
-                        return [4 /*yield*/, this.register(new NHentai_1.NHentai())];
+                        if (!(_i < list_to_load_1.length)) return [3 /*break*/, 5];
+                        name_1 = list_to_load_1[_i];
+                        return [4 /*yield*/, Promise.resolve().then(function () { return require('./plugins/' + name_1); })];
                     case 2:
+                        module_1 = _a.sent();
+                        if (!module_1[name_1])
+                            throw Error('Plugin error : plugin "' + name_1 + "' not found in ./plugins/");
+                        instance = (new module_1[name_1]);
+                        return [4 /*yield*/, this.register(instance)];
+                    case 3:
                         _a.sent();
-                        return [2 /*return*/];
+                        _a.label = 4;
+                    case 4:
+                        _i++;
+                        return [3 /*break*/, 1];
+                    case 5: return [2 /*return*/];
                 }
             });
         });
@@ -83,7 +96,7 @@ var MXScraper = /** @class */ (function () {
                     case 2:
                         list = this.plugins.map(function (plugin) { return plugin.constructor.name; });
                         if (list.includes(current_id))
-                            throw Error('Duplicate id : Unable de register plugin id ' + current_id);
+                            throw Error('Plugin error : Unable de register plugin id ' + current_id);
                         this.plugins.push(plugin);
                         return [2 /*return*/];
                 }

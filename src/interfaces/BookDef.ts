@@ -3,10 +3,13 @@
  */
 interface Book {
     title : string;
+    title_aliases : TitleAlias[];
     description : string;
     authors : Author[];
     chapters : Chapter[];
+    tags : Tag[];
     metadatas : Metadata[];
+    url : string;
 }
 
 /**
@@ -17,7 +20,7 @@ interface Chapter {
     description : string;
     url : string;
     number : number;
-    pages : Page;
+    pages : Page[];
     parent : Book;
 }
 
@@ -37,6 +40,14 @@ interface Page {
 interface Tag {
     name : string;
     metadatas : Metadata[]; 
+}
+
+/**
+ * Abstraction of a title
+ */
+interface TitleAlias {
+    title : string;
+    description : string; // ex : japanese, english, ...
 }
 
 /**
@@ -66,5 +77,5 @@ interface PluginOption extends Object {
 interface SearchOption extends Object {
 }
 
-export {Book, Chapter, Page, Tag, Metadata, PluginOption, SearchOption};
+export {Book, Chapter, Page, Tag, TitleAlias, Metadata, PluginOption, SearchOption};
  

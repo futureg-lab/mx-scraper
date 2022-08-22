@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from "axios";
-import { config } from "../environment ";
+import { config } from "../environment";
 
 export interface FlareSolverrCommand {
     cmd : string;

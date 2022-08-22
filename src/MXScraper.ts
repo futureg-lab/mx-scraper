@@ -1,6 +1,6 @@
 import { PluginOption } from "./interfaces/BookDef";
 import { MXPlugin } from "./interfaces/MXPlugin";
-import { config } from "./environment ";
+import { config } from "./environment";
 
 export class MXScraper {
     plugins : MXPlugin[] = [];

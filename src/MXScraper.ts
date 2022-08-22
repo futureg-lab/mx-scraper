@@ -1,34 +1,37 @@
+import { PluginOption } from "./interfaces/BookDef";
 import { MXPlugin } from "./interfaces/MXPlugin";
-import { Example } from "./plugins/Example";
-import { config } from "./utils/environment ";
+import { config } from "./environment ";
 
 export class MXScraper {
-    plugins : MXPlugin[] = [];    
+    plugins : MXPlugin[] = [];
     constructor () {
     }
 
     /**
      * Register avalaible plugins
      */
-    async initFromPluginFolder () {
+    async initFromPluginFolder (use_session_from_config : Boolean = false) {
         const list_to_load = config.LOAD_PLUGINS;
         for (let name of list_to_load) {
             const module = await import('./plugins/' + name);
             if (!module[name])
                 throw Error ('Plugin error : plugin "' + name + "' not found in ./plugins/");
             const instance = <MXPlugin> (new module[name]);
-            await this.register (instance);
+            await this.register (instance, use_session_from_config);
         }
     }
 
     /**
      * @param plugin Plugin to register
+     * @param use_session_from_config session config
      */
-    async register (plugin : MXPlugin) {
+    async register (plugin : MXPlugin, use_session_from_config : Boolean = false) {
         const current_id = plugin.constructor.name;
         if (config.PLUGIN_PROXY_ENABLE.includes(current_id)) {
-            await plugin.configure ({
-                useFlareSolverr : true
+            const unique_session_id = use_session_from_config ? config.UNIQUE_SESSION : undefined;
+            await plugin.configure (<PluginOption>{
+                useFlareSolverr : true,
+                useThisSessionId : unique_session_id
             });
         }
         

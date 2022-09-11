@@ -1,5 +1,5 @@
 # mx-scraper
-Manga website scraper
+mx-scraper (Manga Xtreme Scraper) is an opensource Manga website scraper.
 
 ## Build
 ```

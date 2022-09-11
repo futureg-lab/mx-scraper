@@ -6,7 +6,7 @@
   "scripts": {
     "test": "npx jest --runInBand",
     "start": "npx tsc --watch",
-    "ts-node" : "ts-node"
+    "ts-node": "ts-node"
   },
   "jest": {
     "testTimeout": 60000,

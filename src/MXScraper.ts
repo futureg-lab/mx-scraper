@@ -70,6 +70,9 @@ export class MXScraper {
         return this.plugins;
     }
 
+    /**
+     * Free all the ressources used by the registered plugins
+     */
     async destructor () {
         for (let plugin of this.plugins)
             await plugin.destructor();

@@ -10,10 +10,13 @@ export interface CLICommand {
     description? : string;
 }
 
+/**
+ * Custom engine for the command line
+ */
 export class CLIEngine {
     commands : Map<string, CLICommand>;
     aliases : Map<string, string>;
-    required : string[];
+    required : Set<string[]>;
     
     /**
      * @param command_list list of all possible commands
@@ -34,9 +37,16 @@ export class CLIEngine {
      * @param required_name_list list of expected arguments
      */
     defineRequiredArgs (required_name_list : string []) {
-        for (let name of required_name_list)
-            this.commandNameExistOrThrowError (name);
-        this.required = required_name_list;
+        this.required = new Set();
+        // required_name_list[i] := full_str := spec1 | spec2 | ... | specN
+        for (let full_str of required_name_list) {
+            const splits = full_str
+                            .split ('|')
+                            .map ((v, _) => v.trim());
+            for (let name of splits)
+                this.commandNameExistOrThrowError (name);
+            this.required.add (splits);
+        }
     }
 
     private commandNameExistOrThrowError (name : string) {
@@ -47,16 +57,20 @@ export class CLIEngine {
     private commandAliasExistOrThrowSuggest (alias : string) {
         if (this.aliases.get(alias) === undefined) {
             const ressembl_sugg = 2;
+            const max_dist = 3;
             const possibilities = Array
-                                .from(this.aliases.keys())
-                                .map ((key : string, _) => <any>{
-                                    key : key, 
-                                    dist : levenshtein(key, alias)
-                                })
-                                .sort((a, b) => a.dist - b.dist)
-                                .slice(0, ressembl_sugg)
-                                .map((v, _) => v.key);
-            throw Error (`Command "${alias}" does not exist, did you mean ${possibilities.join(', ')} ?`);
+                                    .from (this.aliases.keys())
+                                    .map ((key : string, _) => <any>{
+                                        key : key, 
+                                        dist : levenshtein(key, alias)
+                                    })
+                                    .sort ((a, b) => a.dist - b.dist)
+                                    .filter ((v, _) => v.dist <= max_dist)
+                                    .slice (0, ressembl_sugg)
+                                    .map ((v, _) => v.key);
+            const suggestion = possibilities.length == 0 ? 
+                            '' : ` , did you mean ${possibilities.join(', ')}`;
+            throw Error (`Command "${alias}" does not exist${suggestion} ?`);
         }
     }
 
@@ -65,14 +79,16 @@ export class CLIEngine {
         let cursor = 0;
         while (cursor < args.length) {
             this.commandAliasExistOrThrowSuggest (args[cursor]);
-            const current = this.aliases.get(args[cursor]);
+            const current = this.aliases.get (args[cursor]);
+            cursor++;
+
             // all ok
             const command = this.commands.get (current);
             let values : string[] = [];
-            if (command.arg_count == Infinity) {
+            if (command.arg_count == Infinity || command.arg_count == undefined) {
                 while (cursor < args.length) {
-                    const value = args[cursor + 1];
-                    if (this.aliases.get(value) != undefined) {
+                    const value = args[cursor];
+                    if (this.aliases.get(value) !== undefined) {
                         break; // got a legit command
                     } else {
                         values.push (value);
@@ -81,17 +97,40 @@ export class CLIEngine {
                 }
             } else {
                 // finite
-                console.log("there!!!!!!!!!", args[cursor]);
-                while (cursor < Math.min(command.arg_count + cursor - 1, args.length))
-                    values.push (args[++cursor]);
+                let offset = cursor;
+                while (cursor < Math.min(offset + command.arg_count, args.length)) {
+                    values.push (args[cursor]);
+                    cursor++;
+                }
                 
                 if (values.length != command.arg_count)
-                    throw Error (`Error at "${args[cursor]}" : Expected ${command.arg_count} values, got ${values.length} instead`);
-                
+                    throw Error (`At "${args[offset - 1]}" : Expected ${command.arg_count} value${command.arg_count > 1 ? 's' : ''}, got ${values.length} instead`);
             }
 
-            state[command.name] = values;
+            if (state.get(command.name) !== undefined)
+                throw Error (`At "${args[cursor]}", command already specified`);
+            
+            state.set(command.name, values);
         }
+
+        const extracted = Array.from (state.keys());
+        const missing = [];
+        this.required.forEach ((specs : string[]) => {
+            let has_requirement = false;
+            for (let spec of specs) {
+                if (extracted.includes(spec)) {
+                    has_requirement = true;
+                    break;
+                }
+            }
+
+            if (!has_requirement)
+                missing.push (specs.map(v => `"${v}"`).join(' | '));
+        });
+
+        if (missing.length > 0)
+            throw Error (`Missing command relative to ${missing.join(', ')}`);
+
         return state;
     }
 }

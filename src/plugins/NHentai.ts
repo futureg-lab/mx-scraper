@@ -35,7 +35,6 @@ export class NHentai implements MXPlugin {
         const url = this.target_url + 'g/' + hentai_id;
         const response_html = await this.request.get (url);
         const $ : CheerioAPI = load (response_html);
-        console.info(response_html.length, ' characters fetched !');
 
         // fetch the json object
         let json = null;
@@ -119,7 +118,6 @@ export class NHentai implements MXPlugin {
             const page_number = 1 + i;
             const meta_image = json.images.pages[i];
             const meta_type = meta_image['t'];
-            console.log(meta_type, i)
             const filename_chunk = [
                 page_number,
                 trivial_case.includes(meta_type) ? 

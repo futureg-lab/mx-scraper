@@ -1,1 +1,1 @@
-npm run ts-node src/sandbox/nh-experiments.ts
+npm run ts-node src/sandbox/cli-experiments.ts

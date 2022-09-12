@@ -1,0 +1,1 @@
+ts cli-engine %1

@@ -21,18 +21,27 @@ const commands = <CLICommand[]> [
 ];
 const cliEngine = new CLIEngine(commands);
 
-cliEngine.defineRequiredArgs (["download"]);
+// has at least a download or Some Profile + Another profile with args
+cliEngine.defineRequiredArgs (["download | Some Profile", "Another profile with args"]);
 
 console.log(cliEngine.aliases);
 
 const samples = [
     "--download file1.txt file2.docx file3.txt",
-    "-d file1.txt file2.docx file3.txt",
-    "--another x y -d file1.txt file2.docx file3.txt -p"
+    "-d file1.txt file2.docx file3.txt file4.txt",
+    "--another x y -d file1.txt file2.docx file3.txt",
+    "-d file1.txt file2.docx file3.txt --another x y",
+    "-p -a x y --download 01 02 03",
+    // "-a x y"
 ];
 
 for (let sample of samples) {
-    const map = cliEngine.parse(sample.split(" "));
-    // console.log(map);
+    console.log();
+    try {
+        const map = cliEngine.parse(sample.split(" "));
+        console.log(map);
+    } catch(err) {
+        console.error(err);
+    }
 }
 // cliEngine.defineRequiredArgs();

@@ -1,1 +1,1 @@
-ts cli-engine %1
+npx ts-node ./src/cli.ts %*

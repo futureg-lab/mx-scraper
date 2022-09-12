@@ -52,11 +52,12 @@ export class MXcli extends CLIEngine {
 
     private commandPrintHelp (engine : MXScraper, verbose : boolean = false) {
         let examples = [
-            " mx-scraper --plugin plugin_name --fetch-all manga1 manga2 manga3\n",
+            " mx-scraper --plugin plugin_name --fetch-all title1 title2 title3\n",
             " mx-scraper --auto --fetch http://some/link/to/a/title\n",
             " mx-scraper --show-plugins -v\n",
             " mx-scraper -h\n",
         ];
+        
         let commands_instr = [];
         const keys = Array.from (this.commands.keys());
         for (let key of keys) {

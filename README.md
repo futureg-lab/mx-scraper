@@ -18,3 +18,15 @@ npm test
 ```
 npm run ts-node src/sandbox/flare-session.ts
 ```
+
+## CLI examples
+```
+mx-scraper --help --verbose
+mx-scraper --show-plugins -v
+mx-scraper --show-plugins -v -cs
+mx-scraper -h -v
+npx ts-node ./src/cli.ts -help --verbose
+npx ts-node ./src/cli.ts -sp
+mx-scraper --auto --fetch http://some/link/to/a/title
+mx-scraper --plugin plugin_name --fetch-all title1 title2 title3
+```

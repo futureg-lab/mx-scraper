@@ -33,7 +33,5 @@ export class Example implements MXPlugin {
     }
 
     async destructor () {
-        if (this.request.proxy.session_id)
-            this.request.destroyProxySession ();
     }
 }

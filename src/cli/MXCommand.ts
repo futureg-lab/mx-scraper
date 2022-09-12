@@ -1,19 +1,7 @@
 import { CLICommand } from "./CLIEngine";
 
 export const COMMAND_DEF = <CLICommand[]> [
-    // plugin spec
-    <CLICommand>{
-        name : "Plugin",
-        arg_count : 1,
-        aliases : ["--plugin", "-p"],
-        description : "Specify a plugin"
-    },
-    <CLICommand>{
-        name : "Plugin-Auto-Detect",
-        arg_count : 0,
-        aliases : ["--auto", "-a"],
-        description : "Auto detect a plugin"
-    },
+    // other
     <CLICommand>{
         name : "Show-Plugins",
         arg_count : 0,
@@ -30,7 +18,33 @@ export const COMMAND_DEF = <CLICommand[]> [
         name : "Verbose",
         arg_count : 0,
         aliases : ["--verbose", "-v"],
-        description : ""
+        description : "Show more details"
+    },
+    // session
+    <CLICommand>{
+        name : "Use-Session",
+        arg_count : 1,
+        aliases : ["--use-session", "-s"],
+        description : "Use a particular sessionid"
+    },
+    <CLICommand>{
+        name : "Conf-Session",
+        arg_count : 0,
+        aliases : ["--conf-session", "-cs"],
+        description : "Use the UNIQUE_SESSION value configured in 'environment.ts'"
+    },
+    // plugin spec
+    <CLICommand>{
+        name : "Plugin",
+        arg_count : 1,
+        aliases : ["--plugin", "-p"],
+        description : "Specify a plugin"
+    },
+    <CLICommand>{
+        name : "Plugin-Auto-Detect",
+        arg_count : 0,
+        aliases : ["--auto", "-a"],
+        description : "Auto detect a plugin"
     },
     // fetch
     <CLICommand>{

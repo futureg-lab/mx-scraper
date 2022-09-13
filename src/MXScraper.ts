@@ -57,7 +57,7 @@ export class MXScraper {
             
             return target_url.hostname === to_compare_url.hostname
                 || target_url.host === to_compare_url.host
-                || levenshtein(target_url.host, to_compare_url.host) < max_dist;
+                || levenshtein(target_url.host, to_compare_url.host) <= max_dist;
         });
     }
 

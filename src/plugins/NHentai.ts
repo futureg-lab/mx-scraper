@@ -62,7 +62,7 @@ export class NHentai implements MXPlugin {
         const [ , author] = curr_title.match(/\[(.+?)\]/);
 
         // tags ?
-        const tags : Tag [] = json['tags'].map(tag => <Tag>{
+        const tags : Tag [] = json['tags'].map((tag : any) => <Tag>{
             name: tag.name,
             metadatas : Object.keys(tag).map(key => <Metadata>{
                 label : key,

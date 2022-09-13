@@ -1,11 +1,10 @@
 import { PluginOption } from "./interfaces/BookDef";
 import { MXPlugin } from "./interfaces/MXPlugin";
 import { config } from "./environment";
+import { levenshtein } from "./utils/Utils";
 
 export class MXScraper {
     plugins : MXPlugin[] = [];
-    constructor () {
-    }
 
     /**
      * Register avalaible plugins
@@ -49,7 +48,17 @@ export class MXScraper {
      * @returns An array of plugins
      */
     searchPluginFor (url : string, exact_match : boolean = false) : MXPlugin[] {
-        return [];
+        const to_compare_url = new URL (url);
+        const max_dist = 3;
+        return this.plugins.filter((plugin : MXPlugin) => {
+            const target_url = new URL(plugin.target_url);
+            if (exact_match)
+                return target_url.hostname === to_compare_url.hostname;
+            
+            return target_url.hostname === to_compare_url.hostname
+                || target_url.host === to_compare_url.host
+                || levenshtein(target_url.host, to_compare_url.host) < max_dist;
+        });
     }
 
     /**

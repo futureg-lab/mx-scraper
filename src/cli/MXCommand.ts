@@ -20,6 +20,21 @@ export const COMMAND_DEF = <CLICommand[]> [
         aliases : ["--verbose", "-v"],
         description : "Show more details"
     },
+
+    // search plugin
+    <CLICommand>{
+        name : "Search-Plugin",
+        arg_count : 1,
+        aliases : ["--search-plugin", "-se-p"],
+        description : "Search plugins for a given url"
+    },
+    <CLICommand>{
+        name : "Exact-Match",
+        arg_count : 0,
+        aliases : ["--exact-match", "-exact"],
+        description : "Match the hostname character by character"
+    },
+
     // session
     <CLICommand>{
         name : "Use-Session",
@@ -33,6 +48,7 @@ export const COMMAND_DEF = <CLICommand[]> [
         aliases : ["--conf-session", "-cs"],
         description : "Use the UNIQUE_SESSION value configured in 'environment.ts'"
     },
+
     // plugin spec
     <CLICommand>{
         name : "Plugin",
@@ -46,6 +62,7 @@ export const COMMAND_DEF = <CLICommand[]> [
         aliases : ["--auto", "-a"],
         description : "Auto detect a plugin"
     },
+
     // fetch
     <CLICommand>{
         name : "FetchMeta",
@@ -59,6 +76,7 @@ export const COMMAND_DEF = <CLICommand[]> [
         aliases : ["--fetch-all", "-fa"],
         description : "Fetch metadatas for a list of item"
     },
+
     // download
     <CLICommand>{
         name : "Download",

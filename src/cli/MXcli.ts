@@ -1,6 +1,6 @@
-import { stringify } from "flatted";
 import { MXPlugin } from "../interfaces/MXPlugin";
 import { MXScraper } from "../MXScraper";
+import { resumeBook } from "../utils/Utils";
 import { CLICommand, CLIEngine } from "./CLIEngine";
 import { COMMAND_DEF } from "./MXCommand";
 
@@ -60,7 +60,7 @@ export class MXcli extends CLIEngine {
             // plugin ok
             // titles ok
             // FetchMeta is guaranteed to have one item only
-            // FetchMeta-List is guaranteed to have at least one
+            // FetchMeta-List is guaranteed to have at least one item
             const titles = parsed.has('FetchMeta') ? parsed.get('FetchMeta') : parsed.get('FetchMeta-List');
             await this.fetchMetaDatas (plugin, titles);
             return;
@@ -140,7 +140,7 @@ export class MXcli extends CLIEngine {
         for (let title of titles) {
             try {
                 const book = await plugin.fetchBook (title);
-                console.log (stringify (book, null, 2));
+                console.log (resumeBook (book));
             } catch (err) {
                 console.error ('Failed to fetch "' + title + '"');
                 console.error (err.message);

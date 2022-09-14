@@ -21,7 +21,6 @@ interface Chapter {
     url : string;
     number : number;
     pages : Page[];
-    parent : Book;
 }
 
 /**
@@ -31,7 +30,6 @@ interface Page {
     title : string;
     url : string;
     number : number;
-    parent : Chapter;
 }
 
 /**

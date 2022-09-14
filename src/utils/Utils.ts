@@ -1,3 +1,5 @@
+import { Book } from "../interfaces/BookDef";
+
 export function levenshtein (a: string, b: string) : number{
     let u = a.length,
     v = b.length;
@@ -22,4 +24,30 @@ export function levenshtein (a: string, b: string) : number{
     }
 
     return arr[u - 1][v - 1];
+}
+
+export function cleanFolderName (title : string) : string  {
+	return title.split(/[\\/:"*?<>.{}|~\n\t\r]+/g)
+				.join('_')
+				.substring(0, 70)
+				.trim(); // /!\ a trailing space at the end breaks the folder on windows
+}
+
+export function decodeUnicodeCharacters (str : string) : string {
+    const escaped = str.replace(/\"/g, '\\"');
+    return decodeURIComponent(JSON.parse('"' + escaped + '"'));
+}
+
+export function resumeBook (book : Book) : string  {
+    let str = `# Title : ${book.title}\n`
+        + ` - Authors : ${book.authors.join(', ')}\n`
+        + ` - Description : ${book.description}\n`
+        + ` - Source : ${book.url}\n`
+        + ` - Tags : ${book.tags.map(tag => tag.name).join(', ')}\n`
+        + ` - Chapters (${book.chapters.length}): \n${
+            book.chapters
+                .map(chapter => '  - CH ' + chapter.number + ' (' + chapter.pages.length + ' pages) :: ' + chapter.title + '\n')
+                .join('\n')
+        }`;
+    return str;
 }

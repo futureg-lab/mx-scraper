@@ -1,3 +1,4 @@
+import { stringify } from "flatted";
 import { MXPlugin } from "../interfaces/MXPlugin";
 import { MXScraper } from "../MXScraper";
 import { CLICommand, CLIEngine } from "./CLIEngine";
@@ -29,6 +30,39 @@ export class MXcli extends CLIEngine {
             const url = parsed.get('Search-Plugin')[0];
             const exact_match = parsed.has('Exact-Match');
             this.commandSearchPlugin (url, exact_match, engine, verbose);
+            return;
+        }
+
+        // fetch metadatas
+        if (parsed.has('Plugin') || parsed.has('Plugin-Auto-Detect')) {
+            if (!(parsed.has('FetchMeta') || parsed.has('FetchMeta-List'))) {
+                const list = this.getAliasesFor('FetchMeta').aliases.join(' | ');
+                throw Error ('Fetch command ' + list + ' expected.');
+            }
+
+            if (parsed.has('FetchMeta') && parsed.has('FetchMeta-List'))
+                throw Error ('FetchMeta and FetchMeta-List cannot be both used at the same time');
+
+            const sample_title = parsed.has('FetchMeta') ?
+                    parsed.get('FetchMeta')[0] : parsed.get('FetchMeta-List')[0];
+            
+            let plugin : MXPlugin = null;
+            if (parsed.has('Plugin')) {
+                plugin = engine.getPluginByIdentifier (parsed.get('Plugin')[0]);
+            } else {
+                let result = engine.searchPluginFor (sample_title, parsed.has('Exact-Match'));
+                if (result.length > 0)
+                    plugin = result[0];
+                else
+                    throw Error ('Unable to find a plugin to handle ' + sample_title);
+            }
+
+            // plugin ok
+            // titles ok
+            // FetchMeta is guaranteed to have one item only
+            // FetchMeta-List is guaranteed to have at least one
+            const titles = parsed.has('FetchMeta') ? parsed.get('FetchMeta') : parsed.get('FetchMeta-List');
+            await this.fetchMetaDatas (plugin, titles);
             return;
         }
 
@@ -100,6 +134,22 @@ export class MXcli extends CLIEngine {
             + 'Plugin list :\n'
             + (infos == '' ? '\n0 plugins found' : infos)
         );
+    }
+
+    private async fetchMetaDatas (plugin : MXPlugin, titles : string[]) {
+        for (let title of titles) {
+            try {
+                const book = await plugin.fetchBook (title);
+                console.log (stringify (book, null, 2));
+            } catch (err) {
+                console.error ('Failed to fetch "' + title + '"');
+                console.error (err.message);
+            }
+        }
+    }
+
+    private getAliasesFor (cmd_name : string) {
+        return this.commands.get (cmd_name);
     }
 
     private headerString () {

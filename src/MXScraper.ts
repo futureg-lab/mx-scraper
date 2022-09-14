@@ -66,7 +66,9 @@ export class MXScraper {
      * @returns 
      */
     getPluginByIdentifier (id : string) : MXPlugin {
-        const res = this.plugins.filter((plugin : MXPlugin) => plugin.constructor.name == id);
+        const res = this.plugins.filter((plugin : MXPlugin) => {
+            return plugin.constructor.name.toLowerCase() == id.toLowerCase()
+        });
         if (res.length == 0)
             return null;
         return res[0];

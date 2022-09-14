@@ -34,8 +34,8 @@ export function cleanFolderName (title : string) : string  {
 }
 
 export function decodeUnicodeCharacters (str : string) : string {
-    const escaped = str.replace(/\"/g, '\\"');
-    return decodeURIComponent(JSON.parse('"' + escaped + '"'));
+    const escaped = str.replace (/\"/g, '\\"');
+    return decodeURIComponent (JSON.parse('"' + escaped + '"'));
 }
 
 export function resumeBook (book : Book) : string  {

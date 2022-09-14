@@ -32,8 +32,9 @@ export class NHentai implements MXPlugin {
         }
     }
 
-    async fetchBook (hentai_id : string) : Promise<Book> {
-        const url = this.target_url + 'g/' + hentai_id;
+    async fetchBook (doujin_id_or_url : string) : Promise<Book> {
+        const doujin_id = this.extractDoujinIdFromPotentialUrl (doujin_id_or_url);
+        const url = this.target_url + 'g/' + doujin_id;
         const response_html = await this.request.get (url);
         const $ : CheerioAPI = load (response_html);
 
@@ -131,6 +132,11 @@ export class NHentai implements MXPlugin {
         }
 
         return chapter;
+    }
+
+    private extractDoujinIdFromPotentialUrl (str : string) {
+        const [code , ] = str.match(/([0-9]+)/);
+        return code;
     }
 
     async search (term : string, option : SearchOption) : Promise<Book[]> {

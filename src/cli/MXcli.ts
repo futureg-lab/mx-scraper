@@ -44,11 +44,14 @@ export class MXcli extends CLIEngine {
                 throw Error ('FetchMeta and FetchMeta-List cannot be both used at the same time');
 
             const sample_title = parsed.has('FetchMeta') ?
-                    parsed.get('FetchMeta')[0] : parsed.get('FetchMeta-List')[0];
+                parsed.get('FetchMeta')[0] : parsed.get('FetchMeta-List')[0];
             
             let plugin : MXPlugin = null;
             if (parsed.has('Plugin')) {
-                plugin = engine.getPluginByIdentifier (parsed.get('Plugin')[0]);
+                const plugin_name = parsed.get('Plugin')[0];
+                plugin = engine.getPluginByIdentifier (plugin_name);
+                if (plugin == null)
+                    throw Error ('Plugin named "' + plugin_name + '" is not present');
             } else {
                 let result = engine.searchPluginFor (sample_title, parsed.has('Exact-Match'));
                 if (result.length > 0)

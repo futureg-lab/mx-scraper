@@ -3,6 +3,7 @@ import { Book, PluginOption, Metadata, SearchOption, Tag, Page, TitleAlias, Chap
 import { MXPlugin } from "../interfaces/MXPlugin";
 import { CustomRequest, FlareSolverrProxyOption } from "../utils/CustomRequest";
 import { config } from "../environment";
+import { decodeUnicodeCharacters } from "../utils/Utils";
 
 export class NHentai implements MXPlugin {
     title : string = 'NHentai';
@@ -73,7 +74,7 @@ export class NHentai implements MXPlugin {
         // book setup
         const book : Book = <Book> {
             url : url,
-            title : curr_title,
+            title : decodeUnicodeCharacters (curr_title),
             title_aliases : titles,
             authors : [ author ],
             chapters : [],
@@ -102,7 +103,6 @@ export class NHentai implements MXPlugin {
             number : 1,
             pages : [],
             description : '',
-            parent : book, // attach to its parent
             url : book.url
         };
 
@@ -126,7 +126,6 @@ export class NHentai implements MXPlugin {
             chapter.pages.push(<Page> {
                 title : '' + page_number,
                 number : page_number,
-                parent : chapter,
                 url : this.gallery_url + json.media_id + '/' + filename_chunk.join('.')
             });
         }

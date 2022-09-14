@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { FlareSolverrClient, FlareSolverrCommand } from './FlareSolverrClient';
+import * as fs from 'fs';
 
 export interface FlareSolverrProxyOption {
     proxy_url : string;
@@ -80,9 +81,15 @@ export class CustomRequest {
     }
 
     /**
-     * @param target_url 
+     * @param target_url download url
+     * @param output_location_path where to save the file
      */
-    async download (target_url : string) {
-        throw Error ('Yet to be implemented');
+     async download (target_url : string, output_location_path : string) {
+        const response = await axios({
+            method: 'get',
+            url: target_url,
+            responseType: 'stream'
+        });
+        response.data.pipe(fs.createWriteStream(output_location_path));
     }
 }

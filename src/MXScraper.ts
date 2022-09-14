@@ -2,6 +2,7 @@ import { PluginOption } from "./interfaces/BookDef";
 import { MXPlugin } from "./interfaces/MXPlugin";
 import { config } from "./environment";
 import { levenshtein } from "./utils/Utils";
+import * as fs from 'fs';
 
 export class MXScraper {
     plugins : MXPlugin[] = [];
@@ -10,6 +11,7 @@ export class MXScraper {
      * Register avalaible plugins
      */
     async initFromPluginFolder (use_session_from_config : Boolean = false) {
+        // init plugins
         const list_to_load = config.LOAD_PLUGINS;
         for (let name of list_to_load) {
             const module = await import('./plugins/' + name);
@@ -18,6 +20,11 @@ export class MXScraper {
             const instance = <MXPlugin> (new module[name]);
             await this.register (instance, use_session_from_config);
         }
+        // init download folders
+        if (!fs.existsSync(config.DOWNLOAD_FOLDER.DOWNLOAD))
+            fs.mkdirSync (config.DOWNLOAD_FOLDER.DOWNLOAD, { recursive: true });
+        if (!fs.existsSync(config.DOWNLOAD_FOLDER.TEMP))
+            fs.mkdirSync (config.DOWNLOAD_FOLDER.TEMP, { recursive: true });
     }
 
     /**

@@ -89,5 +89,11 @@ export const COMMAND_DEF = <CLICommand[]> [
         arg_count : 0,
         aliases : ["--restart", "-r"],
         description : "Restart cached download(s)"
+    },
+    <CLICommand>{
+        name : "Parallel-Download",
+        arg_count : 0,
+        aliases : ["--parallel", "-pa"],
+        description : "Download books concurrently"
     }
 ];

@@ -40,9 +40,9 @@ export class NHentai implements MXPlugin {
         // fetch the json object
         let json = null;
         try {
-            json = await this.fetchJsonUsingAPI (doujin_id_or_url);
+            json = await this.fetchJsonUsingAPI (doujin_id);
         } catch (err) {
-            json = await this.fetchJsonOnDoujinPage (doujin_id_or_url);
+            json = await this.fetchJsonOnDoujinPage (doujin_id);
         }
         
         // titles

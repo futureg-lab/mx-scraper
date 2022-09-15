@@ -8,7 +8,7 @@ const config = {
         'NHentai' 
     ],
     CLOUDFARE_MAX_TIMEOUT : 120000,
-    UNIQUE_SESSION : '3b265890-2245-11ed-a545-a38a2193908e',
+    UNIQUE_SESSION : 'd8eaacb0-351f-11ed-8b21-b3cab1c549cf',
     DOWNLOAD_FOLDER : {
         DOWNLOAD : './download/download',
         TEMP : './download/temp'

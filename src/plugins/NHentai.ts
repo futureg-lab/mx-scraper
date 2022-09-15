@@ -54,7 +54,7 @@ export class NHentai implements MXPlugin {
         for (let lang in json.title) {
             if (json.title[lang] == '') continue;
             titles.push(<TitleAlias>{
-                title : json.title[lang],
+                title : decodeUnicodeCharacters (json.title[lang]),
                 description : lang
             });
         }
@@ -77,6 +77,7 @@ export class NHentai implements MXPlugin {
             url : url,
             title : decodeUnicodeCharacters (curr_title),
             title_aliases : titles,
+            source_id : doujin_id,
             authors : [ author ],
             chapters : [],
             description : '',
@@ -124,10 +125,12 @@ export class NHentai implements MXPlugin {
                 trivial_case.includes(meta_type) ? 
                     meta_type : (type_map[meta_type] || '')
             ];
+            const filename = filename_chunk.join('.');
             chapter.pages.push(<Page> {
                 title : '' + page_number,
                 number : page_number,
-                url : this.gallery_url + json.media_id + '/' + filename_chunk.join('.')
+                filename :  filename,
+                url : this.gallery_url + json.media_id + '/' + filename
             });
         }
 

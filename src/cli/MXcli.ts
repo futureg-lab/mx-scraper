@@ -1,11 +1,12 @@
 import { MXPlugin } from "../interfaces/MXPlugin";
 import { MXScraper } from "../MXScraper";
+import { downloadBook, DownloadOption, DownloadProgressCallback } from "../utils/Downloader";
 import { resumeBook } from "../utils/Utils";
-import { CLICommand, CLIEngine } from "./CLIEngine";
+import { CLIEngine } from "./CLIEngine";
 import { COMMAND_DEF } from "./MXCommand";
+import * as cliProgress from 'cli-progress';
 
 export class MXcli extends CLIEngine {
-
     constructor () {
         // register commands
         super (COMMAND_DEF);
@@ -65,11 +66,16 @@ export class MXcli extends CLIEngine {
             // FetchMeta is guaranteed to have one item only
             // FetchMeta-List is guaranteed to have at least one item
             const titles = parsed.has('FetchMeta') ? parsed.get('FetchMeta') : parsed.get('FetchMeta-List');
-            await this.fetchMetaDatas (plugin, titles);
+            let doption : DownloadOption = null;
+            if (parsed.has('Download'))
+                doption = { 
+                    continue : !parsed.has ('Restart-Download'), 
+                    parallel : false
+                };
+            const verbose = parsed.has('Verbose');
+            await this.commandFetchMetaDatasOrDownload (plugin, titles, doption, verbose);
             return;
         }
-
-        // core
     }
 
     private commandShowPlugins (engine : MXScraper, verbose : boolean = false) {
@@ -139,11 +145,40 @@ export class MXcli extends CLIEngine {
         );
     }
 
-    private async fetchMetaDatas (plugin : MXPlugin, titles : string[]) {
+    private async commandFetchMetaDatasOrDownload (
+        plugin : MXPlugin, 
+        titles : string[], 
+        download_option : DownloadOption = null,
+        verbose : boolean
+    ) {
         for (let title of titles) {
             try {
                 const book = await plugin.fetchBook (title);
-                console.log (resumeBook (book));
+                console.log (resumeBook (book, verbose));
+                if (download_option) {
+                    const progress = new cliProgress.SingleBar({
+                        format : '[{bar}] {percentage}% | ETA: {eta}s {value}/{total} | {msg}'
+                    }, cliProgress.Presets.shades_classic);
+
+                    let started = true;
+                    const callback : DownloadProgressCallback = (msg, curr, total, p) => {
+                        if (started) {
+                            progress.start (total, curr, {
+                                msg : msg
+                            });
+                            started = false;
+                        } else {
+                            progress.update (curr, {
+                                msg : msg
+                            });
+                        }
+                        p = Math.floor (p);
+                    };
+                    await downloadBook (book, download_option, callback);
+                    if (!started)
+                        progress.stop ();
+                    console.log ();
+                }
             } catch (err) {
                 console.error ('Failed to fetch "' + title + '"');
                 console.error (err.message);

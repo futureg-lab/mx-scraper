@@ -4,6 +4,7 @@
 interface Book {
     title : string;
     title_aliases : TitleAlias[];
+    source_id : string;
     description : string;
     authors : Author[];
     chapters : Chapter[];
@@ -30,6 +31,7 @@ interface Page {
     title : string;
     url : string;
     number : number;
+    filename : string;
 }
 
 /**
@@ -64,6 +66,12 @@ interface Author {
     description : string;
 }
 
+interface DownloadBookMeta {
+    engine : string;
+    date : Date;
+    book : Book;
+}
+
 /**
  * Abstraction of the 'any' type
  */
@@ -75,5 +83,5 @@ interface PluginOption extends Object {
 interface SearchOption extends Object {
 }
 
-export {Book, Chapter, Page, Tag, TitleAlias, Metadata, PluginOption, SearchOption};
+export {Book, Chapter, Page, Tag, TitleAlias, Metadata, DownloadBookMeta, PluginOption, SearchOption};
  

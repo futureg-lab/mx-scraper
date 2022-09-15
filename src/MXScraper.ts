@@ -5,6 +5,7 @@ import { levenshtein } from "./utils/Utils";
 import * as fs from 'fs';
 
 export class MXScraper {
+    static version = '1.0.0';
     plugins : MXPlugin[] = [];
 
     /**

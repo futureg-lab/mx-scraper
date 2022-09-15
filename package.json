@@ -36,6 +36,7 @@
   "homepage": "https://github.com/afmika/mx-scraper#readme",
   "devDependencies": {
     "@babel/preset-typescript": "^7.18.6",
+    "@types/cli-progress": "^3.11.0",
     "@types/jest": "^28.1.7",
     "jest": "^28.1.3",
     "ts-jest": "^28.0.8",
@@ -44,6 +45,7 @@
   },
   "dependencies": {
     "axios": "^0.27.2",
-    "cheerio": "^1.0.0-rc.12"
+    "cheerio": "^1.0.0-rc.12",
+    "cli-progress": "^3.11.2"
   }
 }

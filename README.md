@@ -30,4 +30,6 @@ npx ts-node ./src/cli.ts -help --verbose
 npx ts-node ./src/cli.ts -sp
 mx-scraper --auto --fetch http://link/to/a/title
 mx-scraper --plugin plugin_name --fetch-all title1 title2 title3
+mx-scraper --plugin plugin_name --fetch-all 420166 420132 --download --conf-session
+mx-scraper --plugin plugin_name --fetch-all --download 420166 420132
 ```

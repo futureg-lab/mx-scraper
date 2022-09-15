@@ -1,8 +1,9 @@
 import { Book, Chapter, DownloadBookMeta } from "../interfaces/BookDef";
 import { CustomRequest } from "./CustomRequest";
-import { cleanFolderName } from "./Utils";
+import { cleanFolderName, waitFor } from "./Utils";
 import * as path from 'path';
 import * as fs from 'fs';
+import * as fsextra from 'fs-extra';
 import { config } from "../environment";
 import { MXScraper } from "../MXScraper";
 
@@ -35,7 +36,7 @@ export function createJsonDataOf (folder_path : string, book : Book) {
     };
     const text = JSON.stringify (json, null, 2);
     const full_path = path.join (folder_path, book.source_id + '.json');
-	fs.writeFileSync (full_path, text);
+    fs.writeFileSync (full_path, text);
 }
 
 /**
@@ -109,7 +110,7 @@ export async function downloadBook (
     if (loading_callback)
         loading_callback ('Moving files', total, total, 100);
     
-    if (!fs.existsSync(book_downloaded_folder_path))
-        fs.renameSync (book_temp_folder_path, book_downloaded_folder_path);
+    if (!fs.existsSync (book_downloaded_folder_path))
+        fsextra.moveSync (book_temp_folder_path, book_downloaded_folder_path, {overwrite : true});
 
 }

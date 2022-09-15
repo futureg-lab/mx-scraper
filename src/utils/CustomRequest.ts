@@ -90,6 +90,11 @@ export class CustomRequest {
             url: target_url,
             responseType: 'stream'
         });
-        response.data.pipe (fs.createWriteStream (output_location_path));
+        const writer = fs.createWriteStream (output_location_path);
+        response.data.pipe (writer);
+        return new Promise<unknown> ((resolve, reject) => {
+            writer.on ('finish', resolve)
+            writer.on ('error', reject)
+        });
     }
 }

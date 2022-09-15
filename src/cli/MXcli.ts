@@ -202,7 +202,7 @@ export class MXcli extends CLIEngine {
     ) {
         const books : Book[] = [];
         const progress = new cliProgress.SingleBar({
-            format : ' {bar} {percentage}% | Book {value}/{total}'
+            format : ' {bar} {percentage}% | {sourceid} Book {value}/{total}'
         }, cliProgress.Presets.shades_classic);
         
         const multibar = new cliProgress.MultiBar({
@@ -214,13 +214,13 @@ export class MXcli extends CLIEngine {
         try {
             // Fetch metadatas first
             let count = 0;
-            console.log ('Fetching book metadatas.. ');            
+            console.log ('Fetching book metadata.. ');            
 
             progress.start (titles.length, 0);
             for (let title of titles) {
                 const book = await plugin.fetchBook (title);
                 books.push (book);
-                progress.update (++count);
+                progress.update (++count, {sourceid : book.source_id});
             }
             progress.stop ();
             console.log('\n Downloading all..');
@@ -246,13 +246,14 @@ export class MXcli extends CLIEngine {
             const failed_downloads = resolved
                                     .filter (solution => solution.status === 'rejected')
                                     .map ((solution, index) => books[index].source_id);
+            
             if (failed_downloads.length > 0)
                 throw Error ('Failed to download ' + failed_downloads.join(', '));
-        } catch (err) {
-            console.error ('\nFailed to resolve all');
-            console.error (err.message);
-        } finally {
             multibar.stop ();
+        } catch (err) {
+            multibar.stop ();
+            console.error ('\nFailed to resolve all');
+            console.error (err);
         }
     }
 

@@ -48,7 +48,7 @@ export class NHentai implements MXPlugin {
         // titles
         const titles : TitleAlias[] = [];
         for (let lang in json.title) {
-            if (json.title[lang] == '') continue;
+            if (!json.title[lang] || json.title[lang] == '') continue;
             titles.push(<TitleAlias>{
                 title : decodeUnicodeCharacters (json.title[lang]),
                 description : lang

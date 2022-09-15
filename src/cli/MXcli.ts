@@ -216,7 +216,7 @@ export class MXcli extends CLIEngine {
             let count = 0;
             console.log ('Fetching book metadata.. ');            
 
-            progress.start (titles.length, 0);
+            progress.start (titles.length, 0, {sourceid : '-'});
             for (let title of titles) {
                 const book = await plugin.fetchBook (title);
                 books.push (book);

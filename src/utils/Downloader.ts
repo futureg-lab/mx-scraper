@@ -36,12 +36,12 @@ export async function downloadBook (
         total += book.chapters[i].pages.length;
     }
 
-    // download
     const book_temp_folder_path = path.join(
         config.DOWNLOAD_FOLDER.TEMP,
         cleanFolderName (book.title)
     );
-
+    
+    // create chapter folder
     if (!fs.existsSync(book_temp_folder_path))
         fs.mkdirSync (book_temp_folder_path, {recursive : true});
 
@@ -62,22 +62,19 @@ export async function downloadBook (
                 chapter_folder_path,
                 page.filename
             );
-
             // download
-            const should_continue = option != null 
-                    && option.continue 
-                    && fs.existsSync (dest_path);
-            
-            if (!should_continue){
+            const download_anyway = !(
+                    option != null 
+                    && option.continue // if interrupted
+                    && fs.existsSync (dest_path) // file already exist
+            );
+            if (download_anyway)
                 await request.download (page.url, dest_path);
-            }
-            
             // progress status
             current_item++;
             if (loading_callback)
                 loading_callback (current_item, total, Math.round (100. * current_item / total))
         }
-
     }
 
 }

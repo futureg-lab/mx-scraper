@@ -42,7 +42,6 @@ export class NHentai implements MXPlugin {
         try {
             json = await this.fetchJsonUsingAPI (doujin_id_or_url);
         } catch (err) {
-            console.log ('Fallback method')
             json = await this.fetchJsonOnDoujinPage (doujin_id_or_url);
         }
         

@@ -85,21 +85,9 @@ export const COMMAND_DEF = <CLICommand[]> [
         description : "Download using the book metadata"
     },
     <CLICommand>{
-        name : "Chapter",
-        arg_count : 2,
-        aliases : ["--chapter", "-ch"],
-        description : "Specify a chapter range for a download"
-    },
-    <CLICommand>{
-        name : "Chapter-Latest",
+        name : "Restart-Download",
         arg_count : 0,
-        aliases : ["--latest", "-lt"],
-        description : "Download latest chapter"
-    },
-    <CLICommand>{
-        name : "Chapter-First",
-        arg_count : 0,
-        aliases : ["--first", "-fi"],
-        description : "Download first chapter"
+        aliases : ["--restart", "-r"],
+        description : "Restart cached download(s)"
     }
 ];

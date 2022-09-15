@@ -5,13 +5,16 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { config } from "../environment";
 
-interface DownloadProgressCallback {
-    (current : number, total : number, percentage : number) : void
+export interface DownloadProgressCallback {
+    (
+        message : string,
+        current : number, 
+        total : number, 
+        percentage : number
+    ) : void
 }
 
-interface DownloadOption {
-    start_chapter? : number;
-    end_chapter? : number;
+export interface DownloadOption {
     continue : boolean;
     parallel : boolean;
 }
@@ -27,22 +30,19 @@ export async function downloadBook (
     loading_callback : DownloadProgressCallback = null
 ) {    
     const request : CustomRequest = new CustomRequest ();
-    let start_index = 0;
-    let end_index = book.chapters.length - 1;
-
-    if (option && option.start_chapter)
-        start_index = option.start_chapter - 1;
-    if (option && option.end_chapter)
-        start_index = option.end_chapter;
 
     // compute total items
     let total = 0, current_item = 0;
-    for (let i = start_index; i <= end_index; i++) {
-        total += book.chapters[i].pages.length;
-    }
+    for (let chapter of book.chapters)
+        total += chapter.pages.length;
 
+    // path destinations
     const book_temp_folder_path = path.join(
         config.DOWNLOAD_FOLDER.TEMP,
+        cleanFolderName (book.title)
+    );
+    const book_downloaded_folder_path = path.join(
+        config.DOWNLOAD_FOLDER.DOWNLOAD,
         cleanFolderName (book.title)
     );
     
@@ -50,9 +50,7 @@ export async function downloadBook (
     if (!fs.existsSync(book_temp_folder_path))
         fs.mkdirSync (book_temp_folder_path, {recursive : true});
 
-    for (let i = start_index; i <= end_index; i++) {
-        
-        const chapter = book.chapters [i];
+    for (let chapter of book.chapters) {
         // ex: temp/mangatitle/chapter-1
         const chapter_folder_path = path.join(
             book_temp_folder_path,
@@ -61,7 +59,7 @@ export async function downloadBook (
 
         if (!fs.existsSync(chapter_folder_path))
             fs.mkdirSync (chapter_folder_path, {recursive : true});
-
+                
         for (let page of chapter.pages) {
             const dest_path = path.join (
                 chapter_folder_path,
@@ -76,10 +74,19 @@ export async function downloadBook (
             if (download_anyway)
                 await request.download (page.url, dest_path);
             // progress status
+            let message = `CH. ${chapter.number} - Page ${page.number}/${chapter.pages.length}`;
+
             current_item++;
             if (loading_callback)
-                loading_callback (current_item, total, Math.round (100. * current_item / total))
+                loading_callback (message, current_item, total, Math.round (100. * current_item / total))
         }
     }
+
+    // move if done
+    if (loading_callback)
+        loading_callback ('Moving files', total, total, 100);
+    
+    if (!fs.existsSync(book_downloaded_folder_path))
+        fs.renameSync (book_temp_folder_path, book_downloaded_folder_path);
 
 }

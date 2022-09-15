@@ -38,16 +38,24 @@ export function decodeUnicodeCharacters (str : string) : string {
     return decodeURIComponent (JSON.parse('"' + escaped + '"'));
 }
 
-export function resumeBook (book : Book) : string  {
+export function resumeBook (book : Book, verbose : boolean) : string  {
+
     let str = `# Title : ${book.title}\n`
         + ` - Authors : ${book.authors.join(', ')}\n`
+        + ` - Source : ${book.url}\n`;
+    
+    let chap_str =  ` - Chapters (${book.chapters.length})`;
+
+    if (verbose) 
+        chap_str += ':\n' + book.chapters
+            .map(chapter => '  - CH ' + chapter.number + ' (' + chapter.pages.length + ' pages) :: ' + chapter.title + '\n')
+            .join('\n');
+    else
+        chap_str += '\n';
+
+    let more_text = ''
         + ` - Description : ${book.description}\n`
-        + ` - Source : ${book.url}\n`
         + ` - Tags : ${book.tags.map(tag => tag.name).join(', ')}\n`
-        + ` - Chapters (${book.chapters.length}): \n${
-            book.chapters
-                .map(chapter => '  - CH ' + chapter.number + ' (' + chapter.pages.length + ' pages) :: ' + chapter.title + '\n')
-                .join('\n')
-        }`;
-    return str;
+
+    return str + (verbose ? more_text : '') + chap_str;
 }

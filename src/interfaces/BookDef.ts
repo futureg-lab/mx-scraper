@@ -30,6 +30,7 @@ interface Page {
     title : string;
     url : string;
     number : number;
+    filename : string;
 }
 
 /**

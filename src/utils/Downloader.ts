@@ -23,7 +23,7 @@ export interface DownloadOption {
 
 /**
  * Save Book metadata as a json file
- * * {engine : }
+ * * Format {engine : string, date : Date, book : Book }
  * @param folder_path 
  * @param book 
  */

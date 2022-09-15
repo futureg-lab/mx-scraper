@@ -8,12 +8,13 @@ import { decodeUnicodeCharacters } from "../utils/Utils";
 export class NHentai implements MXPlugin {
     title : string = 'NHentai';
     author : string = 'afmika';
-    version : string = '1.0.0';
+    version : string = '1.1.0';
     target_url : string = 'https://nhentai.net/';
     option : PluginOption;
     request : CustomRequest;
 
     private gallery_url : string = 'https://i3.nhentai.net/galleries/';
+    private api_url : string = 'https://nhentai.net/api/gallery/';
 
     constructor () {
         this.request = new CustomRequest();
@@ -35,19 +36,15 @@ export class NHentai implements MXPlugin {
     async fetchBook (doujin_id_or_url : string) : Promise<Book> {
         const doujin_id = this.extractDoujinIdFromPotentialUrl (doujin_id_or_url);
         const url = this.target_url + 'g/' + doujin_id;
-        const response_html = await this.request.get (url);
-        const $ : CheerioAPI = load (response_html);
 
         // fetch the json object
         let json = null;
-        $('script').each((i, element) => {
-            const text = $(element).text();
-            if (/JSON\.parse/.test(text)) {
-                const [ , temp] = text.match(/JSON\.parse\("(.+?)"\)/i);
-                json = JSON.parse(temp.replace(/\\u0022/g, '"'))
-                return;
-            }
-        });
+        try {
+            json = await this.fetchJsonUsingAPI (doujin_id_or_url);
+        } catch (err) {
+            console.log ('Fallback method')
+            json = await this.fetchJsonOnDoujinPage (doujin_id_or_url);
+        }
         
         // titles
         const titles : TitleAlias[] = [];
@@ -58,10 +55,13 @@ export class NHentai implements MXPlugin {
                 description : lang
             });
         }
-        const curr_title = json.title['english'] || titles[0];
+        const curr_title = decodeUnicodeCharacters (json.title['english'] || titles[0]);
 
         // author ?
-        const [ , author] = curr_title.match(/\[(.+?)\]/);
+        let authors = json
+                        .tags
+                        .filter ((tag : any) => ['artist', 'group'].includes (tag.type))
+                        .map ((tag : any) => decodeUnicodeCharacters (tag.name));
 
         // tags ?
         const tags : Tag [] = json['tags'].map((tag : any) => <Tag>{
@@ -75,10 +75,10 @@ export class NHentai implements MXPlugin {
         // book setup
         const book : Book = <Book> {
             url : url,
-            title : decodeUnicodeCharacters (curr_title),
+            title : curr_title,
             title_aliases : titles,
             source_id : doujin_id,
-            authors : [ author ],
+            authors : authors,
             chapters : [],
             description : '',
             tags : tags,
@@ -135,6 +135,35 @@ export class NHentai implements MXPlugin {
         }
 
         return chapter;
+    }
+
+    private async fetchJsonUsingAPI (doujin_id : string) {
+        const url = this.api_url + doujin_id;
+        const response_html = await this.request.get (url);
+        const $ : CheerioAPI = load (response_html);
+        // fetch the json object
+        const body = $('body').text();
+
+        return JSON.parse(body.replace(/\\u0022/g, '"'));
+    }
+
+    private async fetchJsonOnDoujinPage (doujin_id : string) {
+        const url = this.target_url + 'g/' + doujin_id;
+        const response_html = await this.request.get (url);
+        const $ : CheerioAPI = load (response_html);
+
+        // fetch the json object
+        let json = null;
+        $('script').each((i, element) => {
+            const text = $(element).text();
+            if (/JSON\.parse/.test(text)) {
+                const [ , temp] = text.match(/JSON\.parse\("(.+?)"\)/i);
+                json = JSON.parse(temp.replace(/\\u0022/g, '"'))
+                return;
+            }
+        });
+
+        return json;
     }
 
     private extractDoujinIdFromPotentialUrl (str : string) {

@@ -86,8 +86,20 @@ export const COMMAND_DEF = <CLICommand[]> [
     },
     <CLICommand>{
         name : "Chapter",
-        arg_count : 0,
+        arg_count : 2,
         aliases : ["--chapter", "-ch"],
-        description : "Specify a chapter for a download"
+        description : "Specify a chapter range for a download"
+    },
+    <CLICommand>{
+        name : "Chapter-Latest",
+        arg_count : 0,
+        aliases : ["--latest", "-lt"],
+        description : "Download latest chapter"
+    },
+    <CLICommand>{
+        name : "Chapter-First",
+        arg_count : 0,
+        aliases : ["--first", "-fi"],
+        description : "Download first chapter"
     }
 ];

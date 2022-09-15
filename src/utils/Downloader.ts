@@ -10,8 +10,8 @@ interface DownloadProgressCallback {
 }
 
 interface DownloadOption {
-    start_chapter : number;
-    end_chapter : number;
+    start_chapter? : number;
+    end_chapter? : number;
     continue : boolean;
     parallel : boolean;
 }
@@ -27,8 +27,13 @@ export async function downloadBook (
     loading_callback : DownloadProgressCallback = null
 ) {    
     const request : CustomRequest = new CustomRequest ();
-    const start_index = option ? (option.start_chapter - 1) : 0;
-    const end_index = option ? (option.end_chapter - 1) : (book.chapters.length - 1);
+    let start_index = 0;
+    let end_index = book.chapters.length - 1;
+
+    if (option && option.start_chapter)
+        start_index = option.start_chapter - 1;
+    if (option && option.end_chapter)
+        start_index = option.end_chapter;
 
     // compute total items
     let total = 0, current_item = 0;
@@ -64,9 +69,9 @@ export async function downloadBook (
             );
             // download
             const download_anyway = !(
-                    option != null 
-                    && option.continue // if interrupted
-                    && fs.existsSync (dest_path) // file already exist
+                option != null 
+                && option.continue // if interrupted
+                && fs.existsSync (dest_path) // file already exist
             );
             if (download_anyway)
                 await request.download (page.url, dest_path);

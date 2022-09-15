@@ -78,6 +78,10 @@ export async function downloadBook (
             book_temp_folder_path,
             cleanFolderName (chapter.title)
         );
+        const chapter_folder_down_path = path.join(
+            book_downloaded_folder_path,
+            cleanFolderName (chapter.title)
+        );
 
         if (!fs.existsSync(chapter_folder_path))
             fs.mkdirSync (chapter_folder_path, {recursive : true});
@@ -89,16 +93,26 @@ export async function downloadBook (
                 chapter_folder_path,
                 page.filename
             );
+            const dest_down_path = path.join (
+                chapter_folder_down_path,
+                page.filename
+            );
             // download
             const download_anyway = !(
                 option != null 
                 && option.continue // if interrupted
-                && fs.existsSync (dest_path) // file already exist
+                && (
+                   fs.existsSync (dest_path) // file already exist in 'temp'
+                || fs.existsSync (dest_down_path) // file already exist in 'download'
+                )
             );
+            let skip_msg = '';
             if (download_anyway)
                 await request.download (page.url, dest_path);
+            else
+                skip_msg = 'Skipped';
             // progress status
-            let message = `CH. ${chapter.number} - Page ${page.number}/${chapter.pages.length}`;
+            let message = `CH. ${chapter.number} - Page ${page.number}/${chapter.pages.length} ${skip_msg}`;
 
             current_item++;
             if (loading_callback)
@@ -108,7 +122,7 @@ export async function downloadBook (
 
     // move if done
     if (loading_callback)
-        loading_callback ('Moving files', total, total, 100);
+        loading_callback ('[Done]', total, total, 100);
     
     if (!fs.existsSync (book_downloaded_folder_path))
         fsextra.moveSync (book_temp_folder_path, book_downloaded_folder_path, {overwrite : true});

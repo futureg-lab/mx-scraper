@@ -1,9 +1,10 @@
-import { Book, Chapter } from "../interfaces/BookDef";
+import { Book, Chapter, DownloadBookMeta } from "../interfaces/BookDef";
 import { CustomRequest } from "./CustomRequest";
 import { cleanFolderName } from "./Utils";
 import * as path from 'path';
 import * as fs from 'fs';
 import { config } from "../environment";
+import { MXScraper } from "../MXScraper";
 
 export interface DownloadProgressCallback {
     (
@@ -17,6 +18,24 @@ export interface DownloadProgressCallback {
 export interface DownloadOption {
     continue : boolean;
     parallel : boolean;
+}
+
+
+/**
+ * Save Book metadata as a json file
+ * * {engine : }
+ * @param folder_path 
+ * @param book 
+ */
+export function createJsonDataOf (folder_path : string, book : Book) {
+    const json = <DownloadBookMeta>{
+        engine : 'MXScraper v' + MXScraper.version,
+        date : new Date (),
+        book : book
+    };
+    const text = JSON.stringify (json, null, 2);
+    const full_path = path.join (folder_path, book.source_id + '.json');
+	fs.writeFileSync (full_path, text);
 }
 
 /**
@@ -50,6 +69,9 @@ export async function downloadBook (
     if (!fs.existsSync(book_temp_folder_path))
         fs.mkdirSync (book_temp_folder_path, {recursive : true});
 
+    // save metadatas first
+    createJsonDataOf (book_temp_folder_path, book);
+
     for (let chapter of book.chapters) {
         // ex: temp/mangatitle/chapter-1
         const chapter_folder_path = path.join(
@@ -59,6 +81,8 @@ export async function downloadBook (
 
         if (!fs.existsSync(chapter_folder_path))
             fs.mkdirSync (chapter_folder_path, {recursive : true});
+        
+        createJsonDataOf (book_temp_folder_path, book);
                 
         for (let page of chapter.pages) {
             const dest_path = path.join (

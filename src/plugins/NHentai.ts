@@ -54,7 +54,7 @@ export class NHentai implements MXPlugin {
         for (let lang in json.title) {
             if (json.title[lang] == '') continue;
             titles.push(<TitleAlias>{
-                title : json.title[lang],
+                title : decodeUnicodeCharacters (json.title[lang]),
                 description : lang
             });
         }
@@ -77,6 +77,7 @@ export class NHentai implements MXPlugin {
             url : url,
             title : decodeUnicodeCharacters (curr_title),
             title_aliases : titles,
+            source_id : doujin_id,
             authors : [ author ],
             chapters : [],
             description : '',

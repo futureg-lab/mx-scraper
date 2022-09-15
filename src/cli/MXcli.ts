@@ -162,17 +162,12 @@ export class MXcli extends CLIEngine {
 
                     let started = true;
                     const callback : DownloadProgressCallback = (msg, curr, total, p) => {
+                        const payload = { msg : msg };
                         if (started) {
-                            progress.start (total, curr, {
-                                msg : msg
-                            });
+                            progress.start (total, curr, payload);
                             started = false;
-                        } else {
-                            progress.update (curr, {
-                                msg : msg
-                            });
-                        }
-                        p = Math.floor (p);
+                        } else
+                            progress.update (curr, payload);
                     };
                     await downloadBook (book, download_option, callback);
                     if (!started)
@@ -180,7 +175,7 @@ export class MXcli extends CLIEngine {
                     console.log ();
                 }
             } catch (err) {
-                console.error ('Failed to fetch "' + title + '"');
+                console.error ('\nFailed to fetch "' + title + '"');
                 console.error (err.message);
             }
         }

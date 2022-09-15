@@ -85,11 +85,11 @@ export class CustomRequest {
      * @param output_location_path where to save the file
      */
      async download (target_url : string, output_location_path : string) {
-        const response = await axios({
+        const response = await axios ({
             method: 'get',
             url: target_url,
             responseType: 'stream'
         });
-        response.data.pipe(fs.createWriteStream(output_location_path));
+        response.data.pipe (fs.createWriteStream (output_location_path));
     }
 }

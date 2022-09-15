@@ -64,9 +64,8 @@ export async function downloadBook (
         config.DOWNLOAD_FOLDER.DOWNLOAD,
         cleanFolderName (book.title)
     );
-    
     // create chapter folder
-    if (!fs.existsSync(book_temp_folder_path))
+    if (!fs.existsSync (book_temp_folder_path))
         fs.mkdirSync (book_temp_folder_path, {recursive : true});
 
     // save metadatas first

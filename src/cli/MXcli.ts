@@ -5,6 +5,7 @@ import { resumeBook } from "../utils/Utils";
 import { CLIEngine } from "./CLIEngine";
 import { COMMAND_DEF } from "./MXCommand";
 import * as cliProgress from 'cli-progress';
+import { Book } from "../interfaces/BookDef";
 
 export class MXcli extends CLIEngine {
     constructor () {
@@ -69,8 +70,8 @@ export class MXcli extends CLIEngine {
             let doption : DownloadOption = null;
             if (parsed.has('Download'))
                 doption = { 
-                    continue : !parsed.has ('Restart-Download'), 
-                    parallel : false
+                    continue : !parsed.has ('Restart-Download'),
+                    parallel : parsed.has ('Parallel-Download') && parsed.has ('FetchMeta-List')
                 };
             const verbose = parsed.has('Verbose');
             await this.commandFetchMetaDatasOrDownload (plugin, titles, doption, verbose);
@@ -151,6 +152,18 @@ export class MXcli extends CLIEngine {
         download_option : DownloadOption = null,
         verbose : boolean
     ) {
+        if (download_option && download_option.parallel)
+            await this.parallelFetchAllThenDownload (plugin, titles, download_option, verbose);
+        else
+            await this.sequentialFetchAll (plugin, titles, download_option, verbose);
+    }
+
+    private async sequentialFetchAll (
+        plugin : MXPlugin, 
+        titles : string[], 
+        download_option : DownloadOption = null,
+        verbose : boolean
+    ) {
         for (let title of titles) {
             try {
                 const book = await plugin.fetchBook (title);
@@ -178,6 +191,68 @@ export class MXcli extends CLIEngine {
                 console.error ('\nFailed to fetch "' + title + '"');
                 console.error (err.message);
             }
+        }
+    }
+
+    private async parallelFetchAllThenDownload (
+        plugin : MXPlugin, 
+        titles : string[], 
+        download_option : DownloadOption = null,
+        verbose : boolean
+    ) {
+        const books : Book[] = [];
+        const progress = new cliProgress.SingleBar({
+            format : ' {bar} {percentage}% | Book {value}/{total}'
+        }, cliProgress.Presets.shades_classic);
+        
+        const multibar = new cliProgress.MultiBar({
+            clearOnComplete: false,
+            hideCursor: true,
+            format: ' {bar} | {sourceid} {msg} | {value}/{total}',
+        }, cliProgress.Presets.shades_grey);
+
+        try {
+            // Fetch metadatas first
+            let count = 0;
+            console.log ('Fetching book metadatas.. ');            
+
+            progress.start (titles.length, 0);
+            for (let title of titles) {
+                const book = await plugin.fetchBook (title);
+                books.push (book);
+                progress.update (++count);
+            }
+            progress.stop ();
+            console.log('\n Downloading all..');
+
+            // download concurrently
+
+            const processes : Promise<void>[] = [];
+            for (let book of books) {
+                let sub_progress : cliProgress.SingleBar = null;
+                const callback : DownloadProgressCallback = (msg, curr, total, p) => {
+                    const payload = { sourceid : book.source_id, msg : msg };
+                    if (sub_progress == null) {
+                        sub_progress = multibar.create (total, curr, payload);
+                    } else
+                        sub_progress.update (curr, payload);
+                };
+                processes.push (downloadBook (book, download_option, callback));
+            }
+
+            // allSettled : handle resolved / failed promises
+            // in this particular setup, the processes do not depend to each other
+            const resolved : PromiseSettledResult<void>[] = await Promise.allSettled (processes);
+            const failed_downloads = resolved
+                                    .filter (solution => solution.status === 'rejected')
+                                    .map ((solution, index) => books[index].source_id);
+            if (failed_downloads.length > 0)
+                throw Error ('Failed to download ' + failed_downloads.join(', '));
+        } catch (err) {
+            console.error ('\nFailed to resolve all');
+            console.error (err.message);
+        } finally {
+            multibar.stop ();
         }
     }
 

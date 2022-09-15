@@ -35,7 +35,7 @@ interface Page {
 }
 
 /**
- * 'Tag' abstraction, defined mainly defined by its name
+ * 'Tag' abstraction characterised by its name
  */
 interface Tag {
     name : string;
@@ -66,6 +66,9 @@ interface Author {
     description : string;
 }
 
+/**
+ * Describes the content of a metadata file
+ */
 interface DownloadBookMeta {
     engine : string;
     date : Date;

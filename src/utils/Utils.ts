@@ -26,6 +26,10 @@ export function levenshtein (a: string, b: string) : number{
     return arr[u - 1][v - 1];
 }
 
+export function waitFor (ms : number) {
+    return new Promise (resolve => setTimeout (resolve, ms));
+}
+
 export function cleanFolderName (title : string) : string  {
 	return title.split(/[\\/:"*?<>.{}|~\n\t\r]+/g)
 				.join('_')

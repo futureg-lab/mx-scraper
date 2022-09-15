@@ -40,16 +40,15 @@ export class NHentai implements MXPlugin {
         // fetch the json object
         let json = null;
         try {
-            json = await this.fetchJsonUsingAPI (doujin_id_or_url);
+            json = await this.fetchJsonUsingAPI (doujin_id);
         } catch (err) {
-            console.log ('Fallback method')
-            json = await this.fetchJsonOnDoujinPage (doujin_id_or_url);
+            json = await this.fetchJsonOnDoujinPage (doujin_id);
         }
         
         // titles
         const titles : TitleAlias[] = [];
         for (let lang in json.title) {
-            if (json.title[lang] == '') continue;
+            if (!json.title[lang] || json.title[lang] == '') continue;
             titles.push(<TitleAlias>{
                 title : decodeUnicodeCharacters (json.title[lang]),
                 description : lang

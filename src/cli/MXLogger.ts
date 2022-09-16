@@ -7,7 +7,7 @@ export class MXLogger {
      * @param arg any[]
      */
     static info (...arg : any[]) {
-        if (config.LOGGER?.ENABLE)
+        if (config.LOGGER?.ENABLE && process.stdout.isTTY)
             console.info (...arg);
     }
 
@@ -16,7 +16,7 @@ export class MXLogger {
      * @param msg 
      */
     static infoRefresh (...msg : string[]) {
-        if (config.LOGGER?.ENABLE) {
+        if (config.LOGGER?.ENABLE && process.stdout.isTTY) {
             readline.clearLine (process.stdout, 0); // clear whole line
             readline.cursorTo (process.stdout, 0); // restore cursor
             process.stdout.write (msg.join(' '));
@@ -27,7 +27,7 @@ export class MXLogger {
      * Clear the screen buffer
      */
     static flush () {
-        if (config.LOGGER?.ENABLE)
+        if (config.LOGGER?.ENABLE && process.stdout.isTTY)
             console.log ();
     }
 }

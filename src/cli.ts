@@ -1,6 +1,6 @@
 import { MXcli } from "./cli/MXcli";
 import { config } from "./environment";
-import { MXScraper } from "./MXScraper";
+import { MXScraper } from "./core/MXScraper";
 
 const [ , , ...argv] = process.argv;
 

@@ -1,5 +1,10 @@
-import { Book } from "../interfaces/BookDef";
+import { Book } from "../core/BookDef";
 
+/**
+ * @param a
+ * @param b 
+ * @returns Edit distance of two strings
+ */
 export function levenshtein (a: string, b: string) : number{
     let u = a.length,
     v = b.length;
@@ -26,10 +31,20 @@ export function levenshtein (a: string, b: string) : number{
     return arr[u - 1][v - 1];
 }
 
+/**
+ * Pause current thread
+ * @param ms time in milliseconds
+ * @returns 
+ */
 export function waitFor (ms : number) {
     return new Promise (resolve => setTimeout (resolve, ms));
 }
 
+/**
+ * Sanitize a string
+ * @param title name | title
+ * @returns 
+ */
 export function cleanFolderName (title : string) : string  {
 	return title.split(/[\\/:"*?<>.{}|~\n\t\r]+/g)
 				.join('_')
@@ -37,6 +52,11 @@ export function cleanFolderName (title : string) : string  {
 				.trim(); // /!\ a trailing space at the end breaks the folder on windows
 }
 
+/**
+ * Decode a string that may contain escaped unicode characters
+ * @param str encoded string
+ * @returns 
+ */
 export function decodeUnicodeCharacters (str : string) : string {
     const escaped = str.replace (/\"/g, '\\"');
     const repl_word = '__~perc~__';
@@ -45,6 +65,12 @@ export function decodeUnicodeCharacters (str : string) : string {
     return decoded.replace (new RegExp(repl_word, 'g'), '%');
 }
 
+/**
+ * Describe a book for stdout
+ * @param book 
+ * @param verbose 
+ * @returns 
+ */
 export function resumeBook (book : Book, verbose : boolean) : string  {
 
     let str = `# Title : ${book.title}\n`

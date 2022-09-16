@@ -1,5 +1,5 @@
-import { MXPlugin } from "../interfaces/MXPlugin";
-import { MXScraper } from "../MXScraper";
+import { MXPlugin } from "../core/MXPlugin";
+import { MXScraper } from "../core/MXScraper";
 import { Example } from "../plugins/Example";
 
 test('MXScraper should have more than 1 plugin', async () => {

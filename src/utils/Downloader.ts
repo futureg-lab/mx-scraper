@@ -1,12 +1,16 @@
-import { Book, Chapter, DownloadBookMeta } from "../interfaces/BookDef";
+import { Book, Chapter, DownloadBookMeta } from "../core/BookDef";
 import { CustomRequest } from "./CustomRequest";
 import { cleanFolderName, waitFor } from "./Utils";
 import * as path from 'path';
 import * as fs from 'fs';
 import * as fsextra from 'fs-extra';
 import { config } from "../environment";
-import { MXScraper } from "../MXScraper";
+import { MXScraper } from "../core/MXScraper";
 
+
+/**
+ * Callback used to notify download progression
+ */
 export interface DownloadProgressCallback {
     (
         message : string,
@@ -16,8 +20,18 @@ export interface DownloadProgressCallback {
     ) : void
 }
 
+/**
+ * Define specific options when downloading a book
+ */
 export interface DownloadOption {
+    /**
+     * If set to true, a download process is expected to continue interrupted downloads
+     */
     continue : boolean;
+
+    /**
+     * If set to true, a download process is expected to download everything in parallel
+     */
     parallel : boolean;
 }
 

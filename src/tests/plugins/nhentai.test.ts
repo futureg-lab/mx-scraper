@@ -1,4 +1,4 @@
-import { MXScraper } from "../../MXScraper";
+import { MXScraper } from "../../core/MXScraper";
 import { NHentai } from "../../plugins/NHentai";
 
 test('NHentai book should have a value', async () => {

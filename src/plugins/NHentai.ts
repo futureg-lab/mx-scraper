@@ -4,6 +4,7 @@ import { MXPlugin } from "../core/MXPlugin";
 import { CustomRequest, FlareSolverrProxyOption } from "../utils/CustomRequest";
 import { config } from "../environment";
 import { decodeUnicodeCharacters } from "../utils/Utils";
+import { MXLogger } from "../cli/MXLogger";
 
 export class NHentai extends MXPlugin {
     title : string = 'NHentai';
@@ -26,6 +27,7 @@ export class NHentai extends MXPlugin {
         const url = this.target_url + 'g/' + doujin_id;
 
         // fetch the json object
+        MXLogger.infoRefresh ('[NHentai] Fetching book ' + doujin_id);
         let json = null;
         try {
             json = await this.fetchJsonUsingAPI (doujin_id);
@@ -79,17 +81,13 @@ export class NHentai extends MXPlugin {
         };
 
         // chapter
-        const chapter = await this.constructChapterFrom (book, json);
+        const chapter = this.constructChapterFrom (book, json);
         book.chapters.push(chapter);
         
         return book;
     }
 
-    private async constructChapterFrom (book : Book, json : any) : Promise<Chapter> {
-        // TODO
-        // asert book defined
-        // asert book.title defined
-        // asert book.url defined
+    private constructChapterFrom (book : Book, json : any) {
         const chapter = <Chapter> {
             title : book.title,
             number : 1,

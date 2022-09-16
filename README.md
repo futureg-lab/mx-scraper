@@ -12,7 +12,7 @@ npm start
 
 # Packaging
 npm i -g pkg
-pkg -t node13-win . 
+pkg -t node14-win . 
 ```
 
 ## Test

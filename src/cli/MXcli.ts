@@ -200,9 +200,6 @@ export class MXcli extends CLIEngine {
         download_option : DownloadOption = null
     ) {
         const books : Book[] = [];
-        const progress = new cliProgress.SingleBar({
-            format : ' {bar} {percentage}% | {sourceid} Book {value}/{total}'
-        }, cliProgress.Presets.shades_classic);
         
         const multibar = new cliProgress.MultiBar({
             clearOnComplete: false,
@@ -212,20 +209,14 @@ export class MXcli extends CLIEngine {
 
         try {
             // Fetch metadatas first
-            let count = 0;
             console.log (' Fetching book metadata.. ');            
-
-            progress.start (titles.length, 0, {sourceid : '-'});
             for (let title of titles) {
                 const book = await plugin.fetchBook (title);
                 books.push (book);
-                progress.update (++count, {sourceid : book.source_id});
             }
-            progress.stop ();
             console.log('\n Downloading all..');
 
             // download concurrently
-
             const processes : Promise<void>[] = [];
             for (let book of books) {
                 let sub_progress : cliProgress.SingleBar = null;

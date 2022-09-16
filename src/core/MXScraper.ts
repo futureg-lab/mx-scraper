@@ -3,6 +3,7 @@ import { MXPlugin } from "./MXPlugin";
 import { config } from "../environment";
 import { levenshtein } from "../utils/Utils";
 import * as fs from 'fs';
+import { MXLogger } from "../cli/MXLogger";
 
 export class MXScraper {
     static version = '1.1.0';
@@ -20,17 +21,24 @@ export class MXScraper {
             if (!module[name])
                 throw Error ('Plugin error : plugin "' + name + "' not found in " + path_location);
             const instance = <MXPlugin> (new module[name]);
-            
+
+            MXLogger.infoRefresh ('[Plugin] Loading ' + name);
+
             if (name != instance.title)
                 throw Error ('Plugin at ' + path_location + ' has title "' + instance.title +'", "' + name + '" expected'); 
-            
+                        
             await this.register (instance, use_session_from_config);
+
+            MXLogger.infoRefresh ('[Done] Loading ' + name);
         }
+
         // init download folders
         if (!fs.existsSync(config.DOWNLOAD_FOLDER.DOWNLOAD))
             fs.mkdirSync (config.DOWNLOAD_FOLDER.DOWNLOAD, { recursive: true });
         if (!fs.existsSync(config.DOWNLOAD_FOLDER.TEMP))
             fs.mkdirSync (config.DOWNLOAD_FOLDER.TEMP, { recursive: true });
+
+        MXLogger.flush ();
     }
 
     /**

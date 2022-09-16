@@ -88,10 +88,6 @@ export class NHentai extends MXPlugin {
     }
 
     private constructChapterFrom (book : Book, json : any) {
-        // TODO
-        // asert book defined
-        // asert book.title defined
-        // asert book.url defined
         const chapter = <Chapter> {
             title : book.title,
             number : 1,

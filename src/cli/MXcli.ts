@@ -153,7 +153,7 @@ export class MXcli extends CLIEngine {
         verbose : boolean
     ) {
         if (download_option && download_option.parallel)
-            await this.parallelFetchAllThenDownload (plugin, titles, download_option, verbose);
+            await this.parallelFetchAllThenDownload (plugin, titles, download_option);
         else
             await this.sequentialFetchAll (plugin, titles, download_option, verbose);
     }
@@ -197,8 +197,7 @@ export class MXcli extends CLIEngine {
     private async parallelFetchAllThenDownload (
         plugin : MXPlugin, 
         titles : string[], 
-        download_option : DownloadOption = null,
-        verbose : boolean
+        download_option : DownloadOption = null
     ) {
         const books : Book[] = [];
         const progress = new cliProgress.SingleBar({
@@ -230,7 +229,7 @@ export class MXcli extends CLIEngine {
             const processes : Promise<void>[] = [];
             for (let book of books) {
                 let sub_progress : cliProgress.SingleBar = null;
-                const callback : DownloadProgressCallback = (msg, curr, total, p) => {
+                const callback : DownloadProgressCallback = (msg, curr, total, _) => {
                     const payload = { sourceid : book.source_id, msg : msg };
                     if (sub_progress == null) {
                         sub_progress = multibar.create (total, curr, payload);
@@ -245,15 +244,15 @@ export class MXcli extends CLIEngine {
             const resolved : PromiseSettledResult<void>[] = await Promise.allSettled (processes);
             const failed_downloads = resolved
                                     .filter (solution => solution.status === 'rejected')
-                                    .map ((solution, index) => books[index].source_id);
+                                    .map ((_, index) => books[index].source_id);
             
             if (failed_downloads.length > 0)
                 throw Error ('Failed to download ' + failed_downloads.join(', '));
-            multibar.stop ();
         } catch (err) {
-            multibar.stop ();
             console.error ('\nFailed to resolve all');
             console.error (err);
+        } finally {
+            multibar.stop ();
         }
     }
 

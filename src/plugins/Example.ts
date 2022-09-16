@@ -1,37 +1,32 @@
-import { Book, PluginOption, Metadata, SearchOption } from "../interfaces/BookDef";
-import { MXPlugin } from "../interfaces/MXPlugin";
+import { Book, PluginOption, SearchOption } from "../core/BookDef";
+import { MXPlugin } from "../core/MXPlugin";
 import { CustomRequest } from "../utils/CustomRequest";
 
-export class Example implements MXPlugin {
-    title : string;
-    author : string;
-    version : string;
-    target_url : string;
-    unique_identifier : string;
+export class Example extends MXPlugin {
+    title : string = 'Example';
+    author : string = 'afmika';
+    version : string = '1.0.0';
+    target_url : string = 'https://example.com';
     option : PluginOption;
     request : CustomRequest;
 
     constructor () {
-        // let's define some variables
-        this.title = 'Plugin Example';
-        this.unique_identifier = 'example';
-        this.author = 'afmika';
-        this.version = '1.0.0';
-        this.target_url = 'https://example.com';
+        super ();
+        this.request = new CustomRequest ();
     }
 
-    async configure (option : PluginOption) : Promise<void> {
+    override async configure (option : PluginOption) : Promise<void> {
         this.option = option;
     }
 
-    fetchBook (identifier : string) : Promise<Book> {
+    override async fetchBook (identifier : string) : Promise<Book> {
         return null;
     }
 
-    async search (term : string, option : SearchOption) : Promise<Book[]> {
+    override async search (term : string, option : SearchOption) : Promise<Book[]> {
         return [];
     }
 
-    async destructor () {
+    override async destructor () {
     }
 }

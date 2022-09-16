@@ -1,7 +1,7 @@
-import { PluginOption } from "./interfaces/BookDef";
-import { MXPlugin } from "./interfaces/MXPlugin";
-import { config } from "./environment";
-import { levenshtein } from "./utils/Utils";
+import { PluginOption } from "./BookDef";
+import { MXPlugin } from "./MXPlugin";
+import { config } from "../environment";
+import { levenshtein } from "../utils/Utils";
 import * as fs from 'fs';
 
 export class MXScraper {
@@ -15,10 +15,15 @@ export class MXScraper {
         // init plugins
         const list_to_load = config.LOAD_PLUGINS;
         for (let name of list_to_load) {
-            const module = await import('./plugins/' + name);
+            const path_location = '../plugins/' + name;
+            const module = await import (path_location);
             if (!module[name])
-                throw Error ('Plugin error : plugin "' + name + "' not found in ./plugins/");
+                throw Error ('Plugin error : plugin "' + name + "' not found in " + path_location);
             const instance = <MXPlugin> (new module[name]);
+            
+            if (name != instance.title)
+                throw Error ('Plugin at ' + path_location + ' has title "' + instance.title +'", "' + name + '" expected'); 
+            
             await this.register (instance, use_session_from_config);
         }
         // init download folders

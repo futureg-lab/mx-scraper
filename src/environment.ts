@@ -1,5 +1,6 @@
 const config = {
     CLOUDFARE_PROXY_HOST : 'http://localhost:8191/v1',
+    CLOUDFARE_MAX_TIMEOUT : 120000,
     LOAD_PLUGINS : [
         'Example',
         'NHentai'
@@ -7,8 +8,7 @@ const config = {
     PLUGIN_PROXY_ENABLE : [
         'NHentai' 
     ],
-    CLOUDFARE_MAX_TIMEOUT : 120000,
-    UNIQUE_SESSION : 'd8eaacb0-351f-11ed-8b21-b3cab1c549cf',
+    UNIQUE_SESSION : 'bf849930-35be-11ed-8061-85fbb987363d',
     DOWNLOAD_FOLDER : {
         DOWNLOAD : './download/download',
         TEMP : './download/temp'

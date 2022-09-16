@@ -1,11 +1,11 @@
 import {CheerioAPI, load} from "cheerio";
-import { Book, PluginOption, Metadata, SearchOption, Tag, Page, TitleAlias, Chapter } from "../interfaces/BookDef";
-import { MXPlugin } from "../interfaces/MXPlugin";
+import { Book, PluginOption, Metadata, SearchOption, Tag, Page, TitleAlias, Chapter } from "../core/BookDef";
+import { MXPlugin } from "../core/MXPlugin";
 import { CustomRequest, FlareSolverrProxyOption } from "../utils/CustomRequest";
 import { config } from "../environment";
 import { decodeUnicodeCharacters } from "../utils/Utils";
 
-export class NHentai implements MXPlugin {
+export class NHentai extends MXPlugin {
     title : string = 'NHentai';
     author : string = 'afmika';
     version : string = '1.1.0';
@@ -17,10 +17,11 @@ export class NHentai implements MXPlugin {
     private api_url : string = 'https://nhentai.net/api/gallery/';
 
     constructor () {
+        super ();
         this.request = new CustomRequest();
     }
 
-    async configure (option : PluginOption) : Promise<void> {
+    override async configure (option : PluginOption) : Promise<void> {
         this.option = option;
         if (this.option.useFlareSolverr) {
             const solver_option : FlareSolverrProxyOption = <FlareSolverrProxyOption>{
@@ -33,7 +34,7 @@ export class NHentai implements MXPlugin {
         }
     }
 
-    async fetchBook (doujin_id_or_url : string) : Promise<Book> {
+    override async fetchBook (doujin_id_or_url : string) : Promise<Book> {
         const doujin_id = this.extractDoujinIdFromPotentialUrl (doujin_id_or_url);
         const url = this.target_url + 'g/' + doujin_id;
 
@@ -170,11 +171,11 @@ export class NHentai implements MXPlugin {
         return code;
     }
 
-    async search (term : string, option : SearchOption) : Promise<Book[]> {
+    override async search (term : string, option : SearchOption) : Promise<Book[]> {
         throw Error ('Yet to be implemented');
     }
 
-    async destructor () {
+    override async destructor () {
         if (this.request.proxy.session_id)
             await this.request.destroyProxySession ();
     }

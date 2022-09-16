@@ -1,11 +1,11 @@
-import { MXPlugin } from "../interfaces/MXPlugin";
-import { MXScraper } from "../MXScraper";
+import { MXPlugin } from "../core/MXPlugin";
+import { MXScraper } from "../core/MXScraper";
 import { downloadBook, DownloadOption, DownloadProgressCallback } from "../utils/Downloader";
 import { resumeBook } from "../utils/Utils";
 import { CLIEngine } from "./CLIEngine";
 import { COMMAND_DEF } from "./MXCommand";
 import * as cliProgress from 'cli-progress';
-import { Book } from "../interfaces/BookDef";
+import { Book } from "../core/BookDef";
 
 export class MXcli extends CLIEngine {
     constructor () {
@@ -213,7 +213,7 @@ export class MXcli extends CLIEngine {
         try {
             // Fetch metadatas first
             let count = 0;
-            console.log ('Fetching book metadata.. ');            
+            console.log (' Fetching book metadata.. ');            
 
             progress.start (titles.length, 0, {sourceid : '-'});
             for (let title of titles) {

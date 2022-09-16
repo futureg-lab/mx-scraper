@@ -15,18 +15,11 @@ export class Example extends MXPlugin {
         this.request = new CustomRequest ();
     }
 
-    override async configure (option : PluginOption) : Promise<void> {
-        this.option = option;
-    }
-
     override async fetchBook (identifier : string) : Promise<Book> {
         return null;
     }
 
     override async search (term : string, option : SearchOption) : Promise<Book[]> {
         return [];
-    }
-
-    override async destructor () {
     }
 }

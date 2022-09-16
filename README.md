@@ -6,8 +6,13 @@ mx-scraper (Manga Xtreme Scraper) is an opensource Manga website scraper.
 ```
 # build
 npx tsc
+
 # build and watch
 npm start
+
+# Packaging
+npm i -g pkg
+pkg -t node13-win . 
 ```
 
 ## Test

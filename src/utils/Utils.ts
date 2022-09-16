@@ -74,7 +74,7 @@ export function decodeUnicodeCharacters (str : string) : string {
 export function resumeBook (book : Book, verbose : boolean) : string  {
 
     let str = `# Title : ${book.title}\n`
-        + ` - Authors : ${book.authors.join(', ')}\n`
+        + ` - Authors : ${book.authors.map(author => author.name).join(', ')}\n`
         + ` - Source : ${book.url}\n`;
     
     let chap_str =  ` - Chapters (${book.chapters.length})`;

@@ -47,6 +47,10 @@ export class MXPlugin {
         throw Error ('Yet to be implemented');
     }
 
+    /**
+     * Configure current plugin
+     * @param option
+     */
     async configure (option : PluginOption) {
         this.option = option;
     }

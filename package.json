@@ -8,6 +8,12 @@
     "start": "npx tsc --watch",
     "ts-node": "ts-node"
   },
+  "bin": {
+    "mx-scraper": "./dist/cli.js"
+  },
+  "pkg" : {
+    "scripts" : "dist"
+  },
   "jest": {
     "testTimeout": 60000,
     "verbose": true,

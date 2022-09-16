@@ -4,6 +4,7 @@ import { MXPlugin } from "../core/MXPlugin";
 import { CustomRequest, FlareSolverrProxyOption } from "../utils/CustomRequest";
 import { config } from "../environment";
 import { decodeUnicodeCharacters } from "../utils/Utils";
+import { MXLogger } from "../cli/MXLogger";
 
 interface EHRelevantInformation {
     /**
@@ -45,6 +46,7 @@ export class EHentai extends MXPlugin {
         const [gallery_id, gallery_token] = this.extractIdFromPotentialUrl (gallery_id_or_url);
         const url = this.target_url + 'g/' + gallery_id + '/' + gallery_token;
 
+        MXLogger.infoRefresh (`[e-hentai] Fetching informations`);
         const {title, summary, tags} = await this.fetchAllRelevantsInformation (url);
 
         // authors ?
@@ -103,6 +105,7 @@ export class EHentai extends MXPlugin {
             url : url
         };
 
+        MXLogger.infoRefresh (`[e-hentai] Fetching pages`);
         const pages = await this.fetchAllPageUrls (url);
         chapter.pages = pages;
         book.chapters.push (chapter);
@@ -147,13 +150,16 @@ export class EHentai extends MXPlugin {
 
     private async fetchAllPageUrls (url : string) : Promise<Page[]> {
         const pages : Page[] = [];
-
+        const idinfos = this.extractIdFromPotentialUrl (url).join('_');
         const url_cover_seen = new Set<string> ();
 
         let current_pagination = 1, item_count = 1;
         let do_next_page = true;
+
         while (do_next_page) {
             const pagination_url = url + '?p=' + current_pagination;
+            MXLogger.infoRefresh (`[e-hentai] ${idinfos} :: Fetching page ${current_pagination} (Count ${item_count})`);
+
             const response_html = await this.request.get (pagination_url);
             const $ : CheerioAPI = load (response_html);
             

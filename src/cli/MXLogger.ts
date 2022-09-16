@@ -1,5 +1,5 @@
 import { config } from "../environment";
-import logUpdate from 'log-update';
+import * as readline from "readline";
 
 export class MXLogger {
     /**
@@ -16,7 +16,18 @@ export class MXLogger {
      * @param msg 
      */
     static infoRefresh (...msg : string[]) {
+        if (config.LOGGER?.ENABLE) {
+            readline.clearLine (process.stdout, 0); // clear whole line
+            readline.cursorTo (process.stdout, 0); // restore cursor
+            process.stdout.write (msg.join(' '));
+        }
+    }
+
+    /**
+     * Clear the screen buffer
+     */
+    static flush () {
         if (config.LOGGER?.ENABLE)
-            logUpdate (...msg);
+            console.log ();
     }
 }

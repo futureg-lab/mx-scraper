@@ -188,10 +188,9 @@ export class EHentai extends MXPlugin {
                 item_count++;
             }
 
-            console.log(current_pagination);
             current_pagination++;
         }
-        console.log('latest ' + current_pagination);
+
         return pages;
     }
 
@@ -208,10 +207,5 @@ export class EHentai extends MXPlugin {
      */
     private deduceImageTypeFromUrl (image_url : string) {
         return image_url.split('.').pop() || 'jpg';
-    }
-
-    override async destructor () {
-        if (this.request.proxy.session_id)
-            await this.request.destroyProxySession ();
     }
 }

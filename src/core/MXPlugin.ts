@@ -70,9 +70,8 @@ export class MXPlugin {
      * Useful if there are remaining sessions
      */
     async destructor () {
-        if (!this.option)
+        if (!this.option || !this.request.proxy)
             return;
-        
         if (this.option.useFlareSolverr && this.request.proxy.session_id)
             await this.request.destroyProxySession ();
     }

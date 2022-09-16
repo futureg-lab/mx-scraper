@@ -39,7 +39,10 @@ export function cleanFolderName (title : string) : string  {
 
 export function decodeUnicodeCharacters (str : string) : string {
     const escaped = str.replace (/\"/g, '\\"');
-    return decodeURIComponent (JSON.parse('"' + escaped + '"'));
+    const repl_word = '__~perc~__';
+    const no_perc = escaped.replace (/%/g, repl_word);
+    const decoded = decodeURIComponent (JSON.parse('"' + no_perc + '"'));
+    return decoded.replace (new RegExp(repl_word, 'g'), '%');
 }
 
 export function resumeBook (book : Book, verbose : boolean) : string  {

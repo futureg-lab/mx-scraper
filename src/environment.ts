@@ -13,6 +13,9 @@ const config = {
     DOWNLOAD_FOLDER : {
         DOWNLOAD : './download/download',
         TEMP : './download/temp'
+    },
+    LOGGER : {
+        ENABLE : true
     }
 };
 

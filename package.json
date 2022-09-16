@@ -11,8 +11,8 @@
   "bin": {
     "mx-scraper": "./dist/cli.js"
   },
-  "pkg" : {
-    "scripts" : "dist"
+  "pkg": {
+    "scripts": "dist"
   },
   "jest": {
     "testTimeout": 60000,
@@ -54,6 +54,7 @@
     "axios": "^0.27.2",
     "cheerio": "^1.0.0-rc.12",
     "cli-progress": "^3.11.2",
-    "fs-extra": "^10.1.0"
+    "fs-extra": "^10.1.0",
+    "log-update": "^5.0.1"
   }
 }

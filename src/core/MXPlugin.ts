@@ -1,4 +1,5 @@
-import { CustomRequest } from "../utils/CustomRequest";
+import { config } from "../environment";
+import { CustomRequest, FlareSolverrProxyOption } from "../utils/CustomRequest";
 import { Book, PluginOption, SearchOption } from "./BookDef";
 
 export class MXPlugin {
@@ -13,7 +14,7 @@ export class MXPlugin {
     author : string;
     
     /**
-     * Version of the plugin x.y.z format
+     * Version of the plugin in x.y.z format
      */
     version : string;
     
@@ -48,17 +49,31 @@ export class MXPlugin {
     }
 
     /**
-     * Configure current plugin
+     * * Configure current plugin
+     * * By default, this function setups a cloudfare proxy if option.useFlareSolverr is set to true
      * @param option
      */
-    async configure (option : PluginOption) {
+     async configure (option : PluginOption) : Promise<void> {
         this.option = option;
+        if (this.option.useFlareSolverr) {
+            const solver_option : FlareSolverrProxyOption = <FlareSolverrProxyOption>{
+                proxy_url : config.CLOUDFARE_PROXY_HOST,
+                timeout : config.CLOUDFARE_MAX_TIMEOUT,
+                session_id : this.option.useThisSessionId || undefined
+            };
+            this.request.configureProxy (solver_option);
+            await this.request.initProxySession (); // init session if there are none
+        }
     }
     
     /**
      * Useful if there are remaining sessions
      */
     async destructor () {
-        // nothing to do
+        if (!this.option)
+            return;
+        
+        if (this.option.useFlareSolverr && this.request.proxy.session_id)
+            await this.request.destroyProxySession ();
     }
 }

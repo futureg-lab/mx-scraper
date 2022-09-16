@@ -1,5 +1,5 @@
 import {CheerioAPI, load} from "cheerio";
-import { Book, PluginOption, Metadata, SearchOption, Tag, Page, TitleAlias, Chapter } from "../core/BookDef";
+import { Book, PluginOption, Metadata, SearchOption, Tag, Page, TitleAlias, Chapter, Author } from "../core/BookDef";
 import { MXPlugin } from "../core/MXPlugin";
 import { CustomRequest, FlareSolverrProxyOption } from "../utils/CustomRequest";
 import { config } from "../environment";
@@ -19,19 +19,6 @@ export class NHentai extends MXPlugin {
     constructor () {
         super ();
         this.request = new CustomRequest();
-    }
-
-    override async configure (option : PluginOption) : Promise<void> {
-        this.option = option;
-        if (this.option.useFlareSolverr) {
-            const solver_option : FlareSolverrProxyOption = <FlareSolverrProxyOption>{
-                proxy_url : config.CLOUDFARE_PROXY_HOST,
-                timeout : config.CLOUDFARE_MAX_TIMEOUT,
-                session_id : this.option.useThisSessionId || undefined
-            };
-            this.request.configureProxy (solver_option);
-            await this.request.initProxySession (); // init session if there are none
-        }
     }
 
     override async fetchBook (doujin_id_or_url : string) : Promise<Book> {
@@ -58,10 +45,13 @@ export class NHentai extends MXPlugin {
         const curr_title = decodeUnicodeCharacters (json.title['english'] || titles[0]);
 
         // author ?
-        let authors = json
-                        .tags
-                        .filter ((tag : any) => ['artist', 'group'].includes (tag.type))
-                        .map ((tag : any) => decodeUnicodeCharacters (tag.name));
+        let authors : Author[] = json
+                            .tags
+                            .filter ((tag : any) => ['artist', 'group'].includes (tag.type))
+                            .map ((tag : any) => <Author>{
+                                name : decodeUnicodeCharacters (tag.name),
+                                description : ''
+                            });
 
         // tags ?
         const tags : Tag [] = json['tags'].map((tag : any) => <Tag>{
@@ -173,10 +163,5 @@ export class NHentai extends MXPlugin {
 
     override async search (term : string, option : SearchOption) : Promise<Book[]> {
         throw Error ('Yet to be implemented');
-    }
-
-    override async destructor () {
-        if (this.request.proxy.session_id)
-            await this.request.destroyProxySession ();
     }
 }

@@ -3,7 +3,8 @@ const config = {
     CLOUDFARE_MAX_TIMEOUT : 120000,
     LOAD_PLUGINS : [
         'Example',
-        'NHentai'
+        'NHentai',
+        'EHentai'
     ],
     PLUGIN_PROXY_ENABLE : [
         'NHentai' 

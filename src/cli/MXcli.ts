@@ -54,21 +54,6 @@ export class MXcli extends CLIEngine {
             if (used_count > 1)
                 throw Error ('Only one Fetch command can be used at a time');
 
-            let plugin : MXPlugin = null;
-            if (parsed.has('Plugin')) {
-                const plugin_name = parsed.get('Plugin')[0];
-                plugin = engine.getPluginByIdentifier (plugin_name);
-                if (plugin == null)
-                    throw Error ('Plugin named "' + plugin_name + '" is not present');
-            } else {
-                let result = engine.searchPluginFor (input_entries[0], parsed.has('Exact-Match'));
-                if (result.length > 0)
-                    plugin = result[0];
-                else
-                    throw Error ('Unable to find a plugin to handle ' + input_entries[0]);
-            }
-
-            // plugin ok
             // titles ok
             // FetchMeta is guaranteed to have one item only
             // FetchMeta-List is guaranteed to have at least one item
@@ -78,6 +63,21 @@ export class MXcli extends CLIEngine {
                 // read file instead
                 titles = readListFromFile (file_path);
                 MXLogger.info ('\n\n[File] Fetching ' + titles.join(', ') + '\n');
+            }
+
+            let plugin : MXPlugin = null;
+            if (parsed.has('Plugin')) {
+                const plugin_name = parsed.get('Plugin')[0];
+                plugin = engine.getPluginByIdentifier (plugin_name);
+                if (plugin == null)
+                    throw Error ('Plugin named "' + plugin_name + '" is not present');
+            } else {
+                let result = engine.searchPluginFor (titles[0], parsed.has('Exact-Match'));
+                if (result.length > 0)
+                    plugin = result[0];
+                else
+                    throw Error ('Unable to find a plugin to handle ' + titles[0]);
+                MXLogger.infoRefresh ('[Using] ' + plugin.title);
             }
 
             let doption : DownloadOption = null;

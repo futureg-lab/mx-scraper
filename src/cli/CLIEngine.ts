@@ -8,6 +8,7 @@ export interface CLICommand {
     aliases : string [];
     arg_count : number;
     description? : string;
+    expect_commands? : CLICommand[];
 }
 
 /**

@@ -84,7 +84,9 @@ export class MXcli extends CLIEngine {
             if (parsed.has('Download'))
                 doption = { 
                     continue : !parsed.has ('Restart-Download'),
-                    parallel : parsed.has ('Parallel-Download') && parsed.has ('FetchMeta-List'),
+                    parallel : parsed.has ('Parallel-Download') && (
+                        parsed.has ('FetchMeta-List') || parsed.has ('FetchMeta-List-From-File')
+                    ),
                     meta_only : parsed.has ('Meta-Only')
                 };
             const verbose = parsed.has('Verbose');

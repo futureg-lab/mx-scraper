@@ -72,6 +72,8 @@ export function decodeUnicodeCharacters (str : string) : string {
  * @returns 
  */
 export function resumeBook (book : Book, verbose : boolean) : string  {
+    if (!book)
+        return '';
 
     let str = `# Title : ${book.title}\n`
         + ` - Authors : ${book.authors.map(author => author.name).join(', ')}\n`

@@ -3,28 +3,7 @@ mx-scraper (Manga Xtreme Scraper) is an opensource Manga website scraper<br/>
 
 ![alt text](misc/demo.gif)
 
-## Build and Testing
-### Testing
-```
-npm test
-```
-
-### Compile to javascript
-```
-npx tsc
-```
-### Build and Watch
-```
-npm start
-```
-
-# Packaging
-You must change the target platform in your package.json depending on your host computer 
-```
-npm run build
-```
-
-# CLI examples
+## CLI examples
 ```
 mx-scraper --help --verbose
 mx-scraper -h -v
@@ -40,4 +19,52 @@ mx-scraper --plugin nhentai --download --fetch-all 420166 420132
 mx-scraper --auto --fetch-all --download --parallel http://link/to/title1 http://link/to/title2
 mx-scraper --auto --download --parallel list.txt
 mx-scraper --auto --download --parallel list.txt --meta-only
+```
+## Configuring
+MXScraper will automatically create a `mx-scraper.config.json` file
+```json
+{
+  "CLOUDFARE_PROXY_HOST": "http://localhost:8191/v1",
+  "CLOUDFARE_MAX_TIMEOUT": 120000,
+  "LOAD_PLUGINS": [
+    "Plugin1",
+    "Plugin2",
+    "...."
+  ],
+  "PLUGIN_PROXY_ENABLE": [
+    "Plugin1",
+    "Plugin9",
+    "..."
+  ],
+  "UNIQUE_SESSION": "<flaresolverr_sessionid>",
+  "DOWNLOAD_FOLDER": {
+    "DOWNLOAD": "./download/download",
+    "TEMP": "./download/temp"
+  },
+  "LOGGER": {
+    "ENABLE": true
+  },
+  "SHOW_CLI_ERROR_STACK": true
+}
+```
+
+## Building and Testing
+### Testing
+```
+npm test
+```
+
+### Compile to javascript
+```
+npx tsc
+```
+### Build and Watch
+```
+npm start
+```
+
+# Packaging
+You must specify the target platform in your package.json depending on your host computer 
+```
+npm run build
 ```

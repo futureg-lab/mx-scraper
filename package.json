@@ -7,7 +7,7 @@
     "test": "npx jest --runInBand",
     "start": "npx tsc --watch",
     "ts-node": "ts-node",
-    "build" : "npx tsc && pkg -t node14-win . && pkg -t node14-linux ."
+    "build" : "npx tsc && pkg -t node14-win ."
   },
   "bin": {
     "mx-scraper": "./dist/cli.js"

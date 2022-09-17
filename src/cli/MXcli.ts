@@ -252,6 +252,6 @@ export class MXcli extends CLIEngine {
     }
 
     private headerString () {
-        return 'MXScraper-CLI v1.0 - FutureG-lab\n';
+        return 'MXScraper-CLI v' + MXScraper.version + ' - FutureG-lab\n';
     }
 }

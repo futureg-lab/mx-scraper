@@ -234,7 +234,7 @@ export class MXcli extends CLIEngine {
             // in this particular setup, the processes do not depend to each other
             const resolved : PromiseSettledResult<void>[] = await Promise.allSettled (processes);
             const failed_downloads = resolved
-                                    .filter (solution => solution.status === 'rejected')
+                                    .filter (solution => solution.status == 'rejected')
                                     .map ((_, index) => books[index].source_id);
             
             if (failed_downloads.length > 0)

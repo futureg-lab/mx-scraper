@@ -82,6 +82,12 @@ export const COMMAND_DEF = <CLICommand[]> [
         aliases : ["--fetch-file", "-ff"],
         description : "Fetch metadatas for a list of item from a file"
     },
+    <CLICommand>{
+        name : "Meta-Only",
+        arg_count : 0,
+        aliases : ["--meta-only", "-mo"],
+        description : "Fetch | Download metadata only"
+    },
 
     // download
     <CLICommand>{

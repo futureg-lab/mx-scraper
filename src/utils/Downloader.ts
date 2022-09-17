@@ -33,6 +33,11 @@ export interface DownloadOption {
      * If set to true, a download process is expected to download everything in parallel
      */
     parallel : boolean;
+
+    /**
+     * If set to true, a download process is expected to metadata only
+     */
+    meta_only? : boolean;
 }
 
 
@@ -86,51 +91,53 @@ export async function downloadBook (
     // save metadatas first
     createJsonDataOf (book_temp_folder_path, book);
 
-    for (let chapter of book.chapters) {
-        // ex: temp/mangatitle/chapter-1
-        const chapter_folder_path = path.join(
-            book_temp_folder_path,
-            cleanFolderName (chapter.title)
-        );
-        const chapter_folder_down_path = path.join(
-            book_downloaded_folder_path,
-            cleanFolderName (chapter.title)
-        );
-
-        if (!fs.existsSync(chapter_folder_path))
-            fs.mkdirSync (chapter_folder_path, {recursive : true});
-        
-        createJsonDataOf (book_temp_folder_path, book);
-                
-        for (let page of chapter.pages) {
-            const dest_path = path.join (
-                chapter_folder_path,
-                page.filename
+    if (!option.meta_only) {
+        for (let chapter of book.chapters) {
+            // ex: temp/mangatitle/chapter-1
+            const chapter_folder_path = path.join(
+                book_temp_folder_path,
+                cleanFolderName (chapter.title)
             );
-            const dest_down_path = path.join (
-                chapter_folder_down_path,
-                page.filename
+            const chapter_folder_down_path = path.join(
+                book_downloaded_folder_path,
+                cleanFolderName (chapter.title)
             );
-            // download
-            const download_anyway = !(
-                option != null 
-                && option.continue // if interrupted
-                && (
-                   fs.existsSync (dest_path) // file already exist in 'temp'
-                || fs.existsSync (dest_down_path) // file already exist in 'download'
-                )
-            );
-            let skip_msg = '';
-            if (download_anyway)
-                await request.download (page.url, dest_path);
-            else
-                skip_msg = 'Skipped';
-            // progress status
-            let message = `CH. ${chapter.number} - Page ${page.number}/${chapter.pages.length} ${skip_msg}`;
-
-            current_item++;
-            if (loading_callback)
-                loading_callback (message, current_item, total, Math.round (100. * current_item / total))
+    
+            if (!fs.existsSync(chapter_folder_path))
+                fs.mkdirSync (chapter_folder_path, {recursive : true});
+            
+            createJsonDataOf (book_temp_folder_path, book);
+                    
+            for (let page of chapter.pages) {
+                const dest_path = path.join (
+                    chapter_folder_path,
+                    page.filename
+                );
+                const dest_down_path = path.join (
+                    chapter_folder_down_path,
+                    page.filename
+                );
+                // download
+                const download_anyway = !(
+                    option != null 
+                    && option.continue // if interrupted
+                    && (
+                       fs.existsSync (dest_path) // file already exist in 'temp'
+                    || fs.existsSync (dest_down_path) // file already exist in 'download'
+                    )
+                );
+                let skip_msg = '';
+                if (download_anyway)
+                    await request.download (page.url, dest_path);
+                else
+                    skip_msg = 'Skipped';
+                // progress status
+                let message = `CH. ${chapter.number} - Page ${page.number}/${chapter.pages.length} ${skip_msg}`;
+    
+                current_item++;
+                if (loading_callback)
+                    loading_callback (message, current_item, total, Math.round (100. * current_item / total))
+            }
         }
     }
 

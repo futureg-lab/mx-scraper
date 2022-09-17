@@ -28,6 +28,6 @@ export class MXLogger {
      */
     static flush () {
         if (config.LOGGER?.ENABLE && process.stdout.isTTY)
-            console.log ();
+            console.log ('');
     }
 }

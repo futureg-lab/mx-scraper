@@ -11,15 +11,16 @@ npx tsc
 npm start
 
 # Packaging
-npm i -g pkg
-pkg -t node14-win . 
+```
+You must change the target platform in your package.json first 
+npm run build
 ```
 
 ## Test
 ```
-npm build
 npm test
 ```
+
 ## Sandbox tests examples
 ```
 npm run ts-node src/sandbox/flare-session.ts

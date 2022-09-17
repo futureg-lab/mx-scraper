@@ -241,7 +241,7 @@ export class MXcli extends CLIEngine {
                 throw Error ('Failed to download ' + failed_downloads.join(', '));
         } catch (err) {
             console.error ('\nFailed to resolve all');
-            console.error (err);
+            console.error (err.message || err);
         } finally {
             multibar.stop ();
         }

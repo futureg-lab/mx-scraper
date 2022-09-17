@@ -32,7 +32,8 @@ export const COMMAND_DEF = <CLICommand[]> [
         name : "Exact-Match",
         arg_count : 0,
         aliases : ["--exact-match", "-exact"],
-        description : "Match the hostname character by character"
+        description : "Match the hostname character by character",
+        expect_commands : ["Search-Plugin"]
     },
 
     // session
@@ -68,25 +69,22 @@ export const COMMAND_DEF = <CLICommand[]> [
         name : "FetchMeta",
         arg_count : 1,
         aliases : ["--fetch", "-f"],
-        description : "Fetch a single item"
+        description : "Fetch a single item",
+        expect_commands : ["Plugin-Auto-Detect | Plugin"]
     },
     <CLICommand>{
         name : "FetchMeta-List",
         arg_count : Infinity,
         aliases : ["--fetch-all", "-fa"],
-        description : "Fetch metadatas for a list of item"
+        description : "Fetch metadatas for a list of item",
+        expect_commands : ["Plugin-Auto-Detect | Plugin"]
     },
     <CLICommand>{
         name : "FetchMeta-List-From-File",
         arg_count : 1,
         aliases : ["--fetch-file", "-ff"],
-        description : "Fetch metadatas for a list of item from a file"
-    },
-    <CLICommand>{
-        name : "Meta-Only",
-        arg_count : 0,
-        aliases : ["--meta-only", "-mo"],
-        description : "Fetch | Download metadata only"
+        description : "Fetch metadatas for a list of item from a file",
+        expect_commands : ["Plugin-Auto-Detect | Plugin"]
     },
 
     // download
@@ -94,18 +92,41 @@ export const COMMAND_DEF = <CLICommand[]> [
         name : "Download",
         arg_count : 0,
         aliases : ["--download", "-d"],
-        description : "Download using the book metadata"
+        description : "Download using the book metadata",
+        expect_commands : [ 
+            "Plugin-Auto-Detect | Plugin",
+            "FetchMeta | FetchMeta-List | FetchMeta-List-From-File"
+        ]
     },
     <CLICommand>{
         name : "Restart-Download",
         arg_count : 0,
         aliases : ["--restart", "-r"],
-        description : "Restart cached download(s)"
+        description : "Restart cached download(s)",
+        expect_commands : [
+            // "Plugin-Auto-Detect | Plugin",
+            "Download"
+        ]
+    },
+    
+    <CLICommand>{
+        name : "Meta-Only",
+        arg_count : 0,
+        aliases : ["--meta-only", "-mo"],
+        description : "Fetch | Download metadata only",
+        expect_commands : [
+            // "Plugin-Auto-Detect | Plugin",
+            "Download"
+        ]
     },
     <CLICommand>{
         name : "Parallel-Download",
         arg_count : 0,
         aliases : ["--parallel", "-pa"],
-        description : "Download books concurrently"
+        description : "Download books concurrently",
+        expect_commands : [
+            // "Plugin-Auto-Detect | Plugin",
+            "Download"
+        ]
     }
 ];

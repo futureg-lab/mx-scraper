@@ -8,7 +8,7 @@ export interface CLICommand {
     aliases : string [];
     arg_count : number;
     description? : string;
-    expect_commands? : CLICommand[];
+    expect_commands? : string[];
 }
 
 /**
@@ -75,6 +75,30 @@ export class CLIEngine {
         }
     }
 
+    private commandSolveInterExpectation (parsed : Map<string, string[]>) : void {
+        const parsed_keys = Array.from (parsed.keys ());
+        for (let key of parsed_keys) {
+            const command = this.commands.get (key);
+            if (command.expect_commands) {
+                for (let name_or of command.expect_commands) {
+                    const names = name_or.split('|').map(name => name.trim());
+                    let count  = 0;
+                    for (let name of names)
+                        count += parsed.has (name) ? 1 : 0;
+                    
+                    if (count == 0)
+                        throw Error ('Parsing failed :'
+                            + '"' + command.name + '" expects ' 
+                            + names.map(name => {
+                                        return this.commands.get(name).aliases.join(' | ');
+                                    })
+                                    .join(' or ')
+                        );
+                }
+            }
+        }
+    }
+
     parse (args : string[]) : Map<string, string[]> {
         const state = new Map<string, string[]> ();
         let cursor = 0;
@@ -131,6 +155,9 @@ export class CLIEngine {
 
         if (missing.length > 0)
             throw Error (`Missing command relative to ${missing.join(', ')}`);
+        
+        // inter-expectation
+        this.commandSolveInterExpectation (state);
 
         return state;
     }

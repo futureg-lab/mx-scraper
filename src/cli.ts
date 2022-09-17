@@ -1,6 +1,8 @@
 import { MXcli } from "./cli/MXcli";
 import { config } from "./environment";
 import { MXScraper } from "./core/MXScraper";
+import { DynamicConfigurer } from "./cli/DynamicConfigurer";
+import { MXLogger } from "./cli/MXLogger";
 
 const [ , , ...argv] = process.argv;
 
@@ -12,10 +14,15 @@ const [ , , ...argv] = process.argv;
         // init engine
         const parsed = mxcli.parse (argv);
 
+        // override environment.ts
+        // if there aren't any config file, environment.ts will be used
+        // to setup a new config
+        DynamicConfigurer.forceOverrideConfig ();
+
         if (parsed.has('Use-Session') || parsed.has('Conf-Session')) {
             if (parsed.has('Use-Session')) // temporarily change the session id
                 config.UNIQUE_SESSION = parsed.get('Use-Session')[0];
-            console.info ('**** Using sessionid ' + config.UNIQUE_SESSION + ' ****');
+            MXLogger.info ('[Session-cdf] Using sessionid "' + config.UNIQUE_SESSION + "'");
             use_conf_session_id = true;
         }
 

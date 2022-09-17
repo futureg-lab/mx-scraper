@@ -1,11 +1,12 @@
 import { MXPlugin } from "../core/MXPlugin";
 import { MXScraper } from "../core/MXScraper";
 import { downloadBook, DownloadOption, DownloadProgressCallback } from "../utils/Downloader";
-import { resumeBook } from "../utils/Utils";
+import { readListFromFile, resumeBook } from "../utils/Utils";
 import { CLIEngine } from "./CLIEngine";
 import { COMMAND_DEF } from "./MXCommand";
 import * as cliProgress from 'cli-progress';
 import { Book } from "../core/BookDef";
+import { MXLogger } from "./MXLogger";
 
 export class MXcli extends CLIEngine {
     constructor () {
@@ -37,17 +38,22 @@ export class MXcli extends CLIEngine {
 
         // fetch metadatas
         if (parsed.has('Plugin') || parsed.has('Plugin-Auto-Detect')) {
-            if (!(parsed.has('FetchMeta') || parsed.has('FetchMeta-List'))) {
-                const list = this.getAliasesFor('FetchMeta').aliases.join(' | ');
-                throw Error ('Fetch command ' + list + ' expected.');
+            let used_count = 0;
+            let input_entries : string[] = [];
+            const list_expected = ['FetchMeta', 'FetchMeta-List', 'FetchMeta-List-From-File'];
+            for (let fetch_method of list_expected) {
+                if (parsed.has(fetch_method)) {
+                    used_count++;
+                    input_entries = parsed.get (fetch_method);
+                }
             }
 
-            if (parsed.has('FetchMeta') && parsed.has('FetchMeta-List'))
-                throw Error ('FetchMeta and FetchMeta-List cannot be both used at the same time');
+            if (used_count == 0)
+                throw Error ('Fetch command expected.');
 
-            const sample_title = parsed.has('FetchMeta') ?
-                parsed.get('FetchMeta')[0] : parsed.get('FetchMeta-List')[0];
-            
+            if (used_count > 1)
+                throw Error ('Only one Fetch command can be used at a time');
+
             let plugin : MXPlugin = null;
             if (parsed.has('Plugin')) {
                 const plugin_name = parsed.get('Plugin')[0];
@@ -55,18 +61,25 @@ export class MXcli extends CLIEngine {
                 if (plugin == null)
                     throw Error ('Plugin named "' + plugin_name + '" is not present');
             } else {
-                let result = engine.searchPluginFor (sample_title, parsed.has('Exact-Match'));
+                let result = engine.searchPluginFor (input_entries[0], parsed.has('Exact-Match'));
                 if (result.length > 0)
                     plugin = result[0];
                 else
-                    throw Error ('Unable to find a plugin to handle ' + sample_title);
+                    throw Error ('Unable to find a plugin to handle ' + input_entries[0]);
             }
 
             // plugin ok
             // titles ok
             // FetchMeta is guaranteed to have one item only
             // FetchMeta-List is guaranteed to have at least one item
-            const titles = parsed.has('FetchMeta') ? parsed.get('FetchMeta') : parsed.get('FetchMeta-List');
+            let titles = input_entries;
+            if (parsed.has('FetchMeta-List-From-File')) {
+                const file_path = input_entries[0];
+                // read file instead
+                titles = readListFromFile (file_path);
+                MXLogger.info ('\n\n[File] Fetching ' + titles.join(', ') + '\n');
+            }
+
             let doption : DownloadOption = null;
             if (parsed.has('Download'))
                 doption = { 

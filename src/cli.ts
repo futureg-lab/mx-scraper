@@ -36,6 +36,8 @@ const [ , , ...argv] = process.argv;
         if (message.includes('ECONNREFUSED'))
             console.error ('An error has occurred, make sure your CloudfareSolverr instance is working properly.');
         console.error (err.message || '');
+        if (config.SHOW_CLI_ERROR_STACK)
+            console.error (err);
     } finally {
         if (!use_conf_session_id) {
             try {
@@ -43,6 +45,8 @@ const [ , , ...argv] = process.argv;
             } catch (err) {
                 console.error ('Failed to release resources!')
                 console.error (err.message || '');
+                if (config.SHOW_CLI_ERROR_STACK)
+                    console.error (err);
             }
         } /* else do not free any resources */
     }

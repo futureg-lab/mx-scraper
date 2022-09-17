@@ -16,7 +16,8 @@ const config = {
     },
     LOGGER : {
         ENABLE : true
-    }
+    },
+    SHOW_CLI_ERROR_STACK : true
 };
 
 export {config};

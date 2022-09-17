@@ -1,4 +1,6 @@
 import { Book } from "../core/BookDef";
+import * as fs from 'fs';
+import { MXLogger } from "../cli/MXLogger";
 
 /**
  * @param a
@@ -75,7 +77,7 @@ export function resumeBook (book : Book, verbose : boolean) : string  {
     if (!book)
         return '';
 
-    let str = `# Title : ${book.title}\n`
+    let str = `\n# Title : ${book.title}\n`
         + ` - Authors : ${book.authors.map(author => author.name).join(', ')}\n`
         + ` - Source : ${book.url}\n`;
     
@@ -93,4 +95,18 @@ export function resumeBook (book : Book, verbose : boolean) : string  {
         + ` - Tags : ${book.tags.map(tag => tag.name).join(', ')}\n`
 
     return str + (verbose ? more_text : '') + chap_str;
+}
+
+
+/**
+ * Read a list of ids/url from a file
+ * * Each entry must be separated by a space | newline
+ * @param file_path
+ */
+export function readListFromFile (file_path : string) {
+    const separator = /[\n\t\r ]+/g;
+    const content = fs.readFileSync (file_path).toString ();
+    const entries = content.split (separator);
+    return entries
+        .filter (token => token != null && token != '');
 }

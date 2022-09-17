@@ -46,7 +46,7 @@ export const COMMAND_DEF = <CLICommand[]> [
         name : "Conf-Session",
         arg_count : 0,
         aliases : ["--conf-session", "-cs"],
-        description : "Use the UNIQUE_SESSION value configured in 'environment.ts'"
+        description : "Use the UNIQUE_SESSION value in the configuration file"
     },
 
     // plugin spec
@@ -75,6 +75,12 @@ export const COMMAND_DEF = <CLICommand[]> [
         arg_count : Infinity,
         aliases : ["--fetch-all", "-fa"],
         description : "Fetch metadatas for a list of item"
+    },
+    <CLICommand>{
+        name : "FetchMeta-List-From-File",
+        arg_count : 1,
+        aliases : ["--fetch-file", "-ff"],
+        description : "Fetch metadatas for a list of item from a file"
     },
 
     // download

@@ -70,7 +70,7 @@ export class MXScraper {
      */
     searchPluginFor (url : string, exact_match : boolean = false) : MXPlugin[] {
         const to_compare_url = new URL (url);
-        const max_dist = 3;
+        const max_dist = 1;
         return this.plugins.filter((plugin : MXPlugin) => {
             const target_url = new URL(plugin.target_url);
             if (exact_match)
@@ -78,7 +78,7 @@ export class MXScraper {
             
             return target_url.hostname === to_compare_url.hostname
                 || target_url.host === to_compare_url.host
-                || levenshtein(target_url.host, to_compare_url.host) <= max_dist;
+                || levenshtein (target_url.host, to_compare_url.host) <= max_dist;
         });
     }
 

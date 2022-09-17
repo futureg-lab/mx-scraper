@@ -9,6 +9,7 @@ npx tsc
 
 # build and watch
 npm start
+```
 
 # Packaging
 ```

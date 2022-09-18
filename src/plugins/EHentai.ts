@@ -2,8 +2,6 @@ import {CheerioAPI, load} from "cheerio";
 import { Book, PluginOption, Metadata, SearchOption, Tag, Page, TitleAlias, Chapter, Author } from "../core/BookDef";
 import { MXPlugin } from "../core/MXPlugin";
 import { CustomRequest, FlareSolverrProxyOption } from "../utils/CustomRequest";
-import { config } from "../environment";
-import { decodeUnicodeCharacters } from "../utils/Utils";
 import { MXLogger } from "../cli/MXLogger";
 
 interface EHRelevantInformation {
@@ -32,7 +30,7 @@ interface EHRelevantInformation {
 export class EHentai extends MXPlugin {
     title : string = 'EHentai';
     author : string = 'afmika';
-    version : string = '1.0.0';
+    version : string = '1.1.0';
     target_url : string = 'https://e-hentai.org/';
     option : PluginOption;
     request : CustomRequest;
@@ -175,26 +173,28 @@ export class EHentai extends MXPlugin {
                     break;
                 }
             }
-            
-            for (let link of links) {
-                url_cover_seen.add (link);
-                // retrieve the real link
-                const response_html = await this.request.get (link);
-                const $ : CheerioAPI = load (response_html);
-                const real_link = $('#img').first ().attr ('src');
-                const filename = item_count + '.' + this.deduceImageTypeFromUrl (real_link);
 
-                const page = <Page> {
-                    filename : filename,
-                    title : '' + item_count,
-                    number : item_count,
-                    url : real_link
-                };
-
-                pages.push (page);
-                item_count++;
+            if (do_next_page) {
+                for (let link of links) {
+                    url_cover_seen.add (link);
+                    // retrieve the real link
+                    const response_html = await this.request.get (link);
+                    const $ : CheerioAPI = load (response_html);
+                    const real_link = $('#img').first ().attr ('src');
+                    const filename = item_count + '.' + this.deduceImageTypeFromUrl (real_link);
+    
+                    const page = <Page> {
+                        filename : filename,
+                        title : '' + item_count,
+                        number : item_count,
+                        url : real_link
+                    };
+    
+                    pages.push (page);
+                    item_count++;
+                }
             }
-
+        
             current_pagination++;
         }
 

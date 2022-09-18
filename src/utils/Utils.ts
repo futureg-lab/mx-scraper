@@ -110,3 +110,33 @@ export function readListFromFile (file_path : string) {
     return entries
         .filter (token => token != null && token != '');
 }
+
+/**
+ * Batch a list of items
+ * * Example : 
+ * `list = [1, 2, 3, 4, 5]`, `batch_size = 3` => `[[1, 2, 3], [4, 5]]`
+ * @param list 
+ * @param batch_size 
+ * @returns 
+ */
+export function batchAListOf<T> (list : T[], batch_size : number) : T[][] {
+    if (batch_size <= 0) 
+        throw Error ('Batch size cannot be negative or 0');
+
+    const batches : T[][] = [];   
+    let current_batch : T[] = [];
+    let cursor = 0;
+    while (cursor < list.length) {
+        current_batch.push (list[cursor++]);
+        if (current_batch.length == batch_size) {
+            batches.push (current_batch);
+            current_batch = [];
+        }
+    }
+
+    // leftover
+    if (current_batch.length > 0)
+        batches.push (current_batch);
+    
+    return batches;
+}

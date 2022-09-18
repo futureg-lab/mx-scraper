@@ -135,5 +135,5 @@ export const COMMAND_DEF = <CLICommand[]> [
         arg_count : 0,
         aliases : ["--error-stack", "-es"],
         description : "Show error stack"
-    },
+    }
 ];

@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import { MXLogger } from "../cli/MXLogger";
 
 export class MXScraper {
-    static version = '1.3.0';
+    static version = '1.4.0';
     plugins : MXPlugin[] = [];
 
     /**

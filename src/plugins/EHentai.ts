@@ -175,26 +175,28 @@ export class EHentai extends MXPlugin {
                     break;
                 }
             }
-            
-            for (let link of links) {
-                url_cover_seen.add (link);
-                // retrieve the real link
-                const response_html = await this.request.get (link);
-                const $ : CheerioAPI = load (response_html);
-                const real_link = $('#img').first ().attr ('src');
-                const filename = item_count + '.' + this.deduceImageTypeFromUrl (real_link);
 
-                const page = <Page> {
-                    filename : filename,
-                    title : '' + item_count,
-                    number : item_count,
-                    url : real_link
-                };
-
-                pages.push (page);
-                item_count++;
+            if (do_next_page) {
+                for (let link of links) {
+                    url_cover_seen.add (link);
+                    // retrieve the real link
+                    const response_html = await this.request.get (link);
+                    const $ : CheerioAPI = load (response_html);
+                    const real_link = $('#img').first ().attr ('src');
+                    const filename = item_count + '.' + this.deduceImageTypeFromUrl (real_link);
+    
+                    const page = <Page> {
+                        filename : filename,
+                        title : '' + item_count,
+                        number : item_count,
+                        url : real_link
+                    };
+    
+                    pages.push (page);
+                    item_count++;
+                }
             }
-
+        
             current_pagination++;
         }
 

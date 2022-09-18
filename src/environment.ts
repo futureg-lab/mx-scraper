@@ -9,11 +9,12 @@ const config = {
     PLUGIN_PROXY_ENABLE : [
         'NHentai' 
     ],
-    UNIQUE_SESSION : 'bf849930-35be-11ed-8061-85fbb987363d',
+    UNIQUE_SESSION : 'ae790d20-377a-11ed-afce-cbaaa8f182c5',
     DOWNLOAD_FOLDER : {
         DOWNLOAD : './download/download',
         TEMP : './download/temp'
     },
+    MAX_SIZE_BATCH : 10,
     LOGGER : {
         ENABLE : true
     },

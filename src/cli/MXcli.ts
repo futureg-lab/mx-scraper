@@ -1,7 +1,7 @@
 import { MXPlugin } from "../core/MXPlugin";
 import { MXScraper } from "../core/MXScraper";
 import { downloadBook, DownloadOption, DownloadProgressCallback } from "../utils/Downloader";
-import { readListFromFile, resumeBook } from "../utils/Utils";
+import { batchAListOf, readListFromFile, resumeBook } from "../utils/Utils";
 import { CLIEngine } from "./CLIEngine";
 import { COMMAND_DEF } from "./MXCommand";
 import * as cliProgress from 'cli-progress';
@@ -184,9 +184,14 @@ export class MXcli extends CLIEngine {
         download_option : DownloadOption = null,
         verbose : boolean
     ) {
-        if (download_option && download_option.parallel)
-            await this.parallelFetchAllThenDownload (plugin, titles, download_option);
-        else
+        if (download_option && download_option.parallel) {
+            const batches = batchAListOf<string> (titles, config.MAX_SIZE_BATCH);
+            let count = 1;
+            for (let batch of batches) {
+                MXLogger.info ('\n # Batch ' + (count++) + '/' + batches.length);
+                await this.parallelFetchAllThenDownload (plugin, batch, download_option);
+            }
+        } else
             await this.sequentialFetchAll (plugin, titles, download_option, verbose);
     }
 
@@ -196,6 +201,7 @@ export class MXcli extends CLIEngine {
         download_option : DownloadOption = null,
         verbose : boolean
     ) {
+        let book_index = 1;
         for (let title of titles) {
             try {
                 const book = await plugin.fetchBook (title);
@@ -277,10 +283,6 @@ export class MXcli extends CLIEngine {
         } finally {
             multibar.stop ();
         }
-    }
-
-    private getAliasesFor (cmd_name : string) {
-        return this.commands.get (cmd_name);
     }
 
     private headerString () {

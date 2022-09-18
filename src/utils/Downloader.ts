@@ -78,15 +78,20 @@ export async function downloadBook (
 
     // path destinations
 
+    const base_folder_source = getDestFolderNameUsingSourceOf (book);
+
     const book_temp_folder_path = path.join(
         config.DOWNLOAD_FOLDER.TEMP,
+        base_folder_source,
         folderNameFromBook (book),
     );
 
     const book_downloaded_folder_path = path.join(
         config.DOWNLOAD_FOLDER.DOWNLOAD,
+        base_folder_source,
         folderNameFromBook (book)
     );
+
     // create chapter folder
     if (!fs.existsSync (book_temp_folder_path))
         fs.mkdirSync (book_temp_folder_path, {recursive : true});
@@ -171,12 +176,36 @@ export function computeSignature (book : Book) : string {
                     .digest ('hex');
 }
 
+/**
+ * Compute a substring of length 10 of the corresponding hash of a book
+ * @param book 
+ * @returns 
+ */
 export function computeFolderSuffix (book : Book) : string {
-    return computeSignature (book).substring (0, 7);
+    return computeSignature (book).substring (0, 10);
 }
 
+/**
+ * Compute a unique name folder based on the title and the hash
+ * @param book 
+ * @returns 
+ */
 export function folderNameFromBook (book : Book) : string {
     const prefix = cleanFolderName (book.title);
     const suffix = computeFolderSuffix (book);
     return `${prefix} (${suffix})`;
+}
+
+/**
+ * Get the base folder name based on the source `book.url`
+ * , returns `local` if `book.url` is `undefined` or `null` 
+ * @param book 
+ * @returns
+ */
+export function getDestFolderNameUsingSourceOf (book : Book) {
+    if (!book.url)
+        return 'local';
+    const url = new URL (book.url);
+    const [y, x, ] = url.hostname.split('.').reverse();
+    return x + '.' + y;
 }

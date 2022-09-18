@@ -4,6 +4,7 @@ import { cleanFolderName, waitFor } from "./Utils";
 import * as path from 'path';
 import * as fs from 'fs';
 import * as fsextra from 'fs-extra';
+import * as crypto from 'crypto';
 import { config } from "../environment";
 import { MXScraper } from "../core/MXScraper";
 
@@ -76,13 +77,15 @@ export async function downloadBook (
         total += chapter.pages.length;
 
     // path destinations
+
     const book_temp_folder_path = path.join(
         config.DOWNLOAD_FOLDER.TEMP,
-        cleanFolderName (book.title)
+        folderNameFromBook (book),
     );
+
     const book_downloaded_folder_path = path.join(
         config.DOWNLOAD_FOLDER.DOWNLOAD,
-        cleanFolderName (book.title)
+        folderNameFromBook (book)
     );
     // create chapter folder
     if (!fs.existsSync (book_temp_folder_path))
@@ -91,26 +94,31 @@ export async function downloadBook (
     // save metadatas first
     createJsonDataOf (book_temp_folder_path, book);
 
+    const getChapterPath = (base : string, ch : Chapter) => {
+        return path.join (base, cleanFolderName (ch.title));
+    } 
+
     if (!option.meta_only) {
         for (let chapter of book.chapters) {
             // ex: temp/mangatitle/chapter-1
-            const chapter_folder_path = path.join(
+            // there is no need
+            const chapter_folder_temp_path = getChapterPath (
                 book_temp_folder_path,
-                cleanFolderName (chapter.title)
+                chapter
             );
-            const chapter_folder_down_path = path.join(
+            const chapter_folder_down_path = getChapterPath (
                 book_downloaded_folder_path,
-                cleanFolderName (chapter.title)
+                chapter
             );
     
-            if (!fs.existsSync(chapter_folder_path))
-                fs.mkdirSync (chapter_folder_path, {recursive : true});
+            if (!fs.existsSync (chapter_folder_temp_path))
+                fs.mkdirSync (chapter_folder_temp_path, {recursive : true});
             
             createJsonDataOf (book_temp_folder_path, book);
                     
             for (let page of chapter.pages) {
                 const dest_path = path.join (
-                    chapter_folder_path,
+                    chapter_folder_temp_path,
                     page.filename
                 );
                 const dest_down_path = path.join (
@@ -148,4 +156,27 @@ export async function downloadBook (
     if (!fs.existsSync (book_downloaded_folder_path))
         fsextra.moveSync (book_temp_folder_path, book_downloaded_folder_path, {overwrite : true});
 
+}
+
+/**
+ * Compute the corresponding sha256 signature of a book
+ * @param book 
+ * @returns 
+ */
+export function computeSignature (book : Book) : string {
+    const input = book.title + book.source_id + book.url;
+    return 'mx_' + crypto
+                    .createHash ('sha256')
+                    .update (input)
+                    .digest ('hex');
+}
+
+export function computeFolderSuffix (book : Book) : string {
+    return computeSignature (book).substring (0, 7);
+}
+
+export function folderNameFromBook (book : Book) : string {
+    const prefix = cleanFolderName (book.title);
+    const suffix = computeFolderSuffix (book);
+    return `${prefix} (${suffix})`;
 }

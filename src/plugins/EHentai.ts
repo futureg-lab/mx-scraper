@@ -153,7 +153,8 @@ export class EHentai extends MXPlugin {
         const idinfos = this.extractIdFromPotentialUrl (url).join('_');
         const url_cover_seen = new Set<string> ();
 
-        let current_pagination = 1, item_count = 1;
+        // /!\ page is 0-indexed on the website
+        let current_pagination = 0, item_count = 1;
         let do_next_page = true;
 
         while (do_next_page) {

@@ -7,6 +7,8 @@ import { COMMAND_DEF } from "./MXCommand";
 import * as cliProgress from 'cli-progress';
 import { Book } from "../core/BookDef";
 import { MXLogger } from "./MXLogger";
+import { config } from "../environment";
+import { DynamicConfigurer } from "./DynamicConfigurer";
 
 export class MXcli extends CLIEngine {
     constructor () {
@@ -20,6 +22,11 @@ export class MXcli extends CLIEngine {
 
     async runCommand (engine : MXScraper, parsed : Map<string, string[]>) {
         const verbose = parsed.has('Verbose');
+
+        if (parsed.has('Error-Stack')) {
+            DynamicConfigurer.overrideField ('SHOW_CLI_ERROR_STACK', true);
+        }
+        
         // show help / plugins
         if (parsed.has('Show-Help')) {
             this.commandPrintHelp (engine, verbose);

@@ -108,7 +108,6 @@ export const COMMAND_DEF = <CLICommand[]> [
             "Download"
         ]
     },
-    
     <CLICommand>{
         name : "Meta-Only",
         arg_count : 0,
@@ -128,5 +127,13 @@ export const COMMAND_DEF = <CLICommand[]> [
             // "Plugin-Auto-Detect | Plugin",
             "Download"
         ]
-    }
+    },
+
+    // handling errors
+    <CLICommand>{
+        name : "Error-Stack",
+        arg_count : 0,
+        aliases : ["--error-stack", "-es"],
+        description : "Show error stack"
+    },
 ];

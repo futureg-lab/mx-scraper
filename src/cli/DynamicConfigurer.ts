@@ -57,4 +57,13 @@ export class DynamicConfigurer {
         for (let key in json)
             config[key] = json[key];
     }
+
+    /**
+     * Dynamically overwrite a value of the current configuration
+     * @param key target to overwrite
+     * @param value value associated to `key`
+     */
+    static overrideField (key : string, value : any) {
+        config[key] = value;
+    }
 }

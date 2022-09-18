@@ -7,6 +7,8 @@ import { COMMAND_DEF } from "./MXCommand";
 import * as cliProgress from 'cli-progress';
 import { Book } from "../core/BookDef";
 import { MXLogger } from "./MXLogger";
+import { config } from "../environment";
+import { DynamicConfigurer } from "./DynamicConfigurer";
 
 export class MXcli extends CLIEngine {
     constructor () {
@@ -20,6 +22,11 @@ export class MXcli extends CLIEngine {
 
     async runCommand (engine : MXScraper, parsed : Map<string, string[]>) {
         const verbose = parsed.has('Verbose');
+
+        if (parsed.has('Error-Stack')) {
+            DynamicConfigurer.overrideField ('SHOW_CLI_ERROR_STACK', true);
+        }
+
         // show help / plugins
         if (parsed.has('Show-Help')) {
             this.commandPrintHelp (engine, verbose);
@@ -107,11 +114,20 @@ export class MXcli extends CLIEngine {
 
     private commandPrintHelp (engine : MXScraper, verbose : boolean = false) {
         let examples = [
-            " mx-scraper --plugin plugin_name --fetch-all title1 title2 title3\n",
-            " mx-scraper --auto --fetch http://link/to/a/title\n",
-            " mx-scraper --show-plugins -v\n",
-            " mx-scraper -h\n",
-            " mx-scraper --search-plugin -v http://link/to/a/title"
+            'mx-scraper --help --verbos',
+            'mx-scraper -h -v',
+            'mx-scraper --show-plugins -v',
+            'mx-scraper --show-plugins -v -cs',
+            'mx-scraper --search-plugin -v http://link/to/a/title',
+            'mx-scraper --auto --fetch http://link/to/a/title',
+            'mx-scraper --plugin plugin_name --fetch-all title1 title2 title3',
+            'mx-scraper --plugin plugin_name --fetch-all 420166 420132 --download --conf-session',
+            'mx-scraper --plugin nhentai --download --fetch-all 420166 420132',
+            'mx-scraper --auto --fetch-all --download --parallel http://link/to/title1 http://link/to/title2',
+            'mx-scraper --auto --download --parallel --fetch-file list.txt',
+            'mx-scraper --auto --download --parallel --fetch-file list.txt --meta-only',
+            'mx-scraper -a -d -pa -ff list.txt -mo',
+            'mx-scraper -a -d -pa -ff list.txt'
         ];
         
         let commands_instr = [];
@@ -122,9 +138,9 @@ export class MXcli extends CLIEngine {
             if (verbose) {
                 const if_has_arg = command.arg_count !== Infinity ? 
                     command.arg_count + ' VAL' : 'a LIST';
-                verb_text = '\t\tExpect ' 
+                verb_text = '\t- Arguments : ' 
                     + (!command.arg_count ? 'NONE' : if_has_arg)
-                    + '\n'
+                    + '\n';
             }
             commands_instr.push (
                 '  ' + command.name + ' : '
@@ -137,8 +153,8 @@ export class MXcli extends CLIEngine {
 
         console.info (
             this.headerString ()
-            + '\n* Examples : \n' + examples.join('')
-            + '\n* Commands : \n'
+            + '\n# Examples : \n' + examples.map(example => ' ' + example + '\n').join('')
+            + '\n# Commands : \n'
             + commands_instr.join('')
         );
     }

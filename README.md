@@ -58,7 +58,7 @@ npm test
 ```
 npx tsc
 ```
-### Build and Watch
+### Compile to javascript and Watch
 ```
 npm start
 ```

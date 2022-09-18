@@ -2,8 +2,6 @@ import {CheerioAPI, load} from "cheerio";
 import { Book, PluginOption, Metadata, SearchOption, Tag, Page, TitleAlias, Chapter, Author } from "../core/BookDef";
 import { MXPlugin } from "../core/MXPlugin";
 import { CustomRequest, FlareSolverrProxyOption } from "../utils/CustomRequest";
-import { config } from "../environment";
-import { decodeUnicodeCharacters } from "../utils/Utils";
 import { MXLogger } from "../cli/MXLogger";
 
 interface EHRelevantInformation {
@@ -32,7 +30,7 @@ interface EHRelevantInformation {
 export class EHentai extends MXPlugin {
     title : string = 'EHentai';
     author : string = 'afmika';
-    version : string = '1.0.0';
+    version : string = '1.1.0';
     target_url : string = 'https://e-hentai.org/';
     option : PluginOption;
     request : CustomRequest;

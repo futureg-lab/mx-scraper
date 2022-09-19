@@ -45,42 +45,6 @@ export class MXPlugin {
         throw Error ('Yet to be implemented');
     }
 
-
-    /**
-     * Write a book metadata in a temp folder to accelerate future requests
-     * @param query 
-     * @param book 
-     * @returns 
-     */
-    static writeBookTocache (query : string, book : Book) : boolean {
-        if (!book)
-            return;
-        const text = JSON.stringify (book, null, 2);
-        const filename = computeSignatureQuery (query) + '.json';
-        const base = config.CACHE.FOLDER;
-        if (!fs.existsSync (base))
-            fsextra.mkdirSync (base, {recursive : true});
-        fs.writeFileSync (path.join(base, filename), text);
-    }
-
-    /**
-     * Fetch a book from the cache folder, returns null if nothing is found
-     * @param query 
-     * @returns 
-     */
-    static fetchBookFromCache (query : string) : Book {
-        const filename = computeSignatureQuery (query) + '.json';
-        const base = config.CACHE.FOLDER;
-        const compl_path = path.join(base, filename);
-        if (fs.existsSync(compl_path)) {
-            const raw_text = fs.readFileSync (compl_path).toString();
-            const raw_json = JSON.parse (raw_text);
-            return <Book> raw_json;
-        }
-        return null;
-    }
-
-
     /**
      * * Get a book from source if not cached
      * * if `cache` is disabled, it is equivalent to `MXPlugin.fetchBook`
@@ -90,13 +54,13 @@ export class MXPlugin {
     async getBook (query : string) : Promise<Book> {
         if (config.CACHE.ENABLE) {
             let book : Book = null;
-            const cached : Book = MXPlugin.fetchBookFromCache (query);
+            const cached : Book = this.fetchBookFromCache (query);
             if (cached) {
                 MXLogger.info ('[Cache] Loading ' + query);
                 book = cached;
             } else {
                 book = await this.fetchBook (query);
-                MXPlugin.writeBookTocache (query, book);
+                this.writeBookTocache (query, book);
             }
             return book;
         }
@@ -137,5 +101,41 @@ export class MXPlugin {
             return;
         if (this.option.useFlareSolverr && this.request.proxy.session_id)
             await this.request.destroyProxySession ();
+    }
+
+    /**
+     * Write a book metadata in a temp folder to accelerate future requests
+     * @param query 
+     * @param book 
+     * @returns 
+     */
+    private writeBookTocache (query : string, book : Book) : boolean {
+        if (!book)
+            return;
+        const text = JSON.stringify (book, null, 2);
+        const plugin_name = this.title;
+        const filename = computeSignatureQuery (query, plugin_name) + '.json';
+        const base = config.CACHE.FOLDER;
+        if (!fs.existsSync (base))
+            fsextra.mkdirSync (base, {recursive : true});
+        fs.writeFileSync (path.join(base, filename), text);
+    }
+
+    /**
+     * Fetch a book from the cache folder, returns null if nothing is found
+     * @param query 
+     * @returns 
+     */
+    private fetchBookFromCache (query : string) : Book {
+        const plugin_name = this.title;
+        const filename = computeSignatureQuery (query, plugin_name) + '.json';
+        const base = config.CACHE.FOLDER;
+        const compl_path = path.join(base, filename);
+        if (fs.existsSync(compl_path)) {
+            const raw_text = fs.readFileSync (compl_path).toString();
+            const raw_json = JSON.parse (raw_text);
+            return <Book> raw_json;
+        }
+        return null;
     }
 }

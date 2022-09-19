@@ -34,7 +34,7 @@ const [ , , ...argv] = process.argv;
     } catch (err) {
         const message = err.message || '';
         if (message.includes('ECONNREFUSED'))
-            console.error ('An error has occurred, make sure your CloudfareSolverr instance is working properly.');
+            console.error ('\nAn error has occurred, make sure your CloudfareSolverr instance is working properly.');
         console.error (err.message || '');
         if (config.SHOW_CLI_ERROR_STACK)
             console.error (err);

@@ -108,6 +108,7 @@ export class MXcli extends CLIEngine {
                 };
             const verbose = parsed.has('Verbose');
             const titles_set = new Set<string> (titles);
+            MXLogger.info('\n');
             await this.commandFetchMetaDatasOrDownload (plugin, titles_set, doption, verbose);
             return;
         }

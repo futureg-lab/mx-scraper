@@ -97,7 +97,8 @@ export class MXcli extends CLIEngine {
                     meta_only : parsed.has ('Meta-Only')
                 };
             const verbose = parsed.has('Verbose');
-            await this.commandFetchMetaDatasOrDownload (plugin, titles, doption, verbose);
+            const titles_set = new Set<string> (titles);
+            await this.commandFetchMetaDatasOrDownload (plugin, titles_set, doption, verbose);
             return;
         }
     }
@@ -180,10 +181,11 @@ export class MXcli extends CLIEngine {
 
     private async commandFetchMetaDatasOrDownload (
         plugin : MXPlugin, 
-        titles : string[], 
+        titles_set : Set<string>, 
         download_option : DownloadOption = null,
         verbose : boolean
     ) {
+        const titles = Array.from (titles_set);
         if (download_option && download_option.parallel) {
             const batches = batchAListOf<string> (titles, config.MAX_SIZE_BATCH);
             let count = 1;

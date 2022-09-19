@@ -1,7 +1,9 @@
 import { MXScraper } from "../../core/MXScraper";
+import { config } from "../../environment";
 import { NHentai } from "../../plugins/NHentai";
 
 test('NHentai book should have a value', async () => {
+    config.LOGGER.ENABLE = false;
     try {
         const engine = new MXScraper ();
         await engine.initFromPluginFolder ();

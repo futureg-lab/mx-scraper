@@ -14,6 +14,10 @@ const config = {
         DOWNLOAD : './download/download',
         TEMP : './download/temp'
     },
+    CACHE : {
+        ENABLE : true,
+        FOLDER : './query_cache'
+    },
     MAX_SIZE_BATCH : 10,
     LOGGER : {
         ENABLE : true

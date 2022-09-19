@@ -1,6 +1,11 @@
 import { config } from "../environment";
 import { CustomRequest, FlareSolverrProxyOption } from "../utils/CustomRequest";
 import { Book, PluginOption, SearchOption } from "./BookDef";
+import * as fs from 'fs';
+import * as fsextra from 'fs-extra';
+import * as path from 'path';
+import { computeSignatureQuery } from "../utils/Downloader";
+import { MXLogger } from "../cli/MXLogger";
 
 export class MXPlugin {
     /**
@@ -41,6 +46,28 @@ export class MXPlugin {
     }
 
     /**
+     * * Get a book from source if not cached
+     * * if `cache` is disabled, it is equivalent to `MXPlugin.fetchBook`
+     * @param query query string | book identifier
+     * @returns 
+     */
+    async getBook (query : string) : Promise<Book> {
+        if (config.CACHE.ENABLE) {
+            let book : Book = null;
+            const cached : Book = this.fetchBookFromCache (query);
+            if (cached) {
+                MXLogger.info ('[Cache] Loading ' + query);
+                book = cached;
+            } else {
+                book = await this.fetchBook (query);
+                this.writeBookTocache (query, book);
+            }
+            return book;
+        }
+        return await this.fetchBook (query);
+    }
+
+    /**
      * @param term search keyword
      * @param option search option
      */
@@ -74,5 +101,41 @@ export class MXPlugin {
             return;
         if (this.option.useFlareSolverr && this.request.proxy.session_id)
             await this.request.destroyProxySession ();
+    }
+
+    /**
+     * Write a book metadata in a temp folder to accelerate future requests
+     * @param query 
+     * @param book 
+     * @returns 
+     */
+    private writeBookTocache (query : string, book : Book) : boolean {
+        if (!book)
+            return;
+        const text = JSON.stringify (book, null, 2);
+        const plugin_name = this.title;
+        const filename = computeSignatureQuery (query, plugin_name) + '.json';
+        const base = config.CACHE.FOLDER;
+        if (!fs.existsSync (base))
+            fsextra.mkdirSync (base, {recursive : true});
+        fs.writeFileSync (path.join(base, filename), text);
+    }
+
+    /**
+     * Fetch a book from the cache folder, returns null if nothing is found
+     * @param query 
+     * @returns 
+     */
+    private fetchBookFromCache (query : string) : Book {
+        const plugin_name = this.title;
+        const filename = computeSignatureQuery (query, plugin_name) + '.json';
+        const base = config.CACHE.FOLDER;
+        const compl_path = path.join(base, filename);
+        if (fs.existsSync(compl_path)) {
+            const raw_text = fs.readFileSync (compl_path).toString();
+            const raw_json = JSON.parse (raw_text);
+            return <Book> raw_json;
+        }
+        return null;
     }
 }

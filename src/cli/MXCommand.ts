@@ -135,5 +135,27 @@ export const COMMAND_DEF = <CLICommand[]> [
         arg_count : 0,
         aliases : ["--error-stack", "-es"],
         description : "Show error stack"
+    },
+
+    // cache
+    <CLICommand>{
+        name : "Use-Cache",
+        arg_count : 0,
+        aliases : ["--use-cache", "-uc"],
+        description : "Force enable caching",
+        expect_commands : [
+            "Plugin-Auto-Detect | Plugin",
+            "FetchMeta | FetchMeta-List | FetchMeta-List-From-File"
+        ]
+    },
+    <CLICommand>{
+        name : "No-Cache",
+        arg_count : 0,
+        aliases : ["--no-cache", "-nc"],
+        description : "Force disable caching",
+        expect_commands : [
+            "Plugin-Auto-Detect | Plugin",
+            "FetchMeta | FetchMeta-List | FetchMeta-List-From-File"
+        ]
     }
 ];

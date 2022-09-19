@@ -177,6 +177,19 @@ export function computeSignature (book : Book) : string {
 }
 
 /**
+ * Compute the corresponding sha256 signature of a query string
+ * @param query 
+ * @param plugin_name 
+ * @returns 
+ */
+ export function computeSignatureQuery (query : string, plugin_name : string) : string {
+    return 'mx_' + crypto
+                    .createHash ('sha256')
+                    .update (query + plugin_name)
+                    .digest ('hex');
+}
+
+/**
  * Compute a substring of length 10 of the corresponding hash of a book
  * @param book 
  * @returns 

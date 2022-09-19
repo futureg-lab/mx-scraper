@@ -157,7 +157,7 @@ export class EHentai extends MXPlugin {
 
         while (do_next_page) {
             const pagination_url = url + '?p=' + current_pagination;
-            MXLogger.infoRefresh (`[e-hentai] ${idinfos} :: Fetching page ${current_pagination} (Count ${item_count})`);
+            MXLogger.infoRefresh (`[e-hentai] ${idinfos} :: Fetching page ${current_pagination} (Count ${item_count - 1})`);
 
             const response_html = await this.request.get (pagination_url);
             const $ : CheerioAPI = load (response_html);

@@ -131,7 +131,7 @@ export class MXPlugin {
         const filename = computeSignatureQuery (query, plugin_name) + '.json';
         const base = config.CACHE.FOLDER;
         const compl_path = path.join(base, filename);
-        if (fs.existsSync(compl_path)) {
+        if (fs.existsSync (compl_path)) {
             const raw_text = fs.readFileSync (compl_path).toString();
             const raw_json = JSON.parse (raw_text);
             return <Book> raw_json;

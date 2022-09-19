@@ -27,6 +27,16 @@ export class MXcli extends CLIEngine {
             DynamicConfigurer.overrideField ('SHOW_CLI_ERROR_STACK', true);
         }
 
+        if (parsed.has('Use-Cache') && parsed.has('No-Cache'))
+            throw Error ('Cannot use --no-cache with --use-cache');
+        
+        if (parsed.has('Use-Cache') || parsed.has('No-Cache')) {
+            const cache = config.CACHE;
+            if (parsed.has('Use-Cache')) cache.ENABLE = true;
+            if (parsed.has('No-Cache'))  cache.ENABLE = false;
+            DynamicConfigurer.overrideField ('CACHE', cache);
+        }
+
         // show help / plugins
         if (parsed.has('Show-Help')) {
             this.commandPrintHelp (engine, verbose);
@@ -206,7 +216,7 @@ export class MXcli extends CLIEngine {
         let book_index = 1;
         for (let title of titles) {
             try {
-                const book = await plugin.fetchBook (title);
+                let book : Book = await plugin.getBook (title);
                 console.log (resumeBook (book, verbose));
                 if (download_option) {
                     const progress = new cliProgress.SingleBar({
@@ -251,7 +261,7 @@ export class MXcli extends CLIEngine {
             // Fetch metadatas first
             console.log (' Fetching book metadata.. ');            
             for (let title of titles) {
-                const book = await plugin.fetchBook (title);
+                const book = await plugin.getBook (title);
                 books.push (book);
             }
             console.log('\n Downloading all..');

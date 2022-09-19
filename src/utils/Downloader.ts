@@ -177,6 +177,18 @@ export function computeSignature (book : Book) : string {
 }
 
 /**
+ * Compute the corresponding sha256 signature of a query string
+ * @param query 
+ * @returns 
+ */
+ export function computeSignatureQuery (query : string) : string {
+    return 'mx_' + crypto
+                    .createHash ('sha256')
+                    .update (query)
+                    .digest ('hex');
+}
+
+/**
  * Compute a substring of length 10 of the corresponding hash of a book
  * @param book 
  * @returns 

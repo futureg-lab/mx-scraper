@@ -5,4 +5,5 @@ download
 bin
 mx-scraper.config.json
 test.txt
+query_cache
 CONTRIBUTING.md

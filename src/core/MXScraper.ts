@@ -5,8 +5,10 @@ import { levenshtein } from "../utils/Utils";
 import * as fs from 'fs';
 import { MXLogger } from "../cli/MXLogger";
 
+const version : string = require('../../package.json').version;
+
 export class MXScraper {
-    static version = '1.4.1';
+    static version = version;
     plugins : MXPlugin[] = [];
 
     /**

@@ -25,7 +25,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/afmika/mx-scraper.git"
+    "url": "git+https://github.com/futureg-lab/mx-scraper.git"
   },
   "keywords": [
     "web-scraping",
@@ -35,12 +35,12 @@
   "engines": {
     "node": ">=14"
   },
-  "author": "afmika",
+  "author": "futureg-lab",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/afmika/mx-scraper/issues"
+    "url": "https://github.com/futureg-lab/mx-scraper/issues"
   },
-  "homepage": "https://github.com/afmika/mx-scraper#readme",
+  "homepage": "https://github.com/futureg-lab/mx-scraper#readme",
   "devDependencies": {
     "@babel/preset-typescript": "^7.18.6",
     "@types/cli-progress": "^3.11.0",

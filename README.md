@@ -41,6 +41,10 @@ MXScraper will automatically create a `mx-scraper.config.json` file
     "DOWNLOAD": "./download/download",
     "TEMP": "./download/temp"
   },
+  "CACHE": {
+    "ENABLE": true,
+    "FOLDER": "./query_cache"
+  },
   "LOGGER": {
     "ENABLE": true
   },

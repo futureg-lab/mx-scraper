@@ -9,7 +9,7 @@ pipeline {
         stage('Build') {
             steps {
                 sh 'npx tsc'
-                archiveArtifacts artifacts: 'dist/*', fingerprint : true
+                archiveArtifacts artifacts: 'dist/**/*', fingerprint : true
             }
         }
     }

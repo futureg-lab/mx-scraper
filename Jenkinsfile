@@ -12,10 +12,5 @@ pipeline {
                 archiveArtifacts artifacts: 'dist/*', fingerprint : true
             }
         }
-        stage('Test') {
-            steps {
-                sh 'npm test'
-            }
-        }
     }
 }

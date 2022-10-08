@@ -1,15 +1,28 @@
+def exec_sh (cmd) {
+    if (Boolean.valueOf(isUnix())) {
+        sh cmd
+    } else {
+        bat cmd
+    }
+}
+
 pipeline {
     agent any
     stages {
         stage('Installing dependencies') {
             steps {
-                sh 'npm i'
+                exec_sh 'npm i'
             }
         }
         stage('Build') {
             steps {
-                sh 'npx tsc'
+                exec_sh 'npx tsc'
                 archiveArtifacts artifacts: 'dist/**/*', fingerprint : true
+            }
+        }
+        stage('Test') {
+            steps {
+                exec_sh 'npm test'
             }
         }
     }

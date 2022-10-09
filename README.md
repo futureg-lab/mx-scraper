@@ -20,6 +20,7 @@ mx-scraper --auto --download --parallel --fetch-file list.txt --meta-only
 mx-scraper -a -d -pa -ff list.txt -mo
 mx-scraper -a -d -pa -ff list.txt
 ```
+
 ## Configuring
 MXScraper will automatically create a `mx-scraper.config.json` file
 ```json

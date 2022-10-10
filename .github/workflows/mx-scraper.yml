@@ -33,3 +33,10 @@ jobs:
       
     - name: Trying to compile
       run: npx tsc
+    
+    - name: Archive compiled js files
+      uses: actions/upload-artifact@v3
+      with:
+          name: mx-scraper-dist-folder
+          path: dist/**/*
+          retention-days: 30

@@ -25,7 +25,10 @@ export class GPrincess extends MXPlugin {
         const $ : CheerioAPI = load (response_html);
 
         const title = $('.post-title')?.text().trim();
-        const tags = ['seiyuu', 'VA', 'photoshoot', 'gravure', 'idol'];
+        const tags = [
+            'seiyuu', 'VA', 'photoshoot', 'gravure', 'idol',
+            ... this.extractTagsFromTitle (title)
+        ];
 
         const book = <Book> {
             url : url,
@@ -80,6 +83,13 @@ export class GPrincess extends MXPlugin {
             throw Error ('hostname doesn\'t match');
         const gid = link.pathname.replace(/[\/]+/g, '-');
         return [link.hostname, gid];
+    }
+
+    private extractTagsFromTitle (title : string) : string[] {
+        return title
+                .replace(/[()(),;/-]/g, ' ')
+                .split(/[ \t]+/g)
+                .filter (str => str != '');
     }
 
     override async search (term : string, option : SearchOption) : Promise<Book[]> {

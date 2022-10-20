@@ -1,6 +1,6 @@
 {
   "name": "mx-scraper",
-  "version": "1.4.2",
+  "version": "1.4.5",
   "description": "Manga website scraper",
   "main": "index.js",
   "scripts": {

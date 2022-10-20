@@ -54,21 +54,29 @@ export class GPrincess extends MXPlugin {
         };
 
         const pages = <Page[]>[];
-        $('.post-body>div>a')
-            .toArray()
-            .forEach ((elem, index) => {
-                const link = $(elem).attr('href');
-                const ext = link.split('.').pop();
-                const num = index + 1;
-                const page = <Page>{
-                    filename : num + '.' + ext,
-                    number : num,
-                    title : '' + num,
-                    url : link
-                };
+        const injectInPage = (elem : any, index : number) => {
+            const link = $(elem).attr('href');
+            let ext = 'jpg';
+            const deduced = link.split('.').pop();
+            // jpeg, png, gif, tiff, webp
+            if (deduced.length < 5)
+                ext = deduced;
+            const num = index + 1;
+            const page = <Page>{
+                filename : num + '.' + ext,
+                number : num,
+                title : '' + num,
+                url : link
+            };
 
-                pages.push (page);
-            })
+            pages.push (page);
+        };
+
+        let page_list = $('.post-body>div>a').toArray();
+        if (!page_list || page_list.length == 0)
+            page_list = $('.post-body>a').toArray(); // weird but..
+
+        page_list.forEach (injectInPage);
 
         chapter.pages = pages;
         book.chapters.push (chapter);

@@ -4,7 +4,8 @@ const config = {
     LOAD_PLUGINS : [
         'Example',
         'NHentai',
-        'EHentai'
+        'EHentai',
+        'GPrincess'
     ],
     PLUGIN_PROXY_ENABLE : [
         'NHentai' 

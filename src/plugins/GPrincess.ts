@@ -1,0 +1,88 @@
+import { CheerioAPI, load } from "cheerio";
+import { MXLogger } from "../cli/MXLogger";
+import { Book, Chapter, Page, PluginOption, SearchOption, Tag } from "../core/BookDef";
+import { MXPlugin } from "../core/MXPlugin";
+import { CustomRequest } from "../utils/CustomRequest";
+
+export class GPrincess extends MXPlugin {
+    title : string = 'GPrincess';
+    author : string = 'afmika';
+    version : string = '1.0.0';
+    target_url : string = 'https://idol.gravureprincess.date/';
+    option : PluginOption;
+    request : CustomRequest;
+
+    constructor () {
+        super ();
+        this.request = new CustomRequest ();
+    }
+
+    override async fetchBook (url : string) : Promise<Book> {
+        MXLogger.infoRefresh (`[GravurePrincess] Fetching informations`);
+
+        const [ , gallery_id ] = this.extractRelevantIdFrom (url);
+        const response_html = await this.request.get (url);
+        const $ : CheerioAPI = load (response_html);
+
+        const title = $('.post-title')?.text().trim();
+        const tags = ['seiyuu', 'VA', 'photoshoot', 'gravure', 'idol'];
+
+        const book = <Book> {
+            url : url,
+            title : title,
+            title_aliases : [],
+            source_id : gallery_id,
+            authors : [],
+            chapters : [],
+            description : '',
+            tags : tags.map (tag => <Tag>{
+                name : tag,
+                metadatas : []
+            }),
+            metadatas : []
+        };
+
+        const chapter = <Chapter>{
+            title : title,
+            description : '',
+            number : 1,
+            pages : [],
+            url : url
+        };
+
+        const pages = <Page[]>[];
+        $('.post-body>div>a')
+            .toArray()
+            .forEach ((elem, index) => {
+                const link = $(elem).attr('href');
+                const ext = link.split('.').pop();
+                const num = index + 1;
+                const page = <Page>{
+                    filename : num + '.' + ext,
+                    number : num,
+                    title : '' + num,
+                    url : link
+                };
+
+                pages.push (page);
+            })
+
+        chapter.pages = pages;
+        book.chapters.push (chapter);
+
+        return book;
+    }
+
+    private extractRelevantIdFrom (url : string) : string[] {
+        const link = new URL(url);
+        const test_against = new URL(this.target_url);
+        if (link.hostname != test_against.hostname)
+            throw Error ('hostname doesn\'t match');
+        const gid = link.pathname.replace(/[\/]+/g, '-');
+        return [link.hostname, gid];
+    }
+
+    override async search (term : string, option : SearchOption) : Promise<Book[]> {
+        return [];
+    }
+}

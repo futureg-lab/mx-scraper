@@ -5,7 +5,8 @@ const config = {
         'Example',
         'NHentai',
         'EHentai',
-        'GPrincess'
+        'GPrincess',
+        'Eyval'
     ],
     PLUGIN_PROXY_ENABLE : [
         'NHentai' 

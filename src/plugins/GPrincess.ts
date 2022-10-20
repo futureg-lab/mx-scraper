@@ -18,7 +18,7 @@ export class GPrincess extends MXPlugin {
     }
 
     override async fetchBook (url : string) : Promise<Book> {
-        MXLogger.infoRefresh (`[GravurePrincess] Fetching informations`);
+        MXLogger.infoRefresh (`[${this.title}] Fetching informations`);
 
         const [ , gallery_id ] = this.extractRelevantIdFrom (url);
         const response_html = await this.request.get (url);

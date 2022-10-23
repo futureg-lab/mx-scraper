@@ -1,4 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios';
+import {JSDOM} from "jsdom";
 import { FlareSolverrClient, FlareSolverrCommand } from './FlareSolverrClient';
 import * as fs from 'fs';
 
@@ -13,6 +14,7 @@ export interface FlareSolverrProxyOption {
  */
 export class CustomRequest {
     proxy : FlareSolverrProxyOption = null;
+    renderHTML : boolean = false;
 
     /**
      * @param option Custom proxy configuration
@@ -27,6 +29,20 @@ export class CustomRequest {
      */
     configureProxy (option : FlareSolverrProxyOption) {
         this.proxy = option;
+    }
+
+    /**
+     * Enable HTML rendering for get request
+     */
+    enableRendering () {
+        this.renderHTML = true;
+    }
+
+    /**
+     * Disable HTML rendering for get request
+     */
+    disableRendering () {
+        this.renderHTML = false;
     }
 
     /**
@@ -59,10 +75,7 @@ export class CustomRequest {
      * @returns 
      */
     async get (target_url : string) : Promise<string> {
-        let axios_req_conf : AxiosRequestConfig = {
-            url : target_url,
-            method : 'GET'
-        };
+        // cloudfare
         if (this.proxy) {
             const solver = new FlareSolverrClient (this.proxy.proxy_url);
             const cmd : FlareSolverrCommand = {
@@ -75,7 +88,28 @@ export class CustomRequest {
             const {solution} = await solver.performCommand (cmd);
             return solution.response;
         }
-        // the data field contains the response
+
+        return CustomRequest.doGet (target_url, this.renderHTML);
+    }
+
+    /**
+     * @param target_url 
+     * @param headless_mode Enable headless mode (run script), `false` by default
+     * @returns 
+     */
+    static async doGet (target_url : string, headless_mode = false) {
+        if (headless_mode) {
+            const dom : JSDOM = await JSDOM.fromURL(target_url, {
+                runScripts : 'dangerously'
+            });
+            return dom.serialize ();
+        }
+
+        // perform a simple request with axios
+        let axios_req_conf : AxiosRequestConfig = {
+            url : target_url,
+            method : 'GET'
+        };
         const {data} = await axios(axios_req_conf);
         return data;
     }

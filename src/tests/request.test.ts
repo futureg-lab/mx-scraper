@@ -10,6 +10,17 @@ test('Perform a get request without a proxy on example.com', async () => {
     }
 });
 
+test('Perform a get request with headless_mode=true on example.com', async () => {
+    const request = new CustomRequest();
+    request.enableRendering ();
+    try {
+        const text_response = await request.get('http://www.example.com/');
+        expect(text_response).toContain('example');
+    } catch (err) {
+        fail(err);
+    }
+});
+
 test('Perform a get request using a proxy on example.com', async () => {
     const option : FlareSolverrProxyOption = {
         proxy_url : 'http://localhost:8191/v1'

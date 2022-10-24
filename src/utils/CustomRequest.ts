@@ -89,7 +89,7 @@ export class CustomRequest {
             return solution.response;
         }
 
-        return CustomRequest.doGet (target_url, this.renderHTML);
+        return await CustomRequest.doGet (target_url, this.renderHTML);
     }
 
     /**
@@ -100,9 +100,11 @@ export class CustomRequest {
     static async doGet (target_url : string, headless_mode = false) {
         if (headless_mode) {
             const dom : JSDOM = await JSDOM.fromURL(target_url, {
-                runScripts : 'dangerously'
+                resources: 'usable', // load src tags and run
+                pretendToBeVisual : true,
+                runScripts : 'dangerously' // run scripts
             });
-            return dom.serialize ();
+            return dom.serialize();
         }
 
         // perform a simple request with axios
@@ -111,7 +113,7 @@ export class CustomRequest {
             method : 'GET'
         };
         const {data} = await axios(axios_req_conf);
-        return data;
+        return <string> data;
     }
 
     /**

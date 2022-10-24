@@ -57,6 +57,7 @@
     "cheerio": "^1.0.0-rc.12",
     "cli-progress": "^3.11.2",
     "fs-extra": "^10.1.0",
-    "jsdom": "^20.0.1"
+    "jsdom": "^20.0.1",
+    "puppeteer": "^19.1.0"
   }
 }

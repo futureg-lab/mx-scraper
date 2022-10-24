@@ -56,7 +56,7 @@ export class HeadlessBrowser {
 
         // if type not provided, use the one from the config file
         if (!custom_type) {
-            const key_picked = config.HEADLESS_ENGINE?.toUpperCase();
+            const key_picked = config.HEADLESS?.ENGINE?.toUpperCase();
             const picked : HeadlessType = type_map[key_picked];
             if (picked)
                 type = picked;
@@ -79,17 +79,19 @@ export class HeadlessBrowser {
      * Get the rendered html
      * @param target_url 
      */
-    async getRenderedHtml (target_url : string) {
+    async getRenderedHtml (target_url : string) : Promise<string> {
         if (this.browser == JSDOM) {
             // JSDOM
-            const dom : JSDOM = await this.browser.fromURL(target_url, {
+            const jsdom = this.browser;
+            const dom : JSDOM = await jsdom.fromURL(target_url, {
                 resources: 'usable', // load src tags and run
                 pretendToBeVisual : true,
                 runScripts : 'dangerously' // run scripts
             });
             return dom.serialize();
         } else {
-            const page = await this.browser.newPage();
+            const browser = <Puppeteer.Browser> this.browser;
+            const page = await browser.newPage();
             await page.goto(target_url, { waitUntil: 'networkidle2' });
             return await page.content();
         }

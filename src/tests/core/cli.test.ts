@@ -1,4 +1,4 @@
-import { MXcli } from "../cli/MXcli";
+import { MXcli } from "../../cli/MXcli";
 
 test('Fetch a single item', () => {
     const command = '--plugin plugin_name --fetch 177013';

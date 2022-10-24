@@ -2,6 +2,8 @@ import axios, { AxiosRequestConfig } from 'axios';
 import {JSDOM} from "jsdom";
 import { FlareSolverrClient, FlareSolverrCommand } from './FlareSolverrClient';
 import * as fs from 'fs';
+import { UniqueHeadlessBrowser } from './UniqueHeadlessBrowser';
+import { MXLogger } from '../cli/MXLogger';
 
 export interface FlareSolverrProxyOption {
     proxy_url : string;
@@ -9,12 +11,15 @@ export interface FlareSolverrProxyOption {
     session_id? : string;
 }
 
+const ENABLE_HEADLESS_ERROR = 'Headless mode should be enabled first';
+
 /**
  * A request wrapper for axios for 'GET' requests
  */
 export class CustomRequest {
     proxy : FlareSolverrProxyOption = null;
-    renderHTML : boolean = false;
+    private renderHTML : boolean = false;
+    private reuse_instance : boolean = false;
 
     /**
      * @param option Custom proxy configuration
@@ -32,19 +37,37 @@ export class CustomRequest {
     }
 
     /**
-     * Enable HTML rendering for get request
+     * Enable HTML rendering for GET request
      */
     enableRendering () {
         this.renderHTML = true;
     }
 
     /**
-     * Disable HTML rendering for get request
+     * Disable HTML rendering for GET request
      */
     disableRendering () {
         this.renderHTML = false;
     }
 
+    /**
+     * Enable Reusing browser instance for GET request
+     */
+    enableReUsingBrowserInstance () {
+        if (!this.renderHTML)
+            throw Error (ENABLE_HEADLESS_ERROR);
+        this.reuse_instance = true;
+    }
+
+    /**
+     * Disable Reusing browser instance for GET request
+     */
+    disableReUsingBrowserInstance () {
+        if (!this.renderHTML)
+            throw Error (ENABLE_HEADLESS_ERROR);
+        this.reuse_instance = false;
+    }
+    
     /**
      * Create a session id for the current CustomRequest instance
      */
@@ -77,6 +100,7 @@ export class CustomRequest {
     async get (target_url : string) : Promise<string> {
         // cloudfare
         if (this.proxy) {
+            console.log('I FUCKED');
             const solver = new FlareSolverrClient (this.proxy.proxy_url);
             const cmd : FlareSolverrCommand = {
                 cmd : 'request.get',
@@ -89,7 +113,7 @@ export class CustomRequest {
             return solution.response;
         }
 
-        return await CustomRequest.doGet (target_url, this.renderHTML);
+        return await CustomRequest.doGet (target_url, this.renderHTML, this.reuse_instance);
     }
 
     /**
@@ -97,14 +121,15 @@ export class CustomRequest {
      * @param headless_mode Enable headless mode (run script), `false` by default
      * @returns 
      */
-    static async doGet (target_url : string, headless_mode = false) {
+    static async doGet (target_url : string, headless_mode = false, reuse_browser = false) {
         if (headless_mode) {
-            const dom : JSDOM = await JSDOM.fromURL(target_url, {
-                resources: 'usable', // load src tags and run
-                pretendToBeVisual : true,
-                runScripts : 'dangerously' // run scripts
-            });
-            return dom.serialize();
+            const unique = await UniqueHeadlessBrowser.getInstance ();
+            const headless = unique.getHeadlessBrowser ();
+            // MXLogger.info ('engine ' + headless.infos().current);
+            const html = await headless.getRenderedHtml (target_url);
+            if (!reuse_browser)
+                await headless.destroy ();
+            return html;
         }
 
         // perform a simple request with axios
@@ -120,7 +145,7 @@ export class CustomRequest {
      * @param target_url download url
      * @param output_location_path where to save the file
      */
-     async download (target_url : string, output_location_path : string) {
+    async download (target_url : string, output_location_path : string) {
         const response = await axios ({
             method: 'get',
             url: target_url,
@@ -132,5 +157,17 @@ export class CustomRequest {
             writer.on ('finish', resolve)
             writer.on ('error', reject)
         });
+    }
+
+
+    /**
+     * Free all resources
+     * * A new UniqueHeadlessBrowser will be created on the next
+     */
+    async destroy () {
+        if (this.renderHTML)
+            await UniqueHeadlessBrowser.destroy();
+        else
+            throw Error (ENABLE_HEADLESS_ERROR);
     }
 }

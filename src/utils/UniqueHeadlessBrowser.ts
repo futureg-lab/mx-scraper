@@ -1,3 +1,4 @@
+import { MXLogger } from "../cli/MXLogger";
 import { HeadlessBrowser, HeadlessType } from "./HeadlessBrowser";
 
 /**
@@ -30,8 +31,8 @@ export class UniqueHeadlessBrowser {
     /**
      * Free all resources
      */
-    destroy () {
-        this.headless.destroy();
+    static async destroy () {
+        await UniqueHeadlessBrowser.instance.headless.destroy();
         UniqueHeadlessBrowser.instance = null;
     }
 }

@@ -100,7 +100,6 @@ export class CustomRequest {
     async get (target_url : string) : Promise<string> {
         // cloudfare
         if (this.proxy) {
-            console.log('I FUCKED');
             const solver = new FlareSolverrClient (this.proxy.proxy_url);
             const cmd : FlareSolverrCommand = {
                 cmd : 'request.get',

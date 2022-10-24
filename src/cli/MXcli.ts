@@ -137,10 +137,11 @@ export class MXcli extends CLIEngine {
             + ' - Full error stack : ' + (config.SHOW_CLI_ERROR_STACK ? 'Enabled' : 'Disabled') + '\n'
             + ' - Headless browser: \n'
             + '    - Status: ' + (config.HEADLESS['ENABLE'] ? 'Enabled' : 'Disabled') + '\n'
-            + '    - Engine: ' + (config.HEADLESS['ENGINE'] || 'None') + '\n'
+            + (config.HEADLESS['ENABLE'] ?
+             ('    - Engine: ' + (config.HEADLESS['ENGINE'] || 'None') + '\n'
             + '    - Executable : \n'
             + '      - Config : ' + config.HEADLESS['EXEC_PATH'] + '\n'
-            + '      - Active : ' + infos.exec_path + '\n';
+            + '      - Active : ' + infos.exec_path + '\n') : '\n');
         
         UniqueHeadlessBrowser.destroy ();   
         console.log (str);

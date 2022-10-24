@@ -1,5 +1,12 @@
 {
     "compilerOptions": {
+        "moduleResolution": "node",
+        "target": "ES2017",
+        "module": "CommonJS",
+        "removeComments": true,
+        "allowSyntheticDefaultImports": true,
+        "resolveJsonModule": true,
+        "lib":["ES2015", "dom"],
         "outDir": "dist",
         "allowJs" : true
     },

@@ -127,7 +127,7 @@ export class CustomRequest {
             // MXLogger.info ('engine ' + headless.infos().current);
             const html = await headless.getRenderedHtml (target_url);
             if (!reuse_browser)
-                await headless.destroy ();
+                await UniqueHeadlessBrowser.destroy();
             return html;
         }
 
@@ -166,7 +166,5 @@ export class CustomRequest {
     async destroy () {
         if (this.renderHTML)
             await UniqueHeadlessBrowser.destroy();
-        else
-            throw Error (ENABLE_HEADLESS_ERROR);
     }
 }

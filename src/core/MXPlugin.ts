@@ -101,6 +101,7 @@ export class MXPlugin {
             return;
         if (this.option.useFlareSolverr && this.request.proxy.session_id)
             await this.request.destroyProxySession ();
+        await this.request.destroy ();
     }
 
     /**

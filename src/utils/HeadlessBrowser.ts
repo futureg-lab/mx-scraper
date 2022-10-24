@@ -61,7 +61,7 @@ export class HeadlessBrowser {
             if (picked)
                 type = picked;
             else
-                throw Error ('config.HEADLESS_ENGINE is not defined');
+                throw Error ('config.HEADLESS.ENGINE is not defined, expects ' + Object.keys(type_map).join(', '));
             
             headless.current_type = key_picked;
         } else {

@@ -1,9 +1,5 @@
-import { PluginOption } from "../core/BookDef";
 import { MXScraper } from "../core/MXScraper";
 import { NHentai } from "../plugins/NHentai";
-import { FlareSolverrProxyOption } from "../utils/CustomRequest";
-import { config } from "../environment";
-import { FlareSolverrClient } from "../utils/FlareSolverrClient";
 
 (async () => {
     try {

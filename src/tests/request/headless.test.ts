@@ -8,7 +8,7 @@ test('Perform a request using the default headless type config', async () => {
         headless = await HeadlessBrowser.create ();
 
         const html = await headless.getRenderedHtml ('http://example.com');
-        expect(headless.infos().current).toBe(config.HEADLESS?.ENGINE); // must match to the config value
+        expect(headless.infos().current_type).toBe(config.HEADLESS?.ENGINE); // must match to the config value
         expect(html).toContain('example');
     } catch (err) {
         throw err;
@@ -36,7 +36,7 @@ test('Perform a request using the UniqueHeadlessBrowser that uses the config', a
         const headless = singleton.getHeadlessBrowser ();
         const html = await headless.getRenderedHtml ('http://example.com');
 
-        expect(headless.infos().current).toBe(config.HEADLESS?.ENGINE); // must match to the config value
+        expect(headless.infos().current_type).toBe(config.HEADLESS?.ENGINE); // must match to the config value
         expect(html).toContain('example');
     } catch (err) {
         throw err;
@@ -52,7 +52,7 @@ test('Perform a request using PUPPETEER', async () => {
         headless = await HeadlessBrowser.create (TypeEngine.PUPPETEER);
         const html = await headless.getRenderedHtml ('http://example.com');
 
-        expect(headless.infos().current).toBe(config.HEADLESS?.ENGINE); // must match to the config value
+        expect(headless.infos().current_type).toBe(config.HEADLESS?.ENGINE); // must match to the config value
         expect(html).toContain('example');
     } catch (err) {
         throw err;
@@ -67,7 +67,7 @@ test('Perform a request using JSDOM', async () => {
         headless = await HeadlessBrowser.create (TypeEngine.JSDOM);
         const html = await headless.getRenderedHtml ('http://example.com');
 
-        expect(headless.infos().current).toBe('JSDOM');
+        expect(headless.infos().current_type).toBe('JSDOM');
         expect(html).toContain('example');
     } catch (err) {
         throw err;

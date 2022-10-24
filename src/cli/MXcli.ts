@@ -9,6 +9,9 @@ import { Book } from "../core/BookDef";
 import { MXLogger } from "./MXLogger";
 import { config } from "../environment";
 import { DynamicConfigurer } from "./DynamicConfigurer";
+import { UniqueHeadlessBrowser } from "../utils/UniqueHeadlessBrowser";
+import { Puppeteer } from "puppeteer";
+import { HeadlessBrowser, TypeEngine } from "../utils/HeadlessBrowser";
 
 export class MXcli extends CLIEngine {
     constructor () {
@@ -16,7 +19,7 @@ export class MXcli extends CLIEngine {
         super (COMMAND_DEF);
         // at least a plugin specification or info + a metafetch specification
         this.defineRequiredArgs ([
-            "Plugin | Plugin-Auto-Detect | Show-Plugins | Show-Help | Search-Plugin"
+            "Plugin | Plugin-Auto-Detect | Show-Plugins | Show-Help | Show-Infos | Search-Plugin"
         ]);
     }
 
@@ -42,6 +45,12 @@ export class MXcli extends CLIEngine {
             this.commandPrintHelp (engine, verbose);
             return;
         }
+
+        if (parsed.has('Show-Infos')) {
+            this.commandPrintInfos (verbose);
+            return;
+        }
+
         if (parsed.has('Show-Plugins')) {
             this.commandShowPlugins (engine, verbose);
             return;
@@ -112,6 +121,29 @@ export class MXcli extends CLIEngine {
             await this.commandFetchMetaDatasOrDownload (plugin, titles_set, doption, verbose);
             return;
         }
+    }
+
+    async commandPrintInfos(verbose: boolean) {
+        const singleton = await UniqueHeadlessBrowser.getInstance (TypeEngine.PUPPETEER);
+        const infos = singleton.getHeadlessBrowser ().infos();
+        const str = 
+            this.headerString ()
+            + ' - Current mode : ' + (DynamicConfigurer.isDevMode () ? 'Dev' : 'Prod') + '\n'
+            + ' - FlareSolverr :\n'
+            + '    - Host: ' + config.CLOUDFARE_PROXY_HOST + '\n'
+            + '    - Max timeout: ' + config.CLOUDFARE_MAX_TIMEOUT + '\n'
+            + '    - Active on : ' + config.PLUGIN_PROXY_ENABLE.join(', ') + '\n'
+            + ' - Cache : ' + (config.CACHE.ENABLE ? 'Enabled' : 'Disabled') + '\n'
+            + ' - Full error stack : ' + (config.SHOW_CLI_ERROR_STACK ? 'Enabled' : 'Disabled') + '\n'
+            + ' - Headless browser: \n'
+            + '    - Status: ' + (config.HEADLESS['ENABLE'] ? 'Enabled' : 'Disabled') + '\n'
+            + '    - Engine: ' + (config.HEADLESS['ENGINE'] || 'None') + '\n'
+            + '    - Executable : \n'
+            + '      - Config : ' + config.HEADLESS['EXEC_PATH'] + '\n'
+            + '      - Active : ' + infos.exec_path + '\n';
+        
+        UniqueHeadlessBrowser.destroy ();   
+        console.log (str);
     }
 
     private commandShowPlugins (engine : MXScraper, verbose : boolean = false) {

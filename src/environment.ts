@@ -10,7 +10,8 @@ const config = {
     ],
     HEADLESS : {
         ENGINE : 'PUPPETEER',
-        ENABLE : true
+        ENABLE : true,
+        EXEC_PATH : './browser/chrome'
     },
     PLUGIN_PROXY_ENABLE : [
         'NHentai' 

@@ -7,6 +7,8 @@ mx-scraper (Manga Xtreme Scraper) is an opensource Manga website scraper<br/>
 ```
 mx-scraper --help --verbose
 mx-scraper -h -v
+mx-scraper --infos
+mx-scraper -i
 mx-scraper --show-plugins -v
 mx-scraper --show-plugins -v -cs
 mx-scraper --search-plugin -v http://link/to/a/title
@@ -37,6 +39,11 @@ MXScraper will automatically create a `mx-scraper.config.json` file
     "Plugin9",
     "..."
   ],
+  "HEADLESS": {
+    "ENGINE": "PUPPETEER",
+    "ENABLE": true,
+    "EXEC_PATH": "./browser/chrome"
+  },
   "UNIQUE_SESSION": "<flaresolverr_sessionid>",
   "DOWNLOAD_FOLDER": {
     "DOWNLOAD": "./download/download",
@@ -71,5 +78,5 @@ npm start
 # Packaging
 You must specify the target platform in your package.json depending on your host computer 
 ```
-npm run build
+node auto-build.js
 ```

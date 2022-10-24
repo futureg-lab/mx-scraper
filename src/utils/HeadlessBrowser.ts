@@ -1,44 +1,58 @@
 import * as Puppeteer from 'puppeteer';
 import {JSDOM} from "jsdom";
 import { config } from '../environment';
-import { MXLogger } from '../cli/MXLogger';
+import { DynamicConfigurer } from '../cli/DynamicConfigurer';
 
-export interface HeadlessType {
-    value : number;
+export enum TypeEngine {
+    JSDOM = 1, // do not start at 0 (0 == undefined)
+    PUPPETEER = 2
 };
 
-export const TypeEngine = {
-    JSDOM : <HeadlessType>{value : 0},
-    PUPPETEER : <HeadlessType>{value : 1},
+
+type HeadlessBrowserInfos = {
+    current_type : string;
+    exec_path : string;
+    supported : string[];
 };
 
-export interface CustomScript {
-    (browser: Puppeteer.Browser | any) : Promise<void>; 
-};
+type TypeBrowser = Puppeteer.Browser | any;
+type CustomScript = (browser: TypeBrowser) => Promise<void>; 
+type TypeMap = {[key : string] : TypeEngine};
 
-const type_map = {
+const type_map : TypeMap = {
     'JSDOM' : TypeEngine.JSDOM,
     'PUPPETEER' : TypeEngine.PUPPETEER
 };
 
 export class HeadlessBrowser {
-    private browser : Puppeteer.Browser | any = null;
-    private current_type : string = '';
+    private browser : TypeBrowser = null;
+
+    private instance_infos : HeadlessBrowserInfos = {
+        current_type : '',
+        exec_path : '',
+        supported : Object.keys (type_map)
+    };
 
     // Note : we cannot use async operation in a constructor
     // use HeadlessBrowser.create (...) instead
     private constructor () { }
 
     /**
-     * @param type HeadlessType
+     * @param type
      */
-    private async initializeBrowser (type : HeadlessType) {
-        switch (type.value) {
-            case TypeEngine.JSDOM.value:
+    private async initializeBrowser (type : TypeEngine) {        
+        switch (type) {
+            case TypeEngine.JSDOM:
                 this.browser = JSDOM;
                 break;
-            case TypeEngine.PUPPETEER.value:
-                this.browser = await Puppeteer.launch ();
+            case TypeEngine.PUPPETEER:
+                let browser_path = Puppeteer.executablePath ();
+        
+                if ( ! DynamicConfigurer.isDevMode () ) 
+                    browser_path = config.HEADLESS['EXEC_PATH'] || browser_path;
+                
+                this.browser = await Puppeteer.launch ({ executablePath : browser_path });
+                this.instance_infos.exec_path = browser_path;
                 break;
             default:
                 throw Error ('Invalid HeadlessType');
@@ -50,25 +64,26 @@ export class HeadlessBrowser {
      * @param custom_type
      * @returns 
      */
-    static async create (custom_type? : HeadlessType) {
+    static async create (custom_type? : TypeEngine) {
         const headless = new HeadlessBrowser ();
-        let type : HeadlessType = custom_type;
+        let type : TypeEngine = custom_type;
 
-        // if type not provided, use the one from the config file
         if (!custom_type) {
+            // if type not provided, use the one from the config file
             const key_picked = config.HEADLESS?.ENGINE?.toUpperCase();
-            const picked : HeadlessType = type_map[key_picked];
+            const picked = type_map[key_picked];
             if (picked)
                 type = picked;
             else
                 throw Error ('config.HEADLESS.ENGINE is not defined, expects ' + Object.keys(type_map).join(', '));
             
-            headless.current_type = key_picked;
+            headless.instance_infos.current_type = key_picked;
         } else {
+            // custom_type is defined
             // reverse map
             for (let key in type_map)
-                if (type.value == type_map[key].value)
-                    headless.current_type = key;
+                if (type == type_map[key])
+                    headless.instance_infos.current_type = key;
         }
 
         await headless.initializeBrowser (type);
@@ -108,14 +123,13 @@ export class HeadlessBrowser {
      * Free all resources
      */
     async destroy () {
-        if (!(this.browser == JSDOM))
-            await this.browser.close ();
+        if (!(this.browser == JSDOM)) {
+            const browser = <Puppeteer.Browser> this.browser;
+            await browser.close ();
+        }
     }
 
     infos () {
-        return {
-            current : this.current_type,
-            supported : Object.keys (type_map) 
-        };
+        return this.instance_infos;
     }
 }

@@ -1,19 +1,20 @@
 {
   "name": "mx-scraper",
-  "version": "1.5.5",
+  "version": "1.6.0",
   "description": "Manga website scraper",
   "main": "index.js",
   "scripts": {
     "test": "npx jest --runInBand",
     "start": "npx tsc --watch",
     "ts-node": "ts-node",
-    "build": "npx tsc && pkg --compress GZip -t node14-win-x64 ."
+    "build": "npx tsc && pkg --compress GZip -t node14-x64 ."
   },
   "bin": {
     "mx-scraper": "./dist/cli.js"
   },
   "pkg": {
-    "scripts": "dist"
+    "scripts": "dist",
+    "outputPath" : "bin"
   },
   "jest": {
     "testTimeout": 60000,
@@ -53,6 +54,7 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
+    "@types/puppeteer": "^5.4.7",
     "axios": "^0.27.2",
     "cheerio": "^1.0.0-rc.12",
     "cli-progress": "^3.11.2",

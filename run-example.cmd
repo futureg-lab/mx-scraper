@@ -1,0 +1,1 @@
+mx-scraper -a -fa https://example.com https://example.com https://example.com -v -nc -es

@@ -26,7 +26,7 @@ const [ , , ...argv] = process.argv;
             use_conf_session_id = true;
         }
 
-        if (!parsed.has('Show-Help'))
+        if (! (parsed.has('Show-Help') || parsed.has('Show-Infos')) )
             await engine.initFromPluginFolder (use_conf_session_id);
 
         // run the command

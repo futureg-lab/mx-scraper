@@ -20,6 +20,12 @@ export const COMMAND_DEF = <CLICommand[]> [
         aliases : ["--verbose", "-v"],
         description : "Show more details"
     },
+    <CLICommand>{
+        name : "Show-Infos",
+        arg_count : 0,
+        aliases : ["--infos", "-i"],
+        description : "Show infos"
+    },
 
     // search plugin
     <CLICommand>{

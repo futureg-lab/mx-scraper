@@ -22,7 +22,7 @@ export class DynamicConfigurer {
 
         // are we in dev mode ?
         // if yes, we must change it to the caller folder
-        if (conf_dir.includes('node_modules')) 
+        if (DynamicConfigurer.isDevMode ()) 
             conf_dir = path.dirname (require.main.filename);
         
         return path.join (conf_dir, DynamicConfigurer.CONFIG_FILENAME);
@@ -65,5 +65,12 @@ export class DynamicConfigurer {
      */
     static overrideField (key : string, value : any) {
         config[key] = value;
+    }
+
+    /**
+     * Check if current instance is in dev-mode or compiled
+     */
+    static isDevMode () {
+        return process['pkg'] == undefined;
     }
 }

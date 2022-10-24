@@ -1,5 +1,5 @@
 import { MXLogger } from "../cli/MXLogger";
-import { HeadlessBrowser, HeadlessType } from "./HeadlessBrowser";
+import { HeadlessBrowser, TypeEngine } from "./HeadlessBrowser";
 
 /**
  * Singleton wrapper for `HeadlessBrowser` 
@@ -13,7 +13,7 @@ export class UniqueHeadlessBrowser {
      * @param type 
      * @returns global instance of `UniqueHeadlessBrowser` | create a new one if not defined
      */
-    static async getInstance (type? : HeadlessType) {
+    static async getInstance (type? : TypeEngine) {
         if (UniqueHeadlessBrowser.instance == null) {
             UniqueHeadlessBrowser.instance = new UniqueHeadlessBrowser ();
             UniqueHeadlessBrowser.instance.headless = await HeadlessBrowser.create (type);

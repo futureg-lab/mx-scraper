@@ -163,6 +163,7 @@ export class MXcli extends CLIEngine {
     private commandPrintHelp (engine : MXScraper, verbose : boolean = false) {
         let examples = [
             'mx-scraper --help --verbos',
+            'mx-scraper --infos',
             'mx-scraper -h -v',
             'mx-scraper --show-plugins -v',
             'mx-scraper --show-plugins -v -cs',

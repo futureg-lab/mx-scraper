@@ -126,22 +126,25 @@ export class MXcli extends CLIEngine {
     async commandPrintInfos(verbose: boolean) {
         const singleton = await UniqueHeadlessBrowser.getInstance (TypeEngine.PUPPETEER);
         const infos = singleton.getHeadlessBrowser ().infos();
+        const is_headless = config.HEADLESS['ENABLE'];
+        const puppeter_enabled = config.HEADLESS['ENABLE'] && config.HEADLESS['ENGINE'] == 'PUPPETEER';
         const str = 
             this.headerString ()
-            + ' - Current mode : ' + (DynamicConfigurer.isDevMode () ? 'Dev' : 'Prod') + '\n'
-            + ' - FlareSolverr :\n'
+            + ' - Current mode: ' + (DynamicConfigurer.isDevMode () ? 'Dev' : 'Prod') + '\n'
+            + ' - FlareSolverr:\n'
             + '    - Host: ' + config.CLOUDFARE_PROXY_HOST + '\n'
             + '    - Max timeout: ' + config.CLOUDFARE_MAX_TIMEOUT + '\n'
-            + '    - Active on : ' + config.PLUGIN_PROXY_ENABLE.join(', ') + '\n'
-            + ' - Cache : ' + (config.CACHE.ENABLE ? 'Enabled' : 'Disabled') + '\n'
-            + ' - Full error stack : ' + (config.SHOW_CLI_ERROR_STACK ? 'Enabled' : 'Disabled') + '\n'
-            + ' - Headless browser: \n'
+            + '    - Active on: ' + config.PLUGIN_PROXY_ENABLE.join(', ') + '\n'
+            + ' - Cache: ' + (config.CACHE.ENABLE ? 'Enabled' : 'Disabled') + '\n'
+            + ' - Full error stack: ' + (config.SHOW_CLI_ERROR_STACK ? 'Enabled' : 'Disabled') + '\n'
+            + ' - Headless mode: \n'
+            + '    - Supported engines: ' + infos.supported.join(', ') + '\n'
             + '    - Status: ' + (config.HEADLESS['ENABLE'] ? 'Enabled' : 'Disabled') + '\n'
-            + (config.HEADLESS['ENABLE'] ?
-             ('    - Engine: ' + (config.HEADLESS['ENGINE'] || 'None') + '\n'
-            + '    - Executable : \n'
-            + '      - Config : ' + config.HEADLESS['EXEC_PATH'] + '\n'
-            + '      - Active : ' + infos.exec_path + '\n') : '\n');
+            + '    - Current engine : ' + (is_headless ? (config.HEADLESS['ENGINE'] || '---') : '---') + '\n'
+            + (puppeter_enabled ?
+             ('    - Executable: \n'
+            + '       - Config: ' + config.HEADLESS['EXEC_PATH'] + '\n'
+            + '       - Active: ' + infos.exec_path + '\n') : '\n');
         
         UniqueHeadlessBrowser.destroy ();   
         console.log (str);

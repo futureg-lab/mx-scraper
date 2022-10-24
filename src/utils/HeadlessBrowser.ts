@@ -1,7 +1,8 @@
 import * as Puppeteer from 'puppeteer';
 import {JSDOM} from "jsdom";
 import { config } from '../environment';
-import { MXLogger } from '../cli/MXLogger';
+import { argv } from 'node:process';
+import * as path from 'path';
 
 export interface HeadlessType {
     value : number;
@@ -32,13 +33,21 @@ export class HeadlessBrowser {
     /**
      * @param type HeadlessType
      */
-    private async initializeBrowser (type : HeadlessType) {
+    private async initializeBrowser (type : HeadlessType) {        
         switch (type.value) {
             case TypeEngine.JSDOM.value:
                 this.browser = JSDOM;
                 break;
             case TypeEngine.PUPPETEER.value:
-                this.browser = await Puppeteer.launch ();
+                const [exec_file, ] = argv;
+                let conf_dir = path.dirname (exec_file);
+                let browser_path = Puppeteer.executablePath ();
+        
+                // are we in dev mode ?
+                // if no, we must change it
+                if (!conf_dir.includes('node_modules')) 
+                    browser_path = config.HEADLESS.EXEC_PATH || browser_path;
+                this.browser = await Puppeteer.launch ({ executablePath : browser_path });
                 break;
             default:
                 throw Error ('Invalid HeadlessType');

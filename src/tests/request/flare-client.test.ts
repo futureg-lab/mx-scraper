@@ -1,5 +1,5 @@
-import { config } from "../environment";
-import { FlareSolverrClient } from "../utils/FlareSolverrClient";
+import { config } from "../../environment";
+import { FlareSolverrClient } from "../../utils/FlareSolverrClient";
 
 const local_proxy = config.CLOUDFARE_PROXY_HOST;
 

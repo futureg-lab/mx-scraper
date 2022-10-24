@@ -1,4 +1,4 @@
-import { batchAListOf, cleanFolderName, decodeUnicodeCharacters, levenshtein } from "../utils/Utils";
+import { batchAListOf, cleanFolderName, decodeUnicodeCharacters, levenshtein } from "../../utils/Utils";
 
 test('Edit distance', () => {
     expect(levenshtein('hello', 'hlmeo')).toBe(3);

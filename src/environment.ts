@@ -8,7 +8,10 @@ const config = {
         'GPrincess',
         'Eyval'
     ],
-    HEADLESS_ENGINE : "PUPPETEER", // JSDOM, PUPPETEER
+    HEADLESS : {
+        ENGINE : 'PUPPETEER',
+        ENABLE : true
+    },
     PLUGIN_PROXY_ENABLE : [
         'NHentai' 
     ],

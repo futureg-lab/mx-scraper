@@ -193,6 +193,8 @@ export class HtmlParserQueryResult {
      * @returns node at a specific place in the current result (1-indexed)
      */
     nth (num : number) : HtmlNode {
+        if (num <= 0)
+            throw Error ('num <= 0 encountered');
         return this.at (num - 1);
     }
 

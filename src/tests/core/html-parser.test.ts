@@ -62,7 +62,7 @@ test('Querying : Filter with attribute expects 3 results', () => {
     const parser = HtmlParser.use (html);
     const result = parser
                     .select ('span')
-                    .filterAttr ('class', '@reg /(.+)primary/');
+                    .filterAttr ('class', '@reg   /(.+)primary/');
     expect(result.count()).toBe(3);
     expect(result.nth(2).asText()).toContain('Two');
 });

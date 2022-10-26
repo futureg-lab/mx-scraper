@@ -140,3 +140,13 @@ export function batchAListOf<T> (list : T[], batch_size : number) : T[][] {
     
     return batches;
 }
+
+/**
+ * @param arr 
+ * @returns Last value of an array
+ */
+export function topValueOf<T> (arr : T[]) {
+    if (arr.length == 0) 
+        return null;
+    return arr[arr.length - 1];
+}

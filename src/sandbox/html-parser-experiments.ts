@@ -1,3 +1,4 @@
+import { CustomAST, PPriority, PSymbol } from "../utils/CustomAST";
 import { HtmlParser } from "../utils/HtmlParser";
 
 const html = `
@@ -26,9 +27,27 @@ const html = `
 // const parser = HtmlParser.use (html);
 // parser.select ('span', 'text');
 
-const filter = '(1 & (2 | 3)) | (4 & 5 | 6)';
-const tokens = HtmlParser.tokenizeFilterQuery (filter);
-console.log (filter);
-console.log (tokens);
+// const filter = '(1 & (2 | 3)) | (4 & 5 | 6)';
+// const tokens = HtmlParser.tokenizeFilterQuery (filter);
+// console.log (filter);
+// console.log (tokens);
+// CustomParser.convertToInfix ('tokens').print();
 
-HtmlParser.constructAbstractSyntaxTree (tokens).print();
+// CustomParser.convertToInfix (tokens, HtmlParser.SYMBOLS, HtmlParser.SYM_PRIORITY);
+
+const priority : PPriority = {
+    '+' : {value : 1, associative : 'left'},
+    '-' : {value : 1, associative : 'left'},
+    '*' : {value : 2, associative : 'left'},
+    '/' : {value : 2, associative : 'left'},
+    '^' : {value : 3, associative : 'right'}
+};
+
+const symbols : PSymbol[] = ['(', ')', ...Object.keys (priority)];
+const tks = ' 3 + 4 * 2  / (1 - 5) ^ 2 ^ 3'.replace(/[ ]+/g, '').split('');
+console.log(tks.join(' '));
+
+const cparser = new CustomAST (symbols, priority);
+const {postfix, tree} = cparser.constructAbstractSyntaxTree (tks);
+console.log ('Postfix : ', postfix);
+console.log ('Tree\n', tree.toString());

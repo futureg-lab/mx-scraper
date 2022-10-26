@@ -42,7 +42,15 @@ const parser = HtmlParser.use (html);
 // console.log('Item count', res2.count(), res2.all().map(x => x.asValue()));
     // .where ('(1 & ('2 | 3)) | (4 & 5 | 6)');
 
-// console.log(parser.select('span').eval('@attr.class = @reg /primary/').map((_, i) => _.asText()));
-// console.log(parser.select('input').eval('@attr.type = text').all().map(_ => _.asValue()));
-// console.log(parser.select('input').eval('@value = "%John%"').all().map(_ => _.asValue()));
-// console.log(parser.select('span').eval('@text = @reg /One|Two/i').all().map(_ => _.asText()));
+// console.log(parser.select('span').eval('attr.class = @reg /primary/').map((_, i) => _.asText()));
+// console.log(parser.select('input').eval('attr.type = text').all().map(_ => _.asValue()));
+// console.log(parser.select('input').eval('value = "%John%"').all().map(_ => _.asValue()));
+// console.log(parser.select('span').eval('text = @reg /One|Two/i').all().map(_ => _.asText()));
+
+
+parser
+    .select('span')
+    .where(`
+          attr.class : %primary  &   value : One
+        | value = Two
+    `);

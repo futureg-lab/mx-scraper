@@ -136,7 +136,7 @@ export class HtmlParserQueryResult {
      * @param result 
      */
     static evalResult (qstr : string, result : HtmlNode[]) {
-        const matches = qstr.match (/@(.+)?(\:|=)(.+)/);
+        const matches = qstr.match (/(.+)?(\:|=)(.+)/);
         if (!matches)
             throw Error ('invalid expression "' + qstr + "'");
         
@@ -176,7 +176,7 @@ export class HtmlParserQueryResult {
             return filterAttrResult (result, field, syntax.query.value);
         }
 
-        throw Error ('invalid expression near "' + qstr + "'");
+        throw Error ('invalid expression "' + syntax.field + '"');
     }
     
     where (filter : string) : HtmlParserQueryResult {

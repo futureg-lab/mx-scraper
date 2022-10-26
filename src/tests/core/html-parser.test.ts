@@ -71,16 +71,16 @@ test('Querying : Filter with attribute expects 3 results', () => {
 test('HtmlParserQueryResult.eval behaves correctly', () => {
     const parser = HtmlParser.use (html);
     
-    expect(parser.select('span').eval('@attr.class = @reg /primary/').count())
+    expect(parser.select('span').eval('attr.class = @reg /primary/').count())
         .toBe(3); // One, Two, Three
 
-    expect(parser.select('span').eval('@text = @reg /One|Two/i').count())
-        .toBe(2); // ' One ', ' two '    
+    expect(parser.select('span').eval('text = @reg /One|Two/i').count())
+        .toBe(2); // ' One ', ' two '
     
-    expect(parser.select('input').eval('@attr.type = text').count())
+    expect(parser.select('input').eval('attr.type = text').count())
         .toBe(2); // 'My name is John', 'My pseudo is @JSX1234'
     
-    expect(parser.select('input').eval('@attr.value = "%John%"').count())
+    expect(parser.select('input').eval('attr.value = "%John%"').count())
         .toBe(1); // 'My name is John'
 
 });

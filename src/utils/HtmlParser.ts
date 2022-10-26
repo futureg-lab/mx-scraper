@@ -160,6 +160,9 @@ export class HtmlParserQueryResult {
             }
         };
 
+        if (!is_string && syntax.query.value == '')
+            throw Error ('invalid literal at "' + qstr + '"');
+
         // validation
         const partial_quotes = /^"(.*)|^'(.*)|(.*)"$|(.*)'$/;
         if (syntax.query.type == 'literal' && partial_quotes.test(value))

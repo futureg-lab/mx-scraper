@@ -51,6 +51,6 @@ const parser = HtmlParser.use (html);
 parser
     .select('span')
     .where(`
-          attr.class : %primary  &   value : One
+          attr.class / %primary  &   value : One
         | value = Two
     `);

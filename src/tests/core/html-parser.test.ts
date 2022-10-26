@@ -75,12 +75,28 @@ test('HtmlParserQueryResult.eval behaves correctly', () => {
         .toBe(3); // One, Two, Three
 
     expect(parser.select('span').eval('text = @reg /One|Two/i').count())
-        .toBe(2); // ' One ', ' two '
+        .toBe(2); // ' One ', ' two '    
     
     expect(parser.select('input').eval('attr.type = text').count())
         .toBe(2); // 'My name is John', 'My pseudo is @JSX1234'
     
     expect(parser.select('input').eval('attr.value = "%John%"').count())
         .toBe(1); // 'My name is John'
+    
+});
 
+test('HtmlParserQueryResult.eval throws error correctly', () => {
+    const parser = HtmlParser.use (html);
+    // invalid (empty) literal 
+    expect(() => { parser.select('input').eval('attr.value = ') })
+        .toThrow();
+    // invalid expression
+    expect(() => { parser.select('input').eval('at tr.value = 1234') })
+        .toThrow();
+    // invalid expression
+    expect(() => { parser.select('input').eval('foo = 1234') })
+        .toThrow();
+    // invalid "
+    expect(() => { parser.select('input').eval('value = 1234"') })
+        .toThrow();
 });

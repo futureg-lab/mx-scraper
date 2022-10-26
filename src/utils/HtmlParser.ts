@@ -1,5 +1,5 @@
 import {AnyNode, CheerioAPI, load} from "cheerio";
-import { PPriority, PSymbol } from "./CustomAST";
+import { CustomAST, PPriority, PSymbol } from "./CustomAST";
 
 /**
  * Simple CheerioAPI wrapper
@@ -57,6 +57,10 @@ export class HtmlParser {
     }
 
     where (filter : string) : HtmlParserQueryResult {
+        const parser = new CustomAST (HtmlParser.SYMBOLS, HtmlParser.SYM_PRIORITY);
+        const tokens = HtmlParser.tokenizeFilterQuery (filter);
+        const ast_result = parser.constructAbstractSyntaxTree (tokens);
+        ast_result.tree.print();
         const qresult = new HtmlParserQueryResult (this.result_cache);
         return qresult;
     }

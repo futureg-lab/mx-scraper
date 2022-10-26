@@ -24,30 +24,23 @@ const html = `
 `;
 
 
-// const parser = HtmlParser.use (html);
-// parser.select ('span', 'text');
+const parser = HtmlParser.use (html);
+parser.select ('span')
+    .where ('(1 & (2 | 3)) | (4 & 5 | 6)');
 
-// const filter = '(1 & (2 | 3)) | (4 & 5 | 6)';
-// const tokens = HtmlParser.tokenizeFilterQuery (filter);
-// console.log (filter);
-// console.log (tokens);
-// CustomParser.convertToInfix ('tokens').print();
+// const priority : PPriority = {
+//     '+' : {value : 1, associative : 'left'},
+//     '-' : {value : 1, associative : 'left'},
+//     '*' : {value : 2, associative : 'left'},
+//     '/' : {value : 2, associative : 'left'},
+//     '^' : {value : 3, associative : 'right'}
+// };
 
-// CustomParser.convertToInfix (tokens, HtmlParser.SYMBOLS, HtmlParser.SYM_PRIORITY);
+// const symbols : PSymbol[] = ['(', ')', ...Object.keys (priority)];
+// const tks = ' 3 + 4 * 2  / (1 - 5) ^ 2 ^ 3'.replace(/[ ]+/g, '').split('');
+// console.log(tks.join(' '));
 
-const priority : PPriority = {
-    '+' : {value : 1, associative : 'left'},
-    '-' : {value : 1, associative : 'left'},
-    '*' : {value : 2, associative : 'left'},
-    '/' : {value : 2, associative : 'left'},
-    '^' : {value : 3, associative : 'right'}
-};
-
-const symbols : PSymbol[] = ['(', ')', ...Object.keys (priority)];
-const tks = ' 3 + 4 * 2  / (1 - 5) ^ 2 ^ 3'.replace(/[ ]+/g, '').split('');
-console.log(tks.join(' '));
-
-const cparser = new CustomAST (symbols, priority);
-const {postfix, tree} = cparser.constructAbstractSyntaxTree (tks);
-console.log ('Postfix : ', postfix);
-console.log ('Tree\n', tree.toString());
+// const cparser = new CustomAST (symbols, priority);
+// const {postfix, tree} = cparser.constructAbstractSyntaxTree (tks);
+// console.log ('Postfix : ', postfix);
+// console.log ('Tree\n', tree.toString());

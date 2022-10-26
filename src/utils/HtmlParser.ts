@@ -18,9 +18,9 @@ type MapFunc<T> = {
  * 
  * * Logic : 
  *  parser.select('div')
- *        .where('property = @some_text [& [| ...]] ')
- *        .asText(), asHtml(), asValue ()
+ *        .where('property = some_text [& [| ...]] ')
  *        .nth(x), all(), last(), first()
+ *        .asText(), asHtml(), asValue ()
  */
 export class HtmlParser {
     private $ : CheerioAPI = null;

@@ -2,6 +2,9 @@ import {AnyNode, CheerioAPI, load} from "cheerio";
 import { CustomAST, PPriority, PSymbol } from "./CustomAST";
 
 type FilterContent = 'value' | 'html' | 'text' | '**';
+type MapFunc<T> = {
+    (x : T, i : number) : any
+}
 
 /**
  * Simple CheerioAPI wrapper
@@ -23,12 +26,6 @@ export class HtmlParser {
     private $ : CheerioAPI = null;
     private html : string = null;
     private query : string = null;
-
-    static SYMBOLS : PSymbol [] = ['&', '|', '(', ')'];
-    static SYM_PRIORITY : PPriority = {
-        '|' : {value : 1, associative : 'left'}, 
-        '&' : {value : 2, associative : 'left'}
-    };
 
     private constructor () { }
 
@@ -101,9 +98,26 @@ export class HtmlParser {
                                     .map (node => HtmlNode.from($, node));
         return new HtmlParserQueryResult (this, result);;
     }
+}
+
+export class HtmlParserQueryResult {
+    private result : HtmlNode [] = [];
+    private parser : HtmlParser = null;
+
+    static SYMBOLS : PSymbol [] = ['&', '|', '(', ')'];
+    static SYM_PRIORITY : PPriority = {
+        '|' : {value : 1, associative : 'left'}, 
+        '&' : {value : 2, associative : 'left'}
+    };
+
+
+    constructor (parser : HtmlParser, result : HtmlNode[]) {
+        this.parser = parser;
+        this.result = result;
+    }
 
     static tokenizeFilterQuery (filter : string) : string[] {
-        const sym_str = HtmlParser.SYMBOLS.join('');
+        const sym_str = HtmlParserQueryResult.SYMBOLS.join('');
         const rstr = '[' + sym_str + ']{1}';
         const astr = '[^' + sym_str + ']+';
         const tokens = filter
@@ -112,20 +126,63 @@ export class HtmlParser {
                         .filter (token => token != '');
         return tokens;
     }
-}
 
-export class HtmlParserQueryResult {
-    private result : HtmlNode [] = [];
-    private parser : HtmlParser = null;
+    /**
+     * Examples :
+     * * qstr = '@some_field : foo'
+     * * qstr = '@some_field : "foo bar"'
+     * * qstr = '@attr.href : http://example.com'
+     * @param qstr
+     * @param result 
+     */
+    static evalResult (qstr : string, result : HtmlNode[]) {
+        const matches = qstr.match (/@(.+)?(\:|=)(.+)/);
+        if (!matches)
+            throw Error ('invalid expression "' + qstr + "'");
+        
+        let [ , field, operator, value] = matches;
+        [field, value] = [field, value].map (_ => _.trim());
+        
+        const str_regex = /^"(.*)"$|^'(.*)'$/;
+        let is_string = str_regex.test (value);
+        if (is_string) {
+            // assuming value is trimed
+            const temp = value.match(str_regex);
+            const [ , content] = temp;
+            value = content;
+        }
 
-    constructor (parser : HtmlParser, result : HtmlNode[]) {
-        this.parser = parser;
-        this.result = result;
+        const syntax = {
+            field,
+            query : {
+                type : is_string ? 'string' : 'literal',
+                value : value
+            }
+        };
+
+        // validation
+        const partial_quotes = /^"(.*)|^'(.*)|(.*)"$|(.*)'$/;
+        if (syntax.query.type == 'literal' && partial_quotes.test(value))
+            throw Error ('invalid literal due to \" or \'');
+
+
+        const {filterResult, filterAttrResult} = HtmlParserQueryResult;
+        const valid : FilterContent[] = ['html', 'text', 'value'];
+        if ((<string[]>valid).includes(syntax.field))
+            return filterResult (result, <FilterContent> syntax.field, syntax.query.value);
+        
+        if (syntax.field.startsWith('attr.')) {
+            const field = syntax.field.replace('attr.', '');
+            return filterAttrResult (result, field, syntax.query.value);
+        }
+
+        throw Error ('invalid expression near "' + qstr + "'");
     }
     
     where (filter : string) : HtmlParserQueryResult {
-        const parser = new CustomAST (HtmlParser.SYMBOLS, HtmlParser.SYM_PRIORITY);
-        const tokens = HtmlParser.tokenizeFilterQuery (filter);
+        const {SYMBOLS, SYM_PRIORITY, tokenizeFilterQuery} = HtmlParserQueryResult;
+        const parser = new CustomAST (SYMBOLS, SYM_PRIORITY);
+        const tokens = tokenizeFilterQuery (filter);
         const ast_result = parser.constructAbstractSyntaxTree (tokens);
         ast_result.tree.print();
         return this;
@@ -133,12 +190,12 @@ export class HtmlParserQueryResult {
 
     /**
      * Filter by comparing the value type with `value`
+     * @param result
      * @param type 'value' | 'html' | 'text' | '**';
      * @param str 
      * @returns 
      */
-    filter (type : FilterContent, str : string) {
-        const $ = this.parser.getApi ();
+    private static filterResult (result : HtmlNode[], type : FilterContent, str : string) {
         const func = new Map<FilterContent, any>();
         func.set ('**', (x : HtmlNode, _ : number) => true);
         func.set ('html', (x : HtmlNode, _ : number) => HtmlParser.testMatch (x.asHtml(), str));
@@ -152,10 +209,7 @@ export class HtmlParserQueryResult {
             // array
             return val.filter (x => HtmlParser.testMatch (x, str)).length > 0;
         });
-
-        this.result = this.result.filter (func.get(type));
-        
-        return this;
+        return result.filter (func.get(type));
     }
 
     /**
@@ -164,10 +218,48 @@ export class HtmlParserQueryResult {
      * @param str 
      * @returns 
      */
-    filterAttr (attr_name : string, str : string) {
-        this.result = this.result.filter ((x : HtmlNode, _ : number) => {
+    private static filterAttrResult (result : HtmlNode[], attr_name : string, str : string) {
+        return result.filter ((x : HtmlNode, _ : number) => {
             return HtmlParser.testMatch (x.attr(attr_name), str);
         });
+    }
+
+
+    /**
+     * Run eval on a given expression
+     * * [Note] : A call mutates the current instance
+     * Examples :
+     * * qstr = '@some_field : foo'
+     * * qstr = '@some_field : "foo bar"'
+     * * qstr = '@attr.href : http://example.com'
+     * @param qstr
+     */
+    eval (qstr : string) {
+        this.result = HtmlParserQueryResult.evalResult (qstr, this.result);
+        return this;
+    }
+
+    /**
+     * Filter by comparing the value type with `value`
+     * * [Note] : A call mutates the current instance
+     * @param type 'value' | 'html' | 'text' | '**';
+     * @param str 
+     * @returns 
+     */
+    filter (type : FilterContent, str : string) {
+        this.result = HtmlParserQueryResult.filterResult (this.result, type, str);
+        return this;
+    }
+
+    /**
+     * Filter by comparing the attribute value with `str`
+     * * [Note] : A call mutates the current instance
+     * @param attr_name
+     * @param str 
+     * @returns 
+     */
+    filterAttr (attr_name : string, str : string) {
+        this.result = HtmlParserQueryResult.filterAttrResult (this.result, attr_name, str);
         return this;
     }
 
@@ -176,6 +268,14 @@ export class HtmlParserQueryResult {
      */
     all () : HtmlNode[] {
         return this.result;
+    }
+
+    /**
+     * @param fun
+     * @returns 
+     */
+    map (fun : MapFunc<HtmlNode>) : HtmlNode[] {
+        return this.result.map (fun);
     }
 
     /**

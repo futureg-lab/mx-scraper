@@ -1,4 +1,4 @@
-import { HtmlParser } from "../../utils/HtmlParser";
+import { HtmlParser, HtmlParserQueryResult } from "../../utils/HtmlParser";
 
 const html = `
     <div>
@@ -65,4 +65,22 @@ test('Querying : Filter with attribute expects 3 results', () => {
                     .filterAttr ('class', '@reg   /(.+)primary/');
     expect(result.count()).toBe(3);
     expect(result.nth(2).asText()).toContain('Two');
+});
+
+
+test('HtmlParserQueryResult.eval behaves correctly', () => {
+    const parser = HtmlParser.use (html);
+    
+    expect(parser.select('span').eval('@attr.class = @reg /primary/').count())
+        .toBe(3); // One, Two, Three
+
+    expect(parser.select('span').eval('@text = @reg /One|Two/i').count())
+        .toBe(2); // ' One ', ' two '    
+    
+    expect(parser.select('input').eval('@attr.type = text').count())
+        .toBe(2); // 'My name is John', 'My pseudo is @JSX1234'
+    
+    expect(parser.select('input').eval('@attr.value = "%John%"').count())
+        .toBe(1); // 'My name is John'
+
 });

@@ -33,13 +33,13 @@ const html = `
 
 
 test('HtmlParser.testMatch behaves correctly', () => {
-    expect(HtmlParser.testMatch('Hello World', '%World')).toBeTruthy();
-    expect(HtmlParser.testMatch('Hello World', '%World%')).toBeTruthy();
-    expect(HtmlParser.testMatch('Hello World', '@reg /wo(.+)/ig')).toBeTruthy();
+    expect(HtmlParser.testMatch({ content: 'Hello World', str: '%World' })).toBeTruthy();
+    expect(HtmlParser.testMatch({ content: 'Hello World', str: '%World%' })).toBeTruthy();
+    expect(HtmlParser.testMatch({ content: 'Hello World', str: '@reg /wo(.+)/ig' })).toBeTruthy();
 
-    expect(HtmlParser.testMatch('Hello World', 'World%')).toBeFalsy();
-    expect(HtmlParser.testMatch('Hello World', 'World')).toBeFalsy();
-    expect(HtmlParser.testMatch('Hello World', 'world%')).toBeFalsy();
+    expect(HtmlParser.testMatch({ content: 'Hello World', str: 'World%' })).toBeFalsy();
+    expect(HtmlParser.testMatch({ content: 'Hello World', str: 'World' })).toBeFalsy();
+    expect(HtmlParser.testMatch({ content: 'Hello World', str: 'world%' })).toBeFalsy();
 });
 
 test('Querying : Filter expects 5 results', () => {

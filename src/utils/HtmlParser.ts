@@ -129,9 +129,9 @@ export class HtmlParserQueryResult {
 
     /**
      * Examples :
-     * * qstr = '@some_field : foo'
-     * * qstr = '@some_field : "foo bar"'
-     * * qstr = '@attr.href : http://example.com'
+     * * qstr = 'some_field : foo'
+     * * qstr = 'some_field : "foo bar"'
+     * * qstr = 'attr.href : http://example.com'
      * @param qstr
      * @param result 
      */

@@ -1,5 +1,4 @@
-import { CustomAST, PPriority, PSymbol } from "../utils/CustomAST";
-import { HtmlParser } from "../utils/HtmlParser";
+import { HtmlNode, HtmlParser } from "../utils/HtmlParser";
 
 const html = `
     <div>
@@ -15,9 +14,18 @@ const html = `
         <div class="section">
             <div>
                 <img src="cat.jpg">
-            </div>    
+            </div>
             <div>
                 <a href="some/link"><b>Hello</b></a>
+                <input type="text" class="bar" value="My name is John"/>
+                <input type="text" class="foo" value="My pseudo is @JSX1234"/>
+            </div>
+            <div>
+                <select id="gender">
+                    <option value="0">Male</option>
+                    <option value="1">Female</option>
+                    <option value="2" selected>---</option>
+                </select>
             </div>
         </div>
     </div>
@@ -25,22 +33,11 @@ const html = `
 
 
 const parser = HtmlParser.use (html);
-parser.select ('span')
-    .where ('(1 & (2 | 3)) | (4 & 5 | 6)');
+const res = parser
+                .select ('input[class="foo"]')
+                .filter ('value', '@reg /[0-9]+/i');
+console.log('Item count', res.count(), res.first().asValue());
 
-// const priority : PPriority = {
-//     '+' : {value : 1, associative : 'left'},
-//     '-' : {value : 1, associative : 'left'},
-//     '*' : {value : 2, associative : 'left'},
-//     '/' : {value : 2, associative : 'left'},
-//     '^' : {value : 3, associative : 'right'}
-// };
-
-// const symbols : PSymbol[] = ['(', ')', ...Object.keys (priority)];
-// const tks = ' 3 + 4 * 2  / (1 - 5) ^ 2 ^ 3'.replace(/[ ]+/g, '').split('');
-// console.log(tks.join(' '));
-
-// const cparser = new CustomAST (symbols, priority);
-// const {postfix, tree} = cparser.constructAbstractSyntaxTree (tks);
-// console.log ('Postfix : ', postfix);
-// console.log ('Tree\n', tree.toString());
+const res2 = parser.select ('#gender');
+console.log('Item count', res2.count(), res2.all().map(x => x.asValue()));
+//     .where ('(1 & ('2 | 3)) | (4 & 5 | 6)');

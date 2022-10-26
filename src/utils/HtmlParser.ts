@@ -232,9 +232,9 @@ export class HtmlParserQueryResult {
      * Run eval on a given expression
      * * [Note] : A call mutates the current instance
      * Examples :
-     * * qstr = '@some_field : foo'
-     * * qstr = '@some_field : "foo bar"'
-     * * qstr = '@attr.href : http://example.com'
+     * * qstr = 'some_field : foo'
+     * * qstr = 'some_field : "foo bar"'
+     * * qstr = 'attr.href : http://example.com'
      * @param qstr
      */
     eval (qstr : string) {

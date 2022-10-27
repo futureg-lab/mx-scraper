@@ -46,6 +46,7 @@ const html2 = `
         <a href="http://some/link/page2"><img src="cat02.jpg"/></a>
         <a href="http://some/link/page3"><img src="cat03.jpg"/></a>
         <a href="http://some/link/home"><img src="cat04.jpg"/></a>
+        <a href="http://some/link/nekopunch"><img src="catpunch.gif"/></a>
         <a href="http://some/link/sleep"><img src="cat05.jpg" alt="a cat sleeping"/></a>
         <a href="http://some/link/doge"><img src="catdoge.jpg"/></a>
     </div>
@@ -176,4 +177,31 @@ test('Querying : "where" function behaves correctly', () => {
             .where (`attr.href : %page%`)
             .count()
     ).toBe (3);
+});
+
+
+test('Querying : "where" function edgecases should resolve', () => {
+    const parser = HtmlParser.use (html2);
+
+    expect(
+        parser.select ('span')
+            .where (`
+                text : %silly% & html : %silly% | html : %silly% 
+                & html : %silly% & html : %silly% | html : %silly%
+            `)
+            .count()
+    ).toBe (2);
+
+    expect(
+        parser.select ('img')
+            .where (`(attr.src : %cat% | attr.src : %dog%) & attr.src : %.jpg`)
+            .count()
+    ).toBe (6);
+
+    expect(
+        parser.select ('img')
+            .where (`attr.src : %dog% & attr.src : %.gif`)
+            .count()
+    ).toBe (0);
+
 });

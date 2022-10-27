@@ -203,6 +203,12 @@ export class HtmlParserQueryResult {
         return Array.from (res_set);
     }
     
+    /**
+     * Example :
+     * * filter = "attr.alt : %sleeping%  &  (attr.src : %cat% | attr.src : %dog%) & attr.src : %.jpg "
+     * @param filter 
+     * @returns 
+     */
     where (filter : string) : HtmlParserQueryResult {
         const {
             SYMBOLS, 

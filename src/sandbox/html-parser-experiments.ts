@@ -48,9 +48,8 @@ const parser = HtmlParser.use (html);
 // console.log(parser.select('span').eval('text = @reg /One|Two/i').all().map(_ => _.asText()));
 
 
-parser
-    .select('span')
-    .where(`
-          attr.class / %primary  &   value : One
-        | value = Two
-    `);
+let res = parser
+            .select('span')
+            .where(`text : %One% & (text : %One% | text : %Two%)`);
+
+console.log (res.map(x => x.asText()), res.count());

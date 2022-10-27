@@ -31,15 +31,35 @@ const html = `
     </div>
 `;
 
+const html2 = `
+    <div>
+        <span class="text text-primary" id="s1"> Some text </span>
+        <span class="text text-primary" id="s2"> Another text </span>
+        <span class="text text-primary" id="s3"> This is a bit silly </span>
+        <span class="text text-primary" id="s4"> is it silly ? </span>
+        <span class="urban text-danger"> based </span>
+        <span class="urban text-danger" id="s3"> fr fr </span>
+        <span class="weeb text-danger" id="s3"> ah yes. okaimono girl </span>
+    </div>
+    <div>
+        <a href="http://some/link/page1"><img src="cat01.jpg"/></a>
+        <a href="http://some/link/page2"><img src="cat02.jpg"/></a>
+        <a href="http://some/link/page3"><img src="cat03.jpg"/></a>
+        <a href="http://some/link/home"><img src="cat04.jpg"/></a>
+        <a href="http://some/link/sleep"><img src="cat05.jpg" alt="a cat sleeping"/></a>
+        <a href="http://some/link/doge"><img src="catdoge.jpg"/></a>
+    </div>
+`;
+
 
 test('HtmlParser.testMatch behaves correctly', () => {
-    expect(HtmlParser.testMatch({ content: 'Hello World', str: '%World' })).toBeTruthy();
-    expect(HtmlParser.testMatch({ content: 'Hello World', str: '%World%' })).toBeTruthy();
-    expect(HtmlParser.testMatch({ content: 'Hello World', str: '@reg /wo(.+)/ig' })).toBeTruthy();
+    expect(HtmlParser.testMatch('Hello World', '%World')).toBeTruthy();
+    expect(HtmlParser.testMatch('Hello World', '%World%')).toBeTruthy();
+    expect(HtmlParser.testMatch('Hello World', '@reg /wo(.+)/ig')).toBeTruthy();
 
-    expect(HtmlParser.testMatch({ content: 'Hello World', str: 'World%' })).toBeFalsy();
-    expect(HtmlParser.testMatch({ content: 'Hello World', str: 'World' })).toBeFalsy();
-    expect(HtmlParser.testMatch({ content: 'Hello World', str: 'world%' })).toBeFalsy();
+    expect(HtmlParser.testMatch('Hello World', 'World%')).toBeFalsy();
+    expect(HtmlParser.testMatch('Hello World', 'World')).toBeFalsy();
+    expect(HtmlParser.testMatch('Hello World', 'world%')).toBeFalsy();
 });
 
 test('Querying : Filter expects 5 results', () => {
@@ -99,4 +119,61 @@ test('HtmlParserQueryResult.eval throws error correctly', () => {
     // invalid "
     expect(() => { parser.select('input').eval('value = 1234"') })
         .toThrow();
+});
+
+test('HtmlParserQueryResult.where throws error correctly', () => {
+    const parser = HtmlParser.use (html2);
+    // invalid symbol
+    expect(() => { parser.select('input').where ('text : %silly% --- html : %silly%') })
+        .toThrow();
+    // invalid expression
+    expect(() => { parser.select('input').where ('at tr.value = 1234') })
+        .toThrow();
+});
+
+test('Querying : "where" function behaves correctly', () => {
+    const parser = HtmlParser.use (html2);
+
+    expect(
+        parser.select ('span')
+            .where (`text : %silly% | html : %silly%`)
+            .count()
+    ).toBe (2);
+
+    expect(
+        parser.select ('span')
+            .where (`text : %silly% & text : %bit% | attr.class : %urban%`)
+            .count()
+    ).toBe (3);
+    
+    expect(
+        parser.select ('span')
+            .where (`text : %silly% & (text : %bit% | attr.class : %urban%)`)
+            .count()
+    ).toBe (1);
+
+    expect(
+        parser.select ('span')
+            .where (`attr.class : text text-primary`)
+            .count()
+    ).toBe (4);
+
+    expect(
+        parser.select ('a>img')
+            .where (`attr.src : @reg /cat[0-1]+/`)
+            .count()
+    ).toBe (5);
+
+    expect(
+        parser.select ('a>img')
+            .where (`attr.alt : %sleeping%   &  attr.src : @reg /cAt[0-1]+/i`)
+            .count()
+    ).toBe (1);
+
+
+    expect(
+        parser.select ('a')
+            .where (`attr.href : %page%`)
+            .count()
+    ).toBe (3);
 });

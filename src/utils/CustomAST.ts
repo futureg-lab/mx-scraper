@@ -34,6 +34,10 @@ export class ASTNode {
         return final_str;
     }
 
+    isLeaf () {
+        return this.left == null && this.right == null;
+    }
+
     toString () {
         return this.printHelper (this, 0);
     }

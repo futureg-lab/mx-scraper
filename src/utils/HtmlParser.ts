@@ -1,5 +1,6 @@
 import {AnyNode, CheerioAPI, load} from "cheerio";
-import { CustomAST, PPriority, PSymbol } from "./CustomAST";
+import { ASTNode, CustomAST, PPriority, PSymbol } from "./CustomAST";
+import { interSet, unionSet } from "./Utils";
 
 type FilterContent = 'value' | 'html' | 'text' | '**';
 type MapFunc<T> = {
@@ -109,6 +110,10 @@ export class HtmlParserQueryResult {
         '|' : {value : 1, associative : 'left'}, 
         '&' : {value : 2, associative : 'left'}
     };
+    static OPERATOR_FUNC = {
+        '&' : (a : HtmlNode[], b : HtmlNode[]) => interSet<HtmlNode> (new Set<HtmlNode>(a), new Set<HtmlNode>(b)),
+        '|' : (a : HtmlNode[], b : HtmlNode[]) => unionSet<HtmlNode> (new Set<HtmlNode>(a), new Set<HtmlNode>(b))
+    };
 
 
     constructor (parser : HtmlParser, result : HtmlNode[]) {
@@ -181,13 +186,35 @@ export class HtmlParserQueryResult {
 
         throw Error ('invalid expression "' + syntax.field + '"');
     }
+
+    private static whereHelper (node : ASTNode, list_nodes : HtmlNode[]) : HtmlNode[] {
+        if (node.isLeaf()) {
+            // node.value
+            const node_eval = HtmlParserQueryResult.evalResult (node.value, list_nodes);
+            return node_eval;
+        }
+        let operator = node.value;
+        let operator_func = HtmlParserQueryResult.OPERATOR_FUNC [operator];
+        if (!operator_func )
+            throw Error ('symbol "' + operator + "' is not an operator");
+        let left_eval = HtmlParserQueryResult.whereHelper (node.left, list_nodes);
+        let right_eval = HtmlParserQueryResult.whereHelper (node.right, list_nodes);
+        let res_set : Set<HtmlNode> = operator_func (left_eval, right_eval);
+        return Array.from (res_set);
+    }
     
     where (filter : string) : HtmlParserQueryResult {
-        const {SYMBOLS, SYM_PRIORITY, tokenizeFilterQuery} = HtmlParserQueryResult;
+        const {
+            SYMBOLS, 
+            SYM_PRIORITY, 
+            tokenizeFilterQuery,
+            whereHelper
+        } = HtmlParserQueryResult;
         const parser = new CustomAST (SYMBOLS, SYM_PRIORITY);
         const tokens = tokenizeFilterQuery (filter);
         const ast_result = parser.constructAbstractSyntaxTree (tokens);
         ast_result.tree.print();
+        this.result = whereHelper (ast_result.tree, this.result);
         return this;
     }
 
@@ -231,7 +258,7 @@ export class HtmlParserQueryResult {
     /**
      * Run eval on a given expression
      * * [Note] : A call mutates the current instance
-     * Examples :
+     * - Examples :
      * * qstr = 'some_field : foo'
      * * qstr = 'some_field : "foo bar"'
      * * qstr = 'attr.href : http://example.com'

@@ -140,3 +140,34 @@ export function batchAListOf<T> (list : T[], batch_size : number) : T[][] {
     
     return batches;
 }
+
+/**
+ * @param arr 
+ * @returns Last value of an array
+ */
+export function topValueOf<T> (arr : T[]) {
+    if (arr.length == 0) 
+        return null;
+    return arr[arr.length - 1];
+}
+
+export function unionSet <T> (a : Set<T>, b : Set<T>) : Set<T> {
+    let result = new Set<T>();
+    for (let x of a) result.add (x);
+    for (let x of b) result.add (x);
+    return result;
+}
+
+export function interSet <T> (a : Set<T>, b : Set<T>) : Set<T> {
+    let result = new Set<T>();
+
+    for (let x of a)
+        if (b.has(x)) 
+            result.add (x);
+    
+    for (let x of b)
+        if (a.has(x)) 
+            result.add (x);
+    
+    return result;
+}

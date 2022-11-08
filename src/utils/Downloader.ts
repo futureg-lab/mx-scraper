@@ -7,6 +7,7 @@ import * as fsextra from 'fs-extra';
 import * as crypto from 'crypto';
 import { config } from "../environment";
 import { MXScraper } from "../core/MXScraper";
+import { MXPlugin } from "../core/MXPlugin";
 
 
 /**
@@ -122,6 +123,21 @@ export async function downloadBook (
             createJsonDataOf (book_temp_folder_path, book);
                     
             for (let page of chapter.pages) {
+                let real_page_url = page.url;
+                // handle intermediate link
+                if (page.intermediate_link_hint) {
+                    // intermediate link
+                    const [real_url, computed_ext] = await MXPlugin.autoScanIndirectLink(request, page.url, page.intermediate_link_hint);
+                    // set proper filename
+                    const [page_filename, ext] = page.filename.split('.');
+                    if (!page_filename) { // undefined filename
+                        page.filename = page.number + '.' + computed_ext;
+                    } else if (page_filename && !ext) {
+                        page.filename = page_filename + '.' + computed_ext;
+                    } // else { filename properly defined }
+                    real_page_url = real_url;
+                }
+                // prepare destination
                 const dest_path = path.join (
                     chapter_folder_temp_path,
                     page.filename
@@ -141,7 +157,7 @@ export async function downloadBook (
                 );
                 let skip_msg = '';
                 if (download_anyway)
-                    await request.download (page.url, dest_path);
+                    await request.download (real_page_url, dest_path);
                 else
                     skip_msg = 'Skipped';
                 // progress status

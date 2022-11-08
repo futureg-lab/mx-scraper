@@ -112,6 +112,9 @@ export class EHentai extends MXPlugin {
     }
 
     private async fetchAllRelevantsInformation (url : string) : Promise<EHRelevantInformation> {
+        if (!url.endsWith('nw=session'))
+            url += '?nw=session';
+        console.log(url);
         const response_html = await this.request.get (url);
         const $ : CheerioAPI = load (response_html);
         // title ?
@@ -177,19 +180,18 @@ export class EHentai extends MXPlugin {
             if (do_next_page) {
                 for (let link of links) {
                     url_cover_seen.add (link);
-                    // retrieve the real link
-                    const response_html = await this.request.get (link);
-                    const $ : CheerioAPI = load (response_html);
-                    const real_link = $('#img').first ().attr ('src');
-                    const filename = item_count + '.' + this.deduceImageTypeFromUrl (real_link);
-    
+
                     const page = <Page> {
-                        filename : filename,
+                        filename : item_count + '', // no ext yet
                         title : '' + item_count,
                         number : item_count,
-                        url : real_link
+                        url : link,
+                        intermediate_link_hint : {
+                            selector : '#img',
+                            attribute : 'src'
+                        }
                     };
-    
+                    
                     pages.push (page);
                     item_count++;
                 }

@@ -1,11 +1,12 @@
 import { config } from "../environment";
 import { CustomRequest, FlareSolverrProxyOption } from "../utils/CustomRequest";
-import { Book, PluginOption, SearchOption } from "./BookDef";
+import { Book, ParseLinkHint, PluginOption, SearchOption } from "./BookDef";
 import * as fs from 'fs';
 import * as fsextra from 'fs-extra';
 import * as path from 'path';
 import { computeSignatureQuery } from "../utils/Downloader";
 import { MXLogger } from "../cli/MXLogger";
+import { CheerioAPI, load } from "cheerio";
 
 export class MXPlugin {
     /**
@@ -80,7 +81,7 @@ export class MXPlugin {
      * * By default, this function setups a cloudfare proxy if option.useFlareSolverr is set to true
      * @param option
      */
-     async configure (option : PluginOption) : Promise<void> {
+    async configure (option : PluginOption) : Promise<void> {
         this.option = option;
         if (this.option.useFlareSolverr) {
             const solver_option : FlareSolverrProxyOption = <FlareSolverrProxyOption>{
@@ -91,6 +92,22 @@ export class MXPlugin {
             this.request.configureProxy (solver_option);
             await this.request.initProxySession (); // init session if there are none
         }
+    }
+
+    static async autoScanIndirectLink (request : CustomRequest, intermediate_link : string, hint? : ParseLinkHint) : Promise<string[]> {
+        // retrieve the real link
+        const response_html = await request.get (intermediate_link);
+        const $ : CheerioAPI = load (response_html);
+        let parse_hint = <ParseLinkHint>{
+            selector : hint ? hint.selector : 'img',
+            attribute : hint ? hint.attribute : 'src'
+        };
+        const real_link = $(parse_hint.selector)
+                        .first ()
+                        .attr (parse_hint.attribute) || '';
+
+        const extension = real_link.split('.').pop() || 'jpg';
+        return [real_link, extension];
     }
     
     /**

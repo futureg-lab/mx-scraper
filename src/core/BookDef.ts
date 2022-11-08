@@ -79,6 +79,14 @@ export interface Chapter {
 }
 
 /**
+ * Abstraction of a filter for an intermediate link
+ */
+export interface ParseLinkHint {
+    selector : string;
+    attribute : string;
+}
+
+/**
  * Abstraction of a 'Page' owned by a Chapter object
  */
 export interface Page {
@@ -91,6 +99,12 @@ export interface Page {
      * Source url of the currrent page
      */
     url : string;
+
+    
+    /**
+     * Is current url a direct or intermediate link ?
+     */
+    intermediate_link_hint? : ParseLinkHint;
 
     /**
      * Strictly positive index of the current page relative to a chapter

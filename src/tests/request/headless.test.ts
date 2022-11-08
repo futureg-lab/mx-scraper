@@ -52,7 +52,6 @@ test('Perform a request using PUPPETEER', async () => {
         headless = await HeadlessBrowser.create (TypeEngine.PUPPETEER);
         const html = await headless.getRenderedHtml ('http://example.com');
 
-        expect(headless.infos().current_type).toBe(config.HEADLESS?.ENGINE); // must match to the config value
         expect(html).toContain('example');
     } catch (err) {
         throw err;

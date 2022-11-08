@@ -65,8 +65,6 @@ export class CustomAST {
     /**
      * Build postfix and tree
      * @param tokens
-     * @param symbols 
-     * @param priority 
      * @returns 
      */
     constructAbstractSyntaxTree (tokens : string[]) : ASTResult {
@@ -93,7 +91,7 @@ export class CustomAST {
                     while (!stop) {
                         const top = operators.pop();
                         if (!top)
-                            throw Error ('Error expression near ..' + nearSubstr (running_expr));
+                            throw Error ('invalid expression near ..' + nearSubstr (running_expr));
                         if (top == EParenthesis.OPEN)
                             stop = true;
                         else {
@@ -128,7 +126,7 @@ export class CustomAST {
         }
 
         if (operators.includes ('(') || operators.includes(')'))
-            throw Error ('Parsing error, parenthesis invalid');
+            throw Error ('parenthesis invalid');
 
         // leftover
         while (operators.length > 0) {
@@ -138,7 +136,7 @@ export class CustomAST {
         }
 
         if (ast_nodes.length != 1)
-            throw Error ('Parsing error, ASTNode reduction failed');
+            throw Error ('ASTNode reduction failed');
 
         return <ASTResult>{
             postfix : expressions,

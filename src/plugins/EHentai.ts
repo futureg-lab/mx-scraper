@@ -3,6 +3,7 @@ import { Book, PluginOption, Metadata, SearchOption, Tag, Page, TitleAlias, Chap
 import { MXPlugin } from "../core/MXPlugin";
 import { CustomRequest, FlareSolverrProxyOption } from "../utils/CustomRequest";
 import { MXLogger } from "../cli/MXLogger";
+import { addUrlParams } from "../utils/Utils";
 
 interface EHRelevantInformation {
     /**
@@ -42,7 +43,9 @@ export class EHentai extends MXPlugin {
 
     override async fetchBook (gallery_id_or_url : string) : Promise<Book> {
         const [gallery_id, gallery_token] = this.extractIdFromPotentialUrl (gallery_id_or_url);
-        const url = this.target_url + 'g/' + gallery_id + '/' + gallery_token;
+        let url = this.target_url + 'g/' + gallery_id + '/' + gallery_token;
+
+        url = addUrlParams(url, {nw : 'session'});
 
         MXLogger.infoRefresh (`[e-hentai] Fetching informations`);
         const {title, summary, tags} = await this.fetchAllRelevantsInformation (url);
@@ -112,9 +115,7 @@ export class EHentai extends MXPlugin {
     }
 
     private async fetchAllRelevantsInformation (url : string) : Promise<EHRelevantInformation> {
-        if (!url.endsWith('nw=session'))
-            url += '?nw=session';
-        console.log(url);
+        url = addUrlParams(url, {nw : 'session'});
         const response_html = await this.request.get (url);
         const $ : CheerioAPI = load (response_html);
         // title ?
@@ -159,7 +160,8 @@ export class EHentai extends MXPlugin {
         let do_next_page = true;
 
         while (do_next_page) {
-            const pagination_url = url + '?p=' + current_pagination;
+            const pagination_url = addUrlParams(url, {nw : 'session', p : current_pagination});
+
             MXLogger.infoRefresh (`[e-hentai] ${idinfos} :: Fetching page ${current_pagination} (Count ${item_count - 1})`);
 
             const response_html = await this.request.get (pagination_url);
@@ -169,6 +171,9 @@ export class EHentai extends MXPlugin {
             const links = $('#gdt>div>div>a')
                             .toArray()
                             .map(elem => $(elem).attr('href'));
+            
+            if (links.length == 0)
+                throw Error ('Unable to parse content ' + url + ', try enabling proxy for this config (temporary solution)'); // error
             
             for (let link of links) {
                 if (url_cover_seen.has (link)) {
@@ -208,13 +213,5 @@ export class EHentai extends MXPlugin {
         if (!gid || !gtoken)
             throw Error ('Unable to extract gallery_id, gallery_token from ' + str);
         return [gid, gtoken];
-    }
-
-    /**
-     * @param image_url 
-     * @returns jpg, png, jpeg, gif, bmp
-     */
-    private deduceImageTypeFromUrl (image_url : string) {
-        return image_url.split('.').pop() || 'jpg';
     }
 }

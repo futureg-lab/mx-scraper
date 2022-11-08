@@ -34,6 +34,19 @@ export function levenshtein (a: string, b: string) : number{
 }
 
 /**
+ * Add url parameters to a string url
+ * @param url_str 
+ * @param params 
+ * @returns 
+ */
+export function addUrlParams (url_str : string, params : Object) {
+    let url = new URL(url_str);
+    for (let key in params)
+        url.searchParams.set(key, params[key]);
+    return url.toString();
+}
+
+/**
  * Pause current thread
  * @param ms time in milliseconds
  * @returns 

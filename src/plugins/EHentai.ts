@@ -45,7 +45,7 @@ export class EHentai extends MXPlugin {
         const [gallery_id, gallery_token] = this.extractIdFromPotentialUrl (gallery_id_or_url);
         let url = this.target_url + 'g/' + gallery_id + '/' + gallery_token;
 
-        url = addUrlParams(url, {nw : 'session'});
+        // url = addUrlParams(url, {nw : 'session'});
 
         MXLogger.infoRefresh (`[e-hentai] Fetching informations`);
         const {title, summary, tags} = await this.fetchAllRelevantsInformation (url);
@@ -115,7 +115,7 @@ export class EHentai extends MXPlugin {
     }
 
     private async fetchAllRelevantsInformation (url : string) : Promise<EHRelevantInformation> {
-        url = addUrlParams(url, {nw : 'session'});
+        // url = addUrlParams(url, {nw : 'session'});
         const response_html = await this.request.get (url);
         const $ : CheerioAPI = load (response_html);
         // title ?
@@ -160,9 +160,8 @@ export class EHentai extends MXPlugin {
         let do_next_page = true;
 
         while (do_next_page) {
-            const pagination_url = addUrlParams(url, {nw : 'session', p : current_pagination});
-
-            MXLogger.infoRefresh (`[e-hentai] ${idinfos} :: Fetching page ${current_pagination} (Count ${item_count - 1})`);
+            const pagination_url = addUrlParams(url, {p : current_pagination});
+            MXLogger.infoRefresh (`[e-hentai] ${idinfos} :: Fetching page ${current_pagination} (Count ${item_count - 1}) ${pagination_url}`);
 
             const response_html = await this.request.get (pagination_url);
             const $ : CheerioAPI = load (response_html);

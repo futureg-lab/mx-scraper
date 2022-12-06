@@ -188,6 +188,10 @@ export class HtmlParserQueryResult {
     }
 
     private static whereHelper (node : ASTNode, list_nodes : HtmlNode[]) : HtmlNode[] {
+        
+        if (!node)
+            throw Error ('Parsing error, invalid query');
+
         if (node.isLeaf()) {
             // node.value
             const node_eval = HtmlParserQueryResult.evalResult (node.value, list_nodes);
@@ -220,6 +224,7 @@ export class HtmlParserQueryResult {
         const tokens = tokenizeFilterQuery (filter);
         const ast_result = parser.constructAbstractSyntaxTree (tokens);
         ast_result.tree.print();
+
         this.result = whereHelper (ast_result.tree, this.result);
         return this;
     }

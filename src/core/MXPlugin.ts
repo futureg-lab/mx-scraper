@@ -106,7 +106,8 @@ export class MXPlugin {
                         .first ()
                         .attr (parse_hint.attribute) || '';
 
-        const extension = real_link.split('.').pop() || 'jpg';
+        const comp_ext = real_link.split('.').pop();
+        const extension = comp_ext && comp_ext != '' ? comp_ext : 'jpg';
         return [real_link, extension];
     }
     

@@ -27,8 +27,8 @@ const [ , , ...argv] = process.argv;
         }
 
         if (! (parsed.has('Show-Help') || parsed.has('Show-Infos')) )
-            await engine.initFromPluginFolder (use_conf_session_id);
-
+            await engine.initAllPlugins (use_conf_session_id);
+    
         // run the command
         await mxcli.runCommand (engine, parsed);
     } catch (err) {

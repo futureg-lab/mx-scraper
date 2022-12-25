@@ -105,6 +105,8 @@ export class MXcli extends CLIEngine {
                     throw Error ('Unable to find a plugin to handle ' + titles[0]);
                 MXLogger.infoRefresh ('[Using] ' + plugin.title);
             }
+            
+            await engine.configureSpecificPlugin(plugin.getPluginID());
 
             let doption : DownloadOption = null;
             if (parsed.has('Download'))

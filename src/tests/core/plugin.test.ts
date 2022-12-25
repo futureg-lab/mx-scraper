@@ -5,7 +5,7 @@ import { Example } from "../../plugins/Example";
 test('MXScraper should have more than 1 plugin', async () => {
     try {
         const engine = new MXScraper ();
-        await engine.initFromPluginFolder ();
+        await engine.initAllPlugins ();
         const plugins = engine.getAllPlugins ();
         console.info(
             'Loaded plugins :',
@@ -23,7 +23,7 @@ test('MXScraper should have more than 1 plugin', async () => {
 test('Registering duplicate ids should fail', async () => {
     try {
         const engine = new MXScraper ();
-        await engine.initFromPluginFolder ();
+        await engine.initAllPlugins ();
         await engine.register(new Example());
         fail('Registering duplicate ids did not fail');
     } catch (err) {

@@ -6,7 +6,7 @@ import { NHentai } from "../plugins/NHentai";
         const engine = new MXScraper ();
         // init plugin
         const use_sess_config = true;
-        await engine.initFromPluginFolder(use_sess_config);
+        await engine.initAllPlugins(use_sess_config);
 
         const nhentai = <NHentai> engine.getPluginByIdentifier ('NHentai');
         const book = await nhentai.fetchBook ('177013');

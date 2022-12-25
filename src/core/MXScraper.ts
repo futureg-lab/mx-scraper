@@ -3,44 +3,58 @@ import { MXPlugin } from "./MXPlugin";
 import { config } from "../environment";
 import { levenshtein } from "../utils/Utils";
 import * as fs from 'fs';
+import * as path from 'path';
 import { MXLogger } from "../cli/MXLogger";
 
 const version : string = require('../../package.json').version;
 
 export class MXScraper {
     static version = version;
-    plugins : MXPlugin[] = [];
+    static plugin_base_path = '../plugins';
+    private plugins : MXPlugin[] = [];
+    private enable_proxy_map : Map<string, PluginOption> = new Map<string, PluginOption>();
 
     /**
      * Register avalaible plugins
      */
-    async initFromPluginFolder (use_session_from_config : Boolean = false) {
+    async initAllPlugins (use_session_from_config : boolean = false) {
         // init plugins
         const list_to_load = config.LOAD_PLUGINS;
-        for (let name of list_to_load) {
-            const path_location = '../plugins/' + name;
-            const module = await import (path_location);
-            if (!module[name])
-                throw Error ('Plugin error : plugin "' + name + "' not found in " + path_location);
-            const instance = <MXPlugin> (new module[name]);
-
-            MXLogger.infoRefresh ('[Plugin] Loading ' + name);
-
-            if (name != instance.title)
-                throw Error ('Plugin at ' + path_location + ' has title "' + instance.title +'", "' + name + '" expected'); 
-                        
-            await this.register (instance, use_session_from_config);
-
-            MXLogger.infoRefresh ('[Done] Loading ' + name);
-        }
+        for (let name of list_to_load)
+            await this.initPluginByName (name, use_session_from_config);
 
         // init download folders
+        this.prepareDownloadFolders();
+        MXLogger.flush ();
+    }
+
+    /**
+     * Initialize download folders (if not exist)
+     */
+    prepareDownloadFolders () {
         if (!fs.existsSync(config.DOWNLOAD_FOLDER.DOWNLOAD))
             fs.mkdirSync (config.DOWNLOAD_FOLDER.DOWNLOAD, { recursive: true });
         if (!fs.existsSync(config.DOWNLOAD_FOLDER.TEMP))
             fs.mkdirSync (config.DOWNLOAD_FOLDER.TEMP, { recursive: true });
+    }
 
-        MXLogger.flush ();
+    /**
+     * Init one plugin at a
+     */
+    async initPluginByName (name : string, use_session_from_config : Boolean = false) {
+        const path_location = path.join(MXScraper.plugin_base_path, name);
+        const module = await import (path_location);
+        if (!module[name])
+            throw Error ('Plugin error : plugin "' + name + "' not found in " + path_location);
+        const instance = <MXPlugin> (new module[name]);
+
+        MXLogger.infoRefresh ('[Plugin] Loading ' + name);
+
+        if (name != instance.title)
+            throw Error ('Plugin at ' + path_location + ' has title "' + instance.title +'", "' + name + '" expected'); 
+        
+        await this.register (instance, use_session_from_config);
+        MXLogger.infoRefresh ('[Done] Loading ' + name);
     }
 
     /**
@@ -48,10 +62,11 @@ export class MXScraper {
      * @param use_session_from_config session config
      */
     async register (plugin : MXPlugin, use_session_from_config : Boolean = false) {
-        const current_id = plugin.constructor.name;
+        const current_id = plugin.getPluginID();
+
         if (config.PLUGIN_PROXY_ENABLE.includes(current_id)) {
             const unique_session_id = use_session_from_config ? config.UNIQUE_SESSION : undefined;
-            await plugin.configure (<PluginOption>{
+            this.enable_proxy_map.set(current_id, <PluginOption>{
                 useFlareSolverr : true,
                 useThisSessionId : unique_session_id
             });
@@ -63,6 +78,28 @@ export class MXScraper {
             throw Error ('Plugin error : Unable de register plugin id ' + current_id);
         
         this.plugins.push (plugin);
+    }
+
+    /**
+     * Configure proxy for plugins that needs it
+     */
+    async configureAllPlugins () {
+        for (let plugin of this.plugins) {
+            const current_id = plugin.getPluginID();
+            if (this.enable_proxy_map.has(current_id))
+                await plugin.configure (this.enable_proxy_map.get(current_id));
+        }
+    }
+
+    /**
+     * @param id plugin identifier (case non-sensitive)
+     * @returns 
+     */
+    async configureSpecificPlugin (id : string) {
+        const plugin = this.getPluginByIdentifier(id);
+        if (!plugin) return;
+        if (this.enable_proxy_map.has(id))
+            await plugin.configure(this.enable_proxy_map.get(id));
     }
 
     /**
@@ -85,12 +122,12 @@ export class MXScraper {
     }
 
     /**
-     * @param id plugin unique id
+     * @param id plugin unique id (case non-sensitive for convenience)
      * @returns 
      */
     getPluginByIdentifier (id : string) : MXPlugin {
         const res = this.plugins.filter((plugin : MXPlugin) => {
-            return plugin.constructor.name.toLowerCase() == id.toLowerCase()
+            return plugin.getPluginID().toLocaleLowerCase() == id.toLowerCase()
         });
         if (res.length == 0)
             return null;

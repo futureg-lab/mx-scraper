@@ -99,6 +99,7 @@ export async function downloadBook (
 
     // save metadatas first
     createJsonDataOf (book_temp_folder_path, book);
+    let filename_modified = false;
 
     const getChapterPath = (base : string, ch : Chapter) => {
         return path.join (base, cleanFolderName (ch.title));
@@ -123,22 +124,13 @@ export async function downloadBook (
             createJsonDataOf (book_temp_folder_path, book);
                     
             for (let page of chapter.pages) {
-                // prepare destination
-                const dest_path = path.join (
-                    chapter_folder_temp_path,
-                    page.filename
-                );
-                const dest_down_path = path.join (
-                    chapter_folder_down_path,
-                    page.filename
-                );
                 // download
                 const download_anyway = !(
                     option != null 
                     && option.continue // if interrupted
                     && (
-                       fs.existsSync (dest_path) // file already exist in 'temp'
-                    || fs.existsSync (dest_down_path) // file already exist in 'download'
+                       imageExistsAtLocationIgnoreExtension (chapter_folder_temp_path, page.filename) // file already exist in 'temp'
+                    || imageExistsAtLocationIgnoreExtension (chapter_folder_down_path, page.filename) // file already exist in 'download'
                     )
                 );
 
@@ -157,7 +149,12 @@ export async function downloadBook (
                             page.filename = page_filename + '.' + computed_ext;
                         } // else { filename properly defined }
                         real_page_url = real_url;
+                        filename_modified = true;
                     }
+                    let dest_path = path.join (
+                        chapter_folder_temp_path,
+                        page.filename
+                    );
                     await request.download (real_page_url, dest_path);
                 } else
                     skip_msg = 'Skipped';
@@ -171,6 +168,9 @@ export async function downloadBook (
         }
     }
 
+    if (filename_modified)
+        createJsonDataOf (book_temp_folder_path, book);
+
     // move if done
     if (loading_callback)
         loading_callback ('[Done]', total, total, 100);
@@ -178,6 +178,23 @@ export async function downloadBook (
     if (!fs.existsSync (book_downloaded_folder_path))
         fsextra.moveSync (book_temp_folder_path, book_downloaded_folder_path, {overwrite : true});
 
+}
+
+/**
+ * Check if a file exists already
+ * @param location 
+ * @param index 
+ */
+export function imageExistsAtLocationIgnoreExtension(location : string, canonical_name : string) {
+    if (!fs.existsSync(location)) 
+        return false;
+
+    const content = fs.readdirSync(location);
+    return content
+        .filter(item => {
+            return item.startsWith(canonical_name);
+        })
+        .length > 0;
 }
 
 /**

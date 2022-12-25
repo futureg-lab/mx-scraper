@@ -8,6 +8,7 @@ test('NHentai book should have a value', async () => {
         const engine = new MXScraper ();
         await engine.initAllPlugins ();
         const nhentai = <NHentai> engine.getPluginByIdentifier ('NHentai');
+        await engine.configureSpecificPlugin(nhentai.getPluginID());
         const book = await nhentai.fetchBook ('177013');
         await nhentai.destructor ();
         expect(book != null).toBeTruthy();

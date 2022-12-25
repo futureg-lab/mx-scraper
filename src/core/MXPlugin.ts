@@ -40,6 +40,13 @@ export class MXPlugin {
     request : CustomRequest;
 
     /**
+     * @returns id of the current plugin
+     */
+    getPluginID() {
+        return this.constructor.name;
+    }
+
+    /**
      * @param identifier fetch all, fetch a specific chapter... etc
      */
     async fetchBook (identifier : string) : Promise<Book> {

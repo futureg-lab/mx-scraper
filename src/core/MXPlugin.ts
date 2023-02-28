@@ -93,11 +93,9 @@ export class MXPlugin {
         if (this.option.useFlareSolverr) {
             const solver_option : FlareSolverrProxyOption = <FlareSolverrProxyOption>{
                 proxy_url : config.CLOUDFARE_PROXY_HOST,
-                timeout : config.CLOUDFARE_MAX_TIMEOUT,
-                session_id : this.option.useThisSessionId || undefined
+                timeout : config.CLOUDFARE_MAX_TIMEOUT
             };
             this.request.configureProxy (solver_option);
-            await this.request.initProxySession (); // init session if there are none
         }
     }
 
@@ -118,14 +116,9 @@ export class MXPlugin {
         return [real_link, extension];
     }
     
-    /**
-     * Useful if there are remaining sessions
-     */
     async destructor () {
         if (!this.option || !this.request.proxy)
             return;
-        if (this.option.useFlareSolverr && this.request.proxy.session_id)
-            await this.request.destroyProxySession ();
         await this.request.destroy ();
     }
 

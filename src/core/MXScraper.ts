@@ -17,11 +17,11 @@ export class MXScraper {
     /**
      * Register avalaible plugins
      */
-    async initAllPlugins (use_session_from_config : boolean = false) {
+    async initAllPlugins () {
         // init plugins
         const list_to_load = config.LOAD_PLUGINS;
         for (let name of list_to_load)
-            await this.initPluginByName (name, use_session_from_config);
+            await this.initPluginByName (name);
 
         // init download folders
         this.prepareDownloadFolders();
@@ -41,7 +41,7 @@ export class MXScraper {
     /**
      * Init one plugin at a
      */
-    async initPluginByName (name : string, use_session_from_config : Boolean = false) {
+    async initPluginByName (name : string) {
         const path_location = path.join(MXScraper.plugin_base_path, name);
         const module = await import (path_location);
         if (!module[name])
@@ -53,22 +53,19 @@ export class MXScraper {
         if (name != instance.title)
             throw Error ('Plugin at ' + path_location + ' has title "' + instance.title +'", "' + name + '" expected'); 
         
-        await this.register (instance, use_session_from_config);
+        await this.register (instance);
         MXLogger.infoRefresh ('[Done] Loading ' + name);
     }
 
     /**
      * @param plugin Plugin to register
-     * @param use_session_from_config session config
      */
-    async register (plugin : MXPlugin, use_session_from_config : Boolean = false) {
+    async register (plugin : MXPlugin) {
         const current_id = plugin.getPluginID();
 
         if (config.PLUGIN_PROXY_ENABLE.includes(current_id)) {
-            const unique_session_id = use_session_from_config ? config.UNIQUE_SESSION : undefined;
             this.enable_proxy_map.set(current_id, <PluginOption>{
-                useFlareSolverr : true,
-                useThisSessionId : unique_session_id
+                useFlareSolverr : true
             });
         }
         

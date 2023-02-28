@@ -10,8 +10,7 @@ import { MXLogger } from "./MXLogger";
 import { config } from "../environment";
 import { DynamicConfigurer } from "./DynamicConfigurer";
 import { UniqueHeadlessBrowser } from "../utils/UniqueHeadlessBrowser";
-import { Puppeteer } from "puppeteer";
-import { HeadlessBrowser, TypeEngine } from "../utils/HeadlessBrowser";
+import { TypeEngine } from "../utils/HeadlessBrowser";
 
 export class MXcli extends CLIEngine {
     constructor () {
@@ -172,7 +171,6 @@ export class MXcli extends CLIEngine {
             'mx-scraper --search-plugin -v http://link/to/a/title',
             'mx-scraper --auto --fetch http://link/to/a/title',
             'mx-scraper --plugin plugin_name --fetch-all title1 title2 title3',
-            'mx-scraper --plugin plugin_name --fetch-all 420166 420132 --download --conf-session',
             'mx-scraper --plugin nhentai --download --fetch-all 420166 420132',
             'mx-scraper --auto --fetch-all --download --parallel http://link/to/title1 http://link/to/title2',
             'mx-scraper --auto --download --parallel --fetch-file list.txt',

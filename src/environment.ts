@@ -16,7 +16,6 @@ const config = {
     PLUGIN_PROXY_ENABLE : [
         'NHentai' 
     ],
-    UNIQUE_SESSION : 'ae790d20-377a-11ed-afce-cbaaa8f182c5',
     DOWNLOAD_FOLDER : {
         DOWNLOAD : './download/download',
         TEMP : './download/temp'

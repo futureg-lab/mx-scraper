@@ -8,7 +8,6 @@ import { MXLogger } from '../cli/MXLogger';
 export interface FlareSolverrProxyOption {
     proxy_url : string;
     timeout? : number;
-    session_id? : string;
 }
 
 const ENABLE_HEADLESS_ERROR = 'Headless mode should be enabled first';
@@ -30,7 +29,7 @@ export class CustomRequest {
     }
 
     /**
-     * @param option proxy option {proxy_url, timeout?, session_id?}
+     * @param option proxy option {proxy_url, timeout?}
      */
     configureProxy (option : FlareSolverrProxyOption) {
         this.proxy = option;
@@ -69,31 +68,6 @@ export class CustomRequest {
     }
     
     /**
-     * Create a session id for the current CustomRequest instance
-     */
-    async initProxySession () {
-        const solver = new FlareSolverrClient (this.proxy.proxy_url);
-        if (!this.proxy.session_id)
-            this.proxy.session_id = await solver.createSession ();
-    }
-
-    hasExistingSession () {
-        return (this.proxy != null) && (this.proxy.session_id != undefined);
-    }
-
-    /**
-     * Destroy a session (assuming initProxySession was called first)
-     */
-    async destroyProxySession () {
-        const solver = new FlareSolverrClient (this.proxy.proxy_url);
-        const id = this.proxy.session_id;
-        if (id) {
-            await solver.destroySession (id);
-            this.proxy.session_id = undefined;
-        }
-    }
-
-    /**
      * @param target_url 
      * @returns 
      */
@@ -105,13 +79,9 @@ export class CustomRequest {
                 cmd : 'request.get',
                 url : target_url
             };
-            // use an existing session if defined (assuming initProxySession was called)
-            if (this.proxy.session_id)
-                cmd.session = this.proxy.session_id;
             const {solution} = await solver.performCommand (cmd);
             return solution.response;
         }
-
         return await CustomRequest.doGet (target_url, this.renderHTML, this.reuse_instance);
     }
 

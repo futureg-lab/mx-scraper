@@ -42,20 +42,6 @@ export const COMMAND_DEF = <CLICommand[]> [
         expect_commands : ["Search-Plugin"]
     },
 
-    // session
-    <CLICommand>{
-        name : "Use-Session",
-        arg_count : 1,
-        aliases : ["--use-session", "-s"],
-        description : "Use a particular sessionid"
-    },
-    <CLICommand>{
-        name : "Conf-Session",
-        arg_count : 0,
-        aliases : ["--conf-session", "-cs"],
-        description : "Use the UNIQUE_SESSION value in the configuration file"
-    },
-
     // plugin spec
     <CLICommand>{
         name : "Plugin",

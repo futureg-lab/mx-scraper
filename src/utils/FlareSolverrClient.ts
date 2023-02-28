@@ -5,7 +5,6 @@ export interface FlareSolverrCommand {
     cmd : string;
     url? : string;
     maxTimeout? : number;
-    session? : string;
 };
 
 export class FlareSolverrClient {
@@ -35,37 +34,5 @@ export class FlareSolverrClient {
         // the data field contains the response
         const {data} = await axios(axios_req_conf);
         return data;
-    }
-
-    /**
-     * @returns FlareSolverr session list
-     */
-    async getSessions () : Promise<string[]> {
-        const response = await this.performCommand (<FlareSolverrCommand> {
-            cmd : 'sessions.list'
-        });
-        return response.sessions;
-    }
-
-    /**
-     * @returns session id
-     */
-    async createSession () : Promise<string> {
-        const response = await this.performCommand (<FlareSolverrCommand> {
-            cmd : 'sessions.create'
-        });
-        return response.session;
-    }
-
-    /**
-     * @param session_id
-     */
-    async destroySession (session_id : string) {
-        const {status, message} = await this.performCommand (<FlareSolverrCommand> {
-            cmd : 'sessions.destroy',
-            session : session_id
-        });
-        if (status != 'ok')
-            throw Error (message);
     }
 }

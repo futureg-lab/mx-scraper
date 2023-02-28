@@ -9,7 +9,6 @@ const [ , , ...argv] = process.argv;
 (async () => {
     const engine = new MXScraper ();
     const mxcli = new MXcli();
-    let use_conf_session_id = false;
     try {
         // init engine
         const parsed = mxcli.parse (argv);
@@ -19,15 +18,8 @@ const [ , , ...argv] = process.argv;
         // to setup a new config
         DynamicConfigurer.forceOverrideConfig ();
 
-        if (parsed.has('Use-Session') || parsed.has('Conf-Session')) {
-            if (parsed.has('Use-Session')) // temporarily change the session id
-                config.UNIQUE_SESSION = parsed.get('Use-Session')[0];
-            MXLogger.info ('[Session-cdf] Using sessionid "' + config.UNIQUE_SESSION + "'");
-            use_conf_session_id = true;
-        }
-
         if (! (parsed.has('Show-Help') || parsed.has('Show-Infos')) )
-            await engine.initAllPlugins (use_conf_session_id);
+            await engine.initAllPlugins ();
     
         // run the command
         await mxcli.runCommand (engine, parsed);
@@ -39,15 +31,15 @@ const [ , , ...argv] = process.argv;
         if (config.SHOW_CLI_ERROR_STACK)
             console.error (err);
     } finally {
-        if (!use_conf_session_id) {
-            try {
-                await engine.destructor ();
-            } catch (err) {
-                console.error ('Failed to release resources!')
-                console.error (err.message || '');
-                if (config.SHOW_CLI_ERROR_STACK)
-                    console.error (err);
-            }
-        } /* else do not free any resources */
+        // if (!use_conf_session_id) {
+        //     try {
+        //         await engine.destructor ();
+        //     } catch (err) {
+        //         console.error ('Failed to release resources!')
+        //         console.error (err.message || '');
+        //         if (config.SHOW_CLI_ERROR_STACK)
+        //             console.error (err);
+        //     }
+        // } /* else do not free any resources */
     }
 }) ();

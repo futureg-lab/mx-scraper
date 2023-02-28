@@ -10,11 +10,9 @@ mx-scraper -h -v
 mx-scraper --infos
 mx-scraper -i
 mx-scraper --show-plugins -v
-mx-scraper --show-plugins -v -cs
 mx-scraper --search-plugin -v http://link/to/a/title
 mx-scraper --auto --fetch http://link/to/a/title
 mx-scraper --plugin plugin_name --fetch-all title1 title2 title3
-mx-scraper --plugin plugin_name --fetch-all 420166 420132 --download --conf-session
 mx-scraper --plugin nhentai --download --fetch-all 420166 420132
 mx-scraper --auto --fetch-all --download --parallel http://link/to/title1 http://link/to/title2
 mx-scraper --auto --download --parallel --fetch-file list.txt
@@ -44,7 +42,6 @@ MXScraper will automatically create a `mx-scraper.config.json` file
     "ENABLE": true,
     "EXEC_PATH": "./browser/chrome"
   },
-  "UNIQUE_SESSION": "<flaresolverr_sessionid>",
   "DOWNLOAD_FOLDER": {
     "DOWNLOAD": "./download/download",
     "TEMP": "./download/temp"

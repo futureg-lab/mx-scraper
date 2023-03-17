@@ -1,3 +1,7 @@
-import { QueryPlanner } from "../core/QueryPlanner";
+import { QueryPlan } from "../core/QueryPlan";
 
-const plan = QueryPlanner.from("./sample.yaml");
+const plan = QueryPlan.load("./sample.yaml").with({
+    cli_param: "some_param"
+});
+
+const book = plan.run();

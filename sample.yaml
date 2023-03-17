@@ -1,0 +1,20 @@
+plan: 1.0.0
+target: https://some.link?foo={cli_param}&album={counter1}&page={counter2}
+title: Some title for the batch (can be inferred from the page)
+
+# applied to each target generated
+filter: 
+  select: "a"
+  where: "attr.class: %pic"
+  followLink: # works for <a/> only
+    filter: "img"
+    where: "attr.src: %.jpg"
+
+iterate:
+  counter1:
+    range: [1, 10]
+    onError: break
+    each: 
+      counter2: 
+      range: [1, 5]
+      onError: continue

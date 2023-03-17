@@ -59,7 +59,7 @@ export class QueryPlan {
 
     private validate (raw_plan: unknown): Plan {
         const res: any = {};
-        const get = (root: any, key: string, required: boolean = false, process: any = null) => {
+        const get = (root: any, key: string, required: boolean = false, process?: any) => {
             const value = root[key];
             if (value === undefined && required)
                 throw Error(`Property ${key} not found in the query plan`);

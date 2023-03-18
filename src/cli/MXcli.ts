@@ -11,7 +11,6 @@ import { config } from "../environment";
 import { DynamicConfigurer } from "./DynamicConfigurer";
 import { UniqueHeadlessBrowser } from "../utils/UniqueHeadlessBrowser";
 import { TypeEngine } from "../utils/HeadlessBrowser";
-import * as path from "node:path";
 import { QueryPlan } from "../core/QueryPlan";
 
 export class MXcli extends CLIEngine {
@@ -26,6 +25,8 @@ export class MXcli extends CLIEngine {
 
     async runCommand (engine : MXScraper, parsed : Map<string, string[]>) {
         const verbose = parsed.has('Verbose');
+
+        console.log(parsed.keys());
 
         if (parsed.has('Error-Stack')) {
             DynamicConfigurer.overrideField ('SHOW_CLI_ERROR_STACK', true);
@@ -61,6 +62,11 @@ export class MXcli extends CLIEngine {
                 );
                 for (const [key, value] of args)
                     params[key] = value;
+                    verbose && console.log(
+                        "=> Plan params: " + Object.entries(params).map(
+                            (item) => item.join('=')
+                    ).join(', ')
+                );
             }
             const plan = QueryPlan
                 .load(filepath)
@@ -197,7 +203,8 @@ export class MXcli extends CLIEngine {
             'mx-scraper --auto --download --parallel --fetch-file list.txt',
             'mx-scraper --auto --download --parallel --fetch-file list.txt --meta-only',
             'mx-scraper -a -d -pa -ff list.txt -mo',
-            'mx-scraper -a -d -pa -ff list.txt'
+            'mx-scraper -a -d -pa -ff list.txt',
+            'mx-scraper -v -d --load-plan danbooru.yaml --plan-params TAG=bocchi_the_rock! "TITLE=Bocchi The Rock"'
         ];
         
         let commands_instr = [];

@@ -4,7 +4,7 @@ mx-scraper (Manga Xtreme Scraper) is an opensource Manga website scraper<br/>
 ![alt text](misc/demo.gif)
 
 ## CLI examples
-```
+```bash
 mx-scraper --help --verbose
 mx-scraper -h -v
 mx-scraper --infos
@@ -19,6 +19,10 @@ mx-scraper --auto --download --parallel --fetch-file list.txt
 mx-scraper --auto --download --parallel --fetch-file list.txt --meta-only
 mx-scraper -a -d -pa -ff list.txt -mo
 mx-scraper -a -d -pa -ff list.txt
+mx-scraper -v -d --load-plan danbooru.yaml --plan-params TAG=bocchi_the_rock! "TITLE=Bocchi The Rock"
+# using a custom query plan
+# Examples can be found at src/plugins/plans
+mx-scraper -v -d -mo --load-plan danbooru.yaml --plan-params TAG=bocchi_the_rock!
 ```
 
 ## Configuring

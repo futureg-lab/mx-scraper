@@ -62,21 +62,21 @@ export const COMMAND_DEF = <CLICommand[]> [
         arg_count : 1,
         aliases : ["--fetch", "-f"],
         description : "Fetch a single item",
-        expect_commands : ["Plugin-Auto-Detect | Plugin | Load-Plan"]
+        expect_commands : ["Plugin-Auto-Detect | Plugin"]
     },
     <CLICommand>{
         name : "FetchMeta-List",
         arg_count : Infinity,
         aliases : ["--fetch-all", "-fa"],
         description : "Fetch metadatas for a list of item",
-        expect_commands : ["Plugin-Auto-Detect | Plugin | Load-Plan"]
+        expect_commands : ["Plugin-Auto-Detect | Plugin"]
     },
     <CLICommand>{
         name : "FetchMeta-List-From-File",
         arg_count : 1,
         aliases : ["--fetch-file", "-ff"],
         description : "Fetch metadatas for a list of item from a file",
-        expect_commands : ["Plugin-Auto-Detect | Plugin | Load-Plan"]
+        expect_commands : ["Plugin-Auto-Detect | Plugin"]
     },
 
     // download
@@ -87,7 +87,7 @@ export const COMMAND_DEF = <CLICommand[]> [
         description : "Download using the book metadata",
         expect_commands : [ 
             "Plugin-Auto-Detect | Plugin | Load-Plan",
-            "FetchMeta | FetchMeta-List | FetchMeta-List-From-File"
+            "FetchMeta | FetchMeta-List | FetchMeta-List-From-File | Load-Plan"
         ]
     },
     <CLICommand>{

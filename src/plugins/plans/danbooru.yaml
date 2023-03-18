@@ -7,6 +7,8 @@ required: [ TITLE, TAG ]
 default:
   TITLE: "Danbooru {_TIMESTAMP_}"
 
+headless: false
+
 # applied to each target generated
 filter: 
   select: a

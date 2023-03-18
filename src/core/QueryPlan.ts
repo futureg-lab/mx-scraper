@@ -35,10 +35,10 @@ export type Iterate = {
     [iterName: string]: Counter
 };
 
-
 export type Plan = {
     version: string;
     target: string | string[];
+    headless: boolean;
     required?: string[],
     default?: Record<string, string>;
     title?: string;
@@ -57,7 +57,7 @@ export class QueryPlan {
         // init props
         this.params = {};
         this.usedNames = new Set<string>();
-        this.request = new CustomRequest();
+        this.request = new CustomRequest();        
         // load, validate and sanitize the plan
         const raw_plan = parse(source_code);
         this.plan = this.validate(raw_plan);
@@ -91,6 +91,7 @@ export class QueryPlan {
             filter, 
             iterate,
             required,
+            headless,
             default: defaultArgs
         } = this.plan;
         if (version != '1.0.0') 
@@ -104,7 +105,11 @@ export class QueryPlan {
                 // allow user to do _RANDOM_ and _TIMESTAMP_
                 this.params[key] = feedValues(value, this.params);
             }
-            console.log(this.params);
+        }
+
+        if (headless) {
+            this.verbose && MXLogger.infoRefresh('Headless mode enabled');
+            this.request.enableRendering();
         }
 
         if (required) {
@@ -112,7 +117,6 @@ export class QueryPlan {
                 if (typeof requirement != 'string')
                     throw Error(`required variable name "${requirement}" is not a string`);
                 const available = Object.keys(this.params);
-                console.log(available);
                 if (!available.includes(requirement)) {
                     throw Error(
                         `unable to resolve required variable "${requirement}", available names are ${
@@ -224,7 +228,8 @@ export class QueryPlan {
             }
         }
 
-        const bookTitle = feedValues(title ?? this.params['TITLE'] ?? 'untitled', this.params);
+        const bookTitle = feedValues(title ?? 'untitled_{_TIMESTAMP_}', this.params);
+        MXLogger.info('\n');
         return <Book> {
             title: bookTitle,
             authors: [],
@@ -260,6 +265,12 @@ export class QueryPlan {
         get(raw_plan, 'version', true);
         get(raw_plan, 'target', true);
         get(raw_plan, 'title', false);
+        get(raw_plan, 'headless', false, (headless: any) => {
+            if (typeof headless != 'boolean')
+                throw Error(`"${headless}" is not a boolean`);
+            return headless;
+        });
+
         get(raw_plan, 'required', false, (required: any) => {
             if (required && !Array.isArray(required))
                 throw Error(`"${required}" is not an array at required`);

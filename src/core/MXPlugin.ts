@@ -128,7 +128,7 @@ export class MXPlugin {
      * @param book 
      * @returns 
      */
-    private writeBookTocache (query : string, book : Book) : boolean {
+    writeBookTocache (query : string, book : Book) : boolean {
         if (!book)
             return;
         const text = JSON.stringify (book, null, 2);
@@ -145,7 +145,7 @@ export class MXPlugin {
      * @param query 
      * @returns 
      */
-    private fetchBookFromCache (query : string) : Book {
+    fetchBookFromCache (query : string) : Book {
         const plugin_name = this.title;
         const filename = computeSignatureQuery (query, plugin_name) + '.json';
         const base = config.CACHE.FOLDER;

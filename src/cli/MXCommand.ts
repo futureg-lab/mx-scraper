@@ -86,8 +86,8 @@ export const COMMAND_DEF = <CLICommand[]> [
         aliases : ["--download", "-d"],
         description : "Download using the book metadata",
         expect_commands : [ 
-            "Plugin-Auto-Detect | Plugin",
-            "FetchMeta | FetchMeta-List | FetchMeta-List-From-File"
+            "Plugin-Auto-Detect | Plugin | Load-Plan",
+            "FetchMeta | FetchMeta-List | FetchMeta-List-From-File | Load-Plan"
         ]
     },
     <CLICommand>{
@@ -136,8 +136,8 @@ export const COMMAND_DEF = <CLICommand[]> [
         aliases : ["--use-cache", "-uc"],
         description : "Force enable caching",
         expect_commands : [
-            "Plugin-Auto-Detect | Plugin",
-            "FetchMeta | FetchMeta-List | FetchMeta-List-From-File"
+            "Plugin-Auto-Detect | Plugin | Load-Plan",
+            "FetchMeta | FetchMeta-List | FetchMeta-List-From-File | Load-Plan"
         ]
     },
     <CLICommand>{
@@ -146,8 +146,21 @@ export const COMMAND_DEF = <CLICommand[]> [
         aliases : ["--no-cache", "-nc"],
         description : "Force disable caching",
         expect_commands : [
-            "Plugin-Auto-Detect | Plugin",
-            "FetchMeta | FetchMeta-List | FetchMeta-List-From-File"
+            "Plugin-Auto-Detect | Plugin | Load-Plan",
+            "FetchMeta | FetchMeta-List | FetchMeta-List-From-File | Load-Plan"
         ]
+    },
+    <CLICommand>{
+        name : "Load-Plan",
+        arg_count : 1,
+        aliases : ["--load-plan", "-lp"],
+        description : "Load a query plan from a yaml file",
+    },
+    <CLICommand>{
+        name : "Set-Plan-Parameters",
+        arg_count : Infinity,
+        aliases : ["--plan-params", "-pp"],
+        description : "Set params for a query plan (Example: -pp var1=val1 var2=val2 ...)",
+        expect_commands: [ 'Load-Plan' ]
     }
 ];

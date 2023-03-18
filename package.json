@@ -1,6 +1,6 @@
 {
   "name": "mx-scraper",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Manga website scraper",
   "main": "index.js",
   "scripts": {
@@ -14,7 +14,7 @@
   },
   "pkg": {
     "scripts": "dist",
-    "outputPath" : "bin"
+    "outputPath": "bin"
   },
   "jest": {
     "testTimeout": 60000,
@@ -60,6 +60,7 @@
     "cli-progress": "^3.11.2",
     "fs-extra": "^10.1.0",
     "jsdom": "^20.0.1",
-    "puppeteer": "^19.1.0"
+    "puppeteer": "^19.1.0",
+    "yaml": "^2.2.1"
   }
 }

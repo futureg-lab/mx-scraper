@@ -11,6 +11,7 @@ import { config } from "../environment";
 import { DynamicConfigurer } from "./DynamicConfigurer";
 import { UniqueHeadlessBrowser } from "../utils/UniqueHeadlessBrowser";
 import { TypeEngine } from "../utils/HeadlessBrowser";
+import { QueryPlan } from "../core/QueryPlan";
 
 export class MXcli extends CLIEngine {
     constructor () {
@@ -18,7 +19,7 @@ export class MXcli extends CLIEngine {
         super (COMMAND_DEF);
         // at least a plugin specification or info + a metafetch specification
         this.defineRequiredArgs ([
-            "Plugin | Plugin-Auto-Detect | Show-Plugins | Show-Help | Show-Infos | Search-Plugin"
+            "Plugin | Plugin-Auto-Detect | Show-Plugins | Show-Help | Show-Infos | Search-Plugin | Load-Plan"
         ]);
     }
 
@@ -29,6 +30,17 @@ export class MXcli extends CLIEngine {
             DynamicConfigurer.overrideField ('SHOW_CLI_ERROR_STACK', true);
         }
 
+        let doption : DownloadOption = null;
+        if (parsed.has('Download')) {
+            doption = { 
+                continue : !parsed.has ('Restart-Download'),
+                parallel : parsed.has ('Parallel-Download') && (
+                    parsed.has ('FetchMeta-List') || parsed.has ('FetchMeta-List-From-File')
+                ),
+                meta_only : parsed.has ('Meta-Only')
+            };
+        }
+
         if (parsed.has('Use-Cache') && parsed.has('No-Cache'))
             throw Error ('Cannot use --no-cache with --use-cache');
         
@@ -37,6 +49,29 @@ export class MXcli extends CLIEngine {
             if (parsed.has('Use-Cache')) cache.ENABLE = true;
             if (parsed.has('No-Cache'))  cache.ENABLE = false;
             DynamicConfigurer.overrideField ('CACHE', cache);
+        }
+
+        if (parsed.has('Load-Plan')) {
+            const [filepath] = parsed.get('Load-Plan');
+            const params = {};
+            if (parsed.has('Set-Plan-Parameters')) {
+                const args = parsed.get('Set-Plan-Parameters').map(
+                    arg => arg.split('=').map(item => item.trim())
+                );
+                for (const [key, value] of args)
+                    params[key] = value;
+                    verbose && console.log(
+                        "[Plan params] " + Object.entries(params).map(
+                            (item) => item.join('=')
+                    ).join(', ')
+                );
+            }
+            const plan = QueryPlan
+                .load(filepath)
+                .with(params);
+            
+            const book = await plan.get(!parsed.has('No-Cache') || parsed.has('Use-Cache'));
+            await this.fetchBookInteractively(book, doption, verbose);
         }
 
         // show help / plugins
@@ -106,16 +141,6 @@ export class MXcli extends CLIEngine {
             }
             
             await engine.configureSpecificPlugin(plugin.getPluginID());
-
-            let doption : DownloadOption = null;
-            if (parsed.has('Download'))
-                doption = { 
-                    continue : !parsed.has ('Restart-Download'),
-                    parallel : parsed.has ('Parallel-Download') && (
-                        parsed.has ('FetchMeta-List') || parsed.has ('FetchMeta-List-From-File')
-                    ),
-                    meta_only : parsed.has ('Meta-Only')
-                };
             const verbose = parsed.has('Verbose');
             const titles_set = new Set<string> (titles);
             MXLogger.info('\n');
@@ -176,7 +201,8 @@ export class MXcli extends CLIEngine {
             'mx-scraper --auto --download --parallel --fetch-file list.txt',
             'mx-scraper --auto --download --parallel --fetch-file list.txt --meta-only',
             'mx-scraper -a -d -pa -ff list.txt -mo',
-            'mx-scraper -a -d -pa -ff list.txt'
+            'mx-scraper -a -d -pa -ff list.txt',
+            'mx-scraper -v -d --load-plan danbooru.yaml --plan-params TAG=bocchi_the_rock! "TITLE=Bocchi The Rock"'
         ];
         
         let commands_instr = [];
@@ -245,36 +271,44 @@ export class MXcli extends CLIEngine {
             await this.sequentialFetchAll (plugin, titles, download_option, verbose);
     }
 
+    private async fetchBookInteractively(
+        book : Book, 
+        download_option : DownloadOption = null,
+        verbose : boolean
+    ) {
+        console.log (resumeBook (book, verbose));
+        if (download_option) {
+            const progress = new cliProgress.SingleBar({
+                format : '[{bar}] {percentage}% | ETA: {eta}s {value}/{total} | {msg}'
+            }, cliProgress.Presets.shades_classic);
+
+            let started = true;
+            const callback : DownloadProgressCallback = (msg, curr, total, p) => {
+                const payload = { msg : msg };
+                if (started) {
+                    progress.start (total, curr, payload);
+                    started = false;
+                } else
+                    progress.update (curr, payload);
+            };
+            await downloadBook (book, download_option, callback);
+            if (!started)
+                progress.stop ();
+            console.log ();
+        }
+    }
+
     private async sequentialFetchAll (
         plugin : MXPlugin, 
         titles : string[], 
         download_option : DownloadOption = null,
         verbose : boolean
     ) {
-        let book_index = 1;
         for (let title of titles) {
             try {
                 let book : Book = await plugin.getBook (title);
                 console.log (resumeBook (book, verbose));
-                if (download_option) {
-                    const progress = new cliProgress.SingleBar({
-                        format : '[{bar}] {percentage}% | ETA: {eta}s {value}/{total} | {msg}'
-                    }, cliProgress.Presets.shades_classic);
-
-                    let started = true;
-                    const callback : DownloadProgressCallback = (msg, curr, total, p) => {
-                        const payload = { msg : msg };
-                        if (started) {
-                            progress.start (total, curr, payload);
-                            started = false;
-                        } else
-                            progress.update (curr, payload);
-                    };
-                    await downloadBook (book, download_option, callback);
-                    if (!started)
-                        progress.stop ();
-                    console.log ();
-                }
+                await this.fetchBookInteractively(book, download_option, verbose);
             } catch (err) {
                 console.error ('\nFailed to fetch "' + title + '"');
                 console.error (err.message);

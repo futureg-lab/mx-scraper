@@ -1,0 +1,24 @@
+version: 1.0.0
+target: "https://danbooru.donmai.us/posts?page={page}&tags={TAG}"
+title: "{TITLE}"
+
+# args required
+required: [ TITLE, TAG ]
+default:
+  TITLE: "Danbooru {_TIMESTAMP_}"
+
+headless: false
+
+# applied to each target generated
+filter: 
+  select: a
+  where: "attr.class: %preview-link"
+  linkFrom: attr.href
+  followLink:
+    select: ".image-view-original-link"
+    linkFrom: attr.href
+
+iterate:
+  page:
+    range: [1, 1]
+    onError: continue

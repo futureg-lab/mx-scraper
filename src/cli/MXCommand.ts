@@ -62,21 +62,21 @@ export const COMMAND_DEF = <CLICommand[]> [
         arg_count : 1,
         aliases : ["--fetch", "-f"],
         description : "Fetch a single item",
-        expect_commands : ["Plugin-Auto-Detect | Plugin"]
+        expect_commands : ["Plugin-Auto-Detect | Plugin | Load-Plan"]
     },
     <CLICommand>{
         name : "FetchMeta-List",
         arg_count : Infinity,
         aliases : ["--fetch-all", "-fa"],
         description : "Fetch metadatas for a list of item",
-        expect_commands : ["Plugin-Auto-Detect | Plugin"]
+        expect_commands : ["Plugin-Auto-Detect | Plugin | Load-Plan"]
     },
     <CLICommand>{
         name : "FetchMeta-List-From-File",
         arg_count : 1,
         aliases : ["--fetch-file", "-ff"],
         description : "Fetch metadatas for a list of item from a file",
-        expect_commands : ["Plugin-Auto-Detect | Plugin"]
+        expect_commands : ["Plugin-Auto-Detect | Plugin | Load-Plan"]
     },
 
     // download
@@ -86,7 +86,7 @@ export const COMMAND_DEF = <CLICommand[]> [
         aliases : ["--download", "-d"],
         description : "Download using the book metadata",
         expect_commands : [ 
-            "Plugin-Auto-Detect | Plugin",
+            "Plugin-Auto-Detect | Plugin | Load-Plan",
             "FetchMeta | FetchMeta-List | FetchMeta-List-From-File"
         ]
     },
@@ -149,5 +149,18 @@ export const COMMAND_DEF = <CLICommand[]> [
             "Plugin-Auto-Detect | Plugin",
             "FetchMeta | FetchMeta-List | FetchMeta-List-From-File"
         ]
+    },
+    <CLICommand>{
+        name : "Load-Plan",
+        arg_count : 1,
+        aliases : ["--load-plan", "-lp"],
+        description : "Load a query plan from a yaml file",
+    },
+    <CLICommand>{
+        name : "Set-Plan-Parameters",
+        arg_count : Infinity,
+        aliases : ["--plan-params", "-pp"],
+        description : "Set params for a query plan (Example: -pp var1=val1 var2=val2 ...)",
+        expect_commands: [ 'Load-Plan' ]
     }
 ];

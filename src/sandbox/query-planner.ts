@@ -8,7 +8,7 @@ const plan = QueryPlan.load("./src/plugins/plans/danbooru.yaml").with({
     const book = await plan.run();
 
     console.log(book);
-    console.log(book.chapters.length);
+    console.log("Total chapters", book.chapters.length);
     book.chapters.forEach(ch => {
         console.log(ch.pages);
     });

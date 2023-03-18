@@ -1,5 +1,8 @@
 version: 1.0.0
-target: "https://danbooru.donmai.us/posts?page={page}&tags={TAG}"
+target: [
+  "https://danbooru.donmai.us/posts?page={page}&tags={TAG}",
+  "https://danbooru.donmai.us/posts?page={page}&tags={TAG}"
+]
 # title: Some title for the batch (can be inferred from the page)
 
 # applied to each target generated

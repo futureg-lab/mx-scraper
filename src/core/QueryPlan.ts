@@ -49,6 +49,7 @@ export class QueryPlan {
     params: Record<string, string | string>;
     usedNames: Set<string>;
     request : CustomRequest;
+    verbose: boolean = true;
 
     private constructor(source_code: string) {
         // init props
@@ -86,7 +87,6 @@ export class QueryPlan {
             throw Error(`version ${version} not supported`);
         const allTargets = Array.isArray(target) ? target : [target];
 
-        let pageCount = 1;
         let depth = 0;
         const indent = (str: string) => new Array(depth).fill('=').join('') + str; 
         const navigateUrl = async (root: Filter, pages: Page[], url: string, baseUrl: string) => {
@@ -94,7 +94,7 @@ export class QueryPlan {
             if (url.startsWith('/'))
                 url = new URL(url, baseUrl).href;
             
-            MXLogger.infoRefresh(indent('> ' + url));
+            this.verbose && MXLogger.infoRefresh(indent('> ' + url));
 
             const html = await this.request.get(url);
             const { select, where, linkFrom } = root;
@@ -108,20 +108,20 @@ export class QueryPlan {
                 }
                 if (root.followLink) {
                     if (!link || link == '') {
-                        MXLogger.infoRefresh("Unable to fetch", link);
+                        this.verbose && MXLogger.infoRefresh("Unable to fetch", link);
                         continue;
                     }
                     await navigateUrl(root.followLink, pages, link, baseUrl);
                 } else {
-                    MXLogger.infoRefresh(indent('> Fetched'), resumeText(link));
+                    this.verbose && MXLogger.infoRefresh(indent('> Fetched'), resumeText(link));
                     const ext = link.split('.').pop() ?? 'jpg';
+                    const pageCount = pages.length + 1;
                     pages.push({
                         filename: pageCount + '.' + ext,
                         number: pageCount,
                         title: item.attr('alt') ?? pageCount.toString(),
                         url: link
                     });
-                    pageCount++;
                 }
             }
             depth--;
@@ -157,12 +157,13 @@ export class QueryPlan {
                     }
                 }
             }
-            let chapterCount = 1;
+            // apply individual iteration for each target
             for (const url of allTargets) {
+                const chapterCount = chapters.length + 1;
                 const chapter = <Chapter>{
                     title: this.titleFromUrl(url),
                     description: '',
-                    number: chapterCount++,
+                    number: chapterCount,
                     pages: [],
                     url: url
                 };
@@ -170,12 +171,12 @@ export class QueryPlan {
                 chapters.push(chapter);
             }
         } else {
-            let chapterCount = 1;
             for (const url of allTargets) {
+                const chapterCount = chapters.length + 1;
                 const chapter = <Chapter>{
                     title: this.titleFromUrl(url),
                     description: '',
-                    number: chapterCount++,
+                    number: chapterCount,
                     pages: [],
                     url: url
                 };

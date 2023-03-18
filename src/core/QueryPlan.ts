@@ -1,6 +1,7 @@
 import { parse } from "yaml"
 import { readFileSync } from "node:fs"
 import { Book } from "./BookDef";
+import { contents } from "cheerio/lib/api/traversing";
 
 export type OnTarget = {
     (
@@ -50,9 +51,13 @@ export class QueryPlan {
         console.log(this.plan);
     }
 
+    static fromString (source: string) {
+        return new QueryPlan(source);
+    }
+
     static load (filepath: string) {
         const content = readFileSync(filepath).toString();
-        return new QueryPlan(content);
+        return this.fromString(content);
     }
 
     with (params: Record<string, string>) {

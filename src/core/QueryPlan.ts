@@ -5,7 +5,11 @@ import { feedValues, resumeText } from "../utils/Utils";
 import { CustomRequest } from "../utils/CustomRequest";
 import { HtmlParser } from "../utils/HtmlParser";
 import { MXLogger } from "../cli/MXLogger";
-
+import { computeSignatureQuery, hashResume } from "../utils/Downloader";
+import { config } from "../environment";
+import * as path from "node:path";
+import * as fs from "node:fs";
+import { MXPlugin } from "./MXPlugin";
 
 export type OnTarget = {
     (
@@ -78,7 +82,25 @@ export class QueryPlan {
                 throw Error(`parameters error, variable "${key}" already used in the plan`);
             this.usedNames.add(key);
         }
+        // prepare the title
+        this.plan.title = feedValues(this.plan.title ?? 'untitled_{_TIMESTAMP_}', this.params);
         return this;
+    }
+
+    async get(useCache: boolean, callback?: OnTarget): Promise<Book> {
+        const plugin = new MXPlugin();
+        plugin.title = "QueryPlan";
+        plugin.version = "1.0.0";
+        
+        if (useCache) {
+            const cacheHit = plugin.fetchBookFromCache(this.plan.title);
+            if (cacheHit) 
+                return cacheHit;
+        }
+
+        const book = await this.run(callback);
+        plugin.writeBookTocache(book.title, book);
+        return book;
     }
 
     async run (callback?: OnTarget): Promise<Book> {
@@ -97,9 +119,8 @@ export class QueryPlan {
         
         // first, populate the default value if not present
         if (defaultArgs) {
-            for (
-                const [key, value] 
-                of Object.entries(defaultArgs)) {
+            for (const [key, value] of Object.entries(defaultArgs)) {
+                if (key in this.params) continue;
                 // allow user to do _RANDOM_ and _TIMESTAMP_
                 this.params[key] = feedValues(value, this.params);
             }
@@ -117,10 +138,11 @@ export class QueryPlan {
                 const available = Object.keys(this.params);
                 if (!available.includes(requirement)) {
                     throw Error(
-                        `unable to resolve required variable "${requirement}", available names are ${
-                            available
-                                .map((v: string) => `"${v}"`)
-                                .join(', ')
+                        `unable to resolve required variable "${requirement}", available names: ${
+                            available.length == 0 ? "<none>" :
+                                available
+                                    .map((v: string) => `"${v}"`)
+                                    .join(', ')
                         }`
                     );
                 }
@@ -208,7 +230,7 @@ export class QueryPlan {
             for (const url of allTargets) {
                 const chapterCount = chapters.length + 1;
                 const chapter = <Chapter>{
-                    title: this.titleFromUrl(url),
+                    title: `CH.${chapterCount}_${this.titleFromUrl(url)}`,
                     description: '',
                     number: chapterCount,
                     pages: [],
@@ -221,7 +243,7 @@ export class QueryPlan {
             for (const url of allTargets) {
                 const chapterCount = chapters.length + 1;
                 const chapter = <Chapter>{
-                    title: this.titleFromUrl(url),
+                    title: `CH.${chapterCount}_${this.titleFromUrl(url)}`,
                     description: '',
                     number: chapterCount,
                     pages: [],
@@ -231,15 +253,14 @@ export class QueryPlan {
             }
         }
 
-        const bookTitle = feedValues(title ?? 'untitled_{_TIMESTAMP_}', this.params);
         MXLogger.info('\n');
         return <Book> {
-            title: bookTitle,
+            title: title,
             authors: [],
             chapters: chapters,
             metadatas: [],
             description: allTargets.join(', '),
-            source_id: bookTitle,
+            source_id: title,
             tags: allTargets.map(target => <Tag>{
                 name: new URL(target).hostname.replace('www.', ''),
                 metadatas: []
@@ -251,8 +272,11 @@ export class QueryPlan {
 
 
     private titleFromUrl(url: string) {
-        const {hostname, pathname} = new URL(url);
-        return [hostname, pathname].join('-');
+        const joinParams = Object
+            .entries(this.params)
+            .map(item => item.join(''))
+            .join('');
+        return hashResume(joinParams);
     }
 
 
@@ -280,7 +304,7 @@ export class QueryPlan {
             return required;
         });
         get(raw_plan, 'default', false, (defaultArgs: any) => {
-            if (typeof defaultArgs != "object")
+            if (defaultArgs && typeof defaultArgs != "object")
                 throw Error("default is not an key value object");
             return defaultArgs;
         });

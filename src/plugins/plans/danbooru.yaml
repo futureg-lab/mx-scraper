@@ -1,5 +1,5 @@
 version: 1.0.0
-target: https://danbooru.donmai.us/posts?page={page}&tags={TAG}
+target: "https://danbooru.donmai.us/posts?page={page}&tags={TAG}"
 title: "{TITLE}"
 
 # args required
@@ -15,8 +15,8 @@ filter:
   where: "attr.class: %preview-link"
   linkFrom: attr.href
   followLink:
-    select: "picture>img"
-    linkFrom: attr.src
+    select: ".image-view-original-link"
+    linkFrom: attr.href
 
 iterate:
   page:

@@ -216,11 +216,20 @@ export function computeSignature (book : Book) : string {
  * @param plugin_name 
  * @returns 
  */
- export function computeSignatureQuery (query : string, plugin_name : string) : string {
+export function computeSignatureQuery (query : string, plugin_name : string) : string {
     return 'mx_' + crypto
                     .createHash ('sha256')
                     .update (query + plugin_name)
                     .digest ('hex');
+}
+
+export function hashResume(str: string): string {
+    str = str == '' ? '?' : str;
+    return 'res_' + crypto
+        .createHash ('sha256')
+        .update (str)
+        .digest ('hex')
+        .substring(0, 7);
 }
 
 /**

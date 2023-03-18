@@ -136,8 +136,8 @@ export const COMMAND_DEF = <CLICommand[]> [
         aliases : ["--use-cache", "-uc"],
         description : "Force enable caching",
         expect_commands : [
-            "Plugin-Auto-Detect | Plugin",
-            "FetchMeta | FetchMeta-List | FetchMeta-List-From-File"
+            "Plugin-Auto-Detect | Plugin | Load-Plan",
+            "FetchMeta | FetchMeta-List | FetchMeta-List-From-File | Load-Plan"
         ]
     },
     <CLICommand>{
@@ -146,8 +146,8 @@ export const COMMAND_DEF = <CLICommand[]> [
         aliases : ["--no-cache", "-nc"],
         description : "Force disable caching",
         expect_commands : [
-            "Plugin-Auto-Detect | Plugin",
-            "FetchMeta | FetchMeta-List | FetchMeta-List-From-File"
+            "Plugin-Auto-Detect | Plugin | Load-Plan",
+            "FetchMeta | FetchMeta-List | FetchMeta-List-From-File | Load-Plan"
         ]
     },
     <CLICommand>{

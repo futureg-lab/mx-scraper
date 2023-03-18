@@ -26,8 +26,6 @@ export class MXcli extends CLIEngine {
     async runCommand (engine : MXScraper, parsed : Map<string, string[]>) {
         const verbose = parsed.has('Verbose');
 
-        console.log(parsed.keys());
-
         if (parsed.has('Error-Stack')) {
             DynamicConfigurer.overrideField ('SHOW_CLI_ERROR_STACK', true);
         }
@@ -63,7 +61,7 @@ export class MXcli extends CLIEngine {
                 for (const [key, value] of args)
                     params[key] = value;
                     verbose && console.log(
-                        "=> Plan params: " + Object.entries(params).map(
+                        "[Plan params] " + Object.entries(params).map(
                             (item) => item.join('=')
                     ).join(', ')
                 );
@@ -72,7 +70,7 @@ export class MXcli extends CLIEngine {
                 .load(filepath)
                 .with(params);
             
-            const book = await plan.run();
+            const book = await plan.get(!parsed.has('No-Cache') || parsed.has('Use-Cache'));
             await this.fetchBookInteractively(book, doption, verbose);
         }
 

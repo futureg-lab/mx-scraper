@@ -187,9 +187,15 @@ export function interSet <T> (a : Set<T>, b : Set<T>) : Set<T> {
 
 
 export function feedValues(str: string, values: Record<string, string>) {
+    const special = {
+        '_TIMESTAMP_': Date.now().toString(),
+        '_RAND_': Math.random().toString().split('.').pop()
+    };
     return str.replace(/{([A-Za-z0-9_ ]+)}/g, (match, name) => {
         const key = name.trim();
-        return (key in values) ? values[key] : match;
+        if (key in values) 
+            return values[key];
+        return key in special ? special[key] : match;
     });
 }
 

@@ -1,9 +1,11 @@
 version: 1.0.0
-target: [
-  "https://danbooru.donmai.us/posts?page={page}&tags={TAG}",
-  "https://danbooru.donmai.us/posts?page={page}&tags={TAG}"
-]
-# title: Some title for the batch (can be inferred from the page)
+target: https://danbooru.donmai.us/posts?page={page}&tags={TAG}
+title: "{TITLE}"
+
+# args required
+required: [ TITLE, TAG ]
+default:
+  TITLE: "Danbooru {_TIMESTAMP_}"
 
 # applied to each target generated
 filter: 
@@ -16,5 +18,5 @@ filter:
 
 iterate:
   page:
-    range: [1, 2]
+    range: [1, 1]
     onError: continue

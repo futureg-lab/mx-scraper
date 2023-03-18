@@ -39,6 +39,8 @@ export type Iterate = {
 export type Plan = {
     version: string;
     target: string | string[];
+    required?: string[],
+    default?: Record<string, string>;
     title?: string;
     filter: Filter;
     iterate?: Iterate;
@@ -82,9 +84,47 @@ export class QueryPlan {
     }
 
     async run (callback?: OnTarget): Promise<Book> {
-        const {version, target, title, filter, iterate } = this.plan;
+        const {
+            version, 
+            target, 
+            title, 
+            filter, 
+            iterate,
+            required,
+            default: defaultArgs
+        } = this.plan;
         if (version != '1.0.0') 
             throw Error(`version ${version} not supported`);
+        
+        // first, populate the default value if not present
+        if (defaultArgs) {
+            for (
+                const [key, value] 
+                of Object.entries(defaultArgs)) {
+                // allow user to do _RANDOM_ and _TIMESTAMP_
+                this.params[key] = feedValues(value, this.params);
+            }
+            console.log(this.params);
+        }
+
+        if (required) {
+            for (const requirement of required) {
+                if (typeof requirement != 'string')
+                    throw Error(`required variable name "${requirement}" is not a string`);
+                const available = Object.keys(this.params);
+                console.log(available);
+                if (!available.includes(requirement)) {
+                    throw Error(
+                        `unable to resolve required variable "${requirement}", available names are ${
+                            available
+                                .map((v: string) => `"${v}"`)
+                                .join(', ')
+                        }`
+                    );
+                }
+            }
+        }
+
         const allTargets = Array.isArray(target) ? target : [target];
 
         let depth = 0;
@@ -184,7 +224,7 @@ export class QueryPlan {
             }
         }
 
-        const bookTitle = title ?? this.params['TITLE'] ?? 'untitled';
+        const bookTitle = feedValues(title ?? this.params['TITLE'] ?? 'untitled', this.params);
         return <Book> {
             title: bookTitle,
             authors: [],
@@ -220,6 +260,16 @@ export class QueryPlan {
         get(raw_plan, 'version', true);
         get(raw_plan, 'target', true);
         get(raw_plan, 'title', false);
+        get(raw_plan, 'required', false, (required: any) => {
+            if (required && !Array.isArray(required))
+                throw Error(`"${required}" is not an array at required`);
+            return required;
+        });
+        get(raw_plan, 'default', false, (defaultArgs: any) => {
+            if (typeof defaultArgs != "object")
+                throw Error("default is not an key value object");
+            return defaultArgs;
+        });
 
         const filterProcessor = (filter: any, path: string[] = ['filter']) => {
             const curr_path = path.join('.');

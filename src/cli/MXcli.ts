@@ -1,7 +1,7 @@
 import { MXPlugin } from "../core/MXPlugin";
 import { MXScraper } from "../core/MXScraper";
 import { downloadBook, DownloadOption, DownloadProgressCallback } from "../utils/Downloader";
-import { batchAListOf, readListFromFile, resumeBook } from "../utils/Utils";
+import { batchAListOf, readListFromFile, resumeBook, splitKeyValue } from "../utils/Utils";
 import { CLIEngine } from "./CLIEngine";
 import { COMMAND_DEF } from "./MXCommand";
 import * as cliProgress from 'cli-progress';
@@ -55,15 +55,16 @@ export class MXcli extends CLIEngine {
             const [filepath] = parsed.get('Load-Plan');
             const params = {};
             if (parsed.has('Set-Plan-Parameters')) {
-                const args = parsed.get('Set-Plan-Parameters').map(
-                    arg => arg.split('=').map(item => item.trim())
-                );
+                const args = parsed
+                    .get('Set-Plan-Parameters')
+                    .map(arg => splitKeyValue(arg));
                 for (const [key, value] of args)
                     params[key] = value;
                     verbose && console.log(
-                        "[Plan params] " + Object.entries(params).map(
-                            (item) => item.join('=')
-                    ).join(', ')
+                        "[Plan params] " + Object
+                            .entries(params)
+                            .map(item => item.join('='))
+                            .join(', ')
                 );
             }
             const plan = QueryPlan

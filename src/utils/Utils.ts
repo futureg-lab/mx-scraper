@@ -206,3 +206,13 @@ export function resumeText(str: string, max = 50) {
     return str.substring(0, chunkEnd)
         + ' .. ' + str.substring(chunkEnd + delta, str.length)
 }
+
+/**
+ * * "k=v" => ["k", "v"]
+ * Handle cases such as "k=v=c" => ["k", "v=c"]
+ */
+export function splitKeyValue(str: string): [string, string] {
+    const [ , value] = str.match(/=(.+)?/);
+    const key = str.split('=').shift();
+    return [key, value];
+}

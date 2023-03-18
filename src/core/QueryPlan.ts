@@ -10,8 +10,6 @@ import { MXLogger } from "../cli/MXLogger";
 export type OnTarget = {
     (
         url: string,
-        index: number,
-        total: number,
         error?: Error
     ): void
 };
@@ -150,22 +148,27 @@ export class QueryPlan {
                     const [ _, attribute] = linkFrom.split('.');
                     link = item.attr(attribute).trim();
                 }
-                if (root.followLink) {
-                    if (!link || link == '') {
-                        this.verbose && MXLogger.infoRefresh("Unable to fetch", link);
-                        continue;
+                try {
+                    if (!link || link == '')
+                        throw Error(`Unable to fetch link "${link}"`);
+
+                    if (root.followLink) {
+                        await navigateUrl(root.followLink, pages, link, baseUrl);
+                    } else {
+                        callback && callback(link);
+                        this.verbose && MXLogger.infoRefresh(indent('> Fetched'), resumeText(link));
+                        const ext = link.split('.').pop() ?? 'jpg';
+                        const pageCount = pages.length + 1;
+                        pages.push({
+                            filename: pageCount + '.' + ext,
+                            number: pageCount,
+                            title: item.attr('alt') ?? pageCount.toString(),
+                            url: link
+                        });
                     }
-                    await navigateUrl(root.followLink, pages, link, baseUrl);
-                } else {
-                    this.verbose && MXLogger.infoRefresh(indent('> Fetched'), resumeText(link));
-                    const ext = link.split('.').pop() ?? 'jpg';
-                    const pageCount = pages.length + 1;
-                    pages.push({
-                        filename: pageCount + '.' + ext,
-                        number: pageCount,
-                        title: item.attr('alt') ?? pageCount.toString(),
-                        url: link
-                    });
+                } catch(err) {
+                    this.verbose && MXLogger.infoRefresh(err.message);
+                    callback && callback(link, err);
                 }
             }
             depth--;

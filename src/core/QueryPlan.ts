@@ -2,12 +2,14 @@ import { parse } from "yaml"
 import { readFileSync } from "node:fs"
 import { Book } from "./BookDef";
 
-interface OnTarget {
-    url: string;
-    index: number;
-    total: number;
-    error?: Error;
-}
+export type OnTarget = {
+    (
+        url: string,
+        index: number,
+        total: number,
+        error?: Error
+    ): void
+};
 
 export type Filter = {
     select: string;
@@ -37,7 +39,12 @@ export type Plan = {
 export class QueryPlan {
     plan: Plan;
     params: Record<string, string>;
+    usedNames: Set<string>;
     private constructor(source_code: string) {
+        // init props
+        this.params = {};
+        this.usedNames = new Set<string>();
+        // load, validate and sanitize the plan
         const raw_plan = parse(source_code);
         this.plan = this.validate(raw_plan);
         console.log(this.plan);
@@ -50,10 +57,16 @@ export class QueryPlan {
 
     with (params: Record<string, string>) {
         this.params = params;
+        // yaml variables has higher priority over cli args
+        for (const key in params) {
+            if (this.usedNames.has(key))
+                throw Error(`parameters error, variable "${key}" already used in the plan`);
+            this.usedNames.add(key);
+        }
         return this;
     }
 
-    run (callback?: OnTarget): Book {
+    async run (callback?: OnTarget): Promise<Book> {
         return null;
     }
 
@@ -62,7 +75,7 @@ export class QueryPlan {
         const get = (root: any, key: string, required: boolean = false, process?: any) => {
             const value = root[key];
             if (value === undefined && required)
-                throw Error(`Property ${key} not found in the query plan`);
+                throw Error(`required command "${key}" not found in the query plan`);
             res[key] = process ? process(value) : value;
         };
         
@@ -88,6 +101,11 @@ export class QueryPlan {
             const curr_path = path.join('.');
             if (!iterName) 
                 throw Error(`counter name for iterate undefined at ${curr_path}`);
+            
+            if (this.usedNames.has(iterName))
+                throw Error(`variable "${iterName}" already used at ${curr_path}`);
+            this.usedNames.add(iterName);
+
             const counter = iterate[iterName];
             if (counter.onError) {
                 const valid = ['continue', 'break'];
@@ -96,8 +114,18 @@ export class QueryPlan {
                     throw Error(`onError has invalid value "${counter.onError}" at ${curr_path}, ${expected} expected`);
                 }
             }
-            if (!counter.range) 
-                throw Error(`counter.range is undefined at ${curr_path}`);
+            if (counter.range) {
+                if (Array.isArray(counter.range)) {
+                    if (counter.range.length > 2) 
+                        throw Error(`invalid range size at ${curr_path}.range`);
+                    const [start, end] = counter.range.map((x: any) => parseInt(x));
+                    if (isNaN(start)) throw Error(`${start} is not a number at ${curr_path}.range[0]`);
+                    if (isNaN(end)) throw Error(`${end} is not a number at ${curr_path}.range[1]`);
+                    if (start > end) throw Error(`${start} > ${end} at ${curr_path}.range`);
+                } else 
+                    throw Error(`range is not an array at ${curr_path}`);
+            } else
+                throw Error(`range is undefined at ${curr_path}`);
             if (counter.each) 
                 iterateProcessor(counter.each,  [...path, 'each']);
             return iterate;

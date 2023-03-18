@@ -1,14 +1,16 @@
 version: 1.0.0
-target: https://some.link?foo={cli_param}&album={counter1}&page={counter2}
+target: [ "https://some.link?foo={cli_param}&album={counter1}&page={counter2}" ]
 title: Some title for the batch (can be inferred from the page)
 
 # applied to each target generated
 filter: 
-  select: "a"
+  select: a
   where: "attr.class: %pic"
-  followLink: # works for <a/> only
-    select: "img"
+  linkFrom: attr.href
+  followLink:
+    select: img
     where: "attr.src: %.jpg"
+    linkFrom: src
 
 iterate:
   counter1:

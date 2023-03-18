@@ -223,7 +223,7 @@ export class HtmlParserQueryResult {
         const parser = new CustomAST (SYMBOLS, SYM_PRIORITY);
         const tokens = tokenizeFilterQuery (filter);
         const ast_result = parser.constructAbstractSyntaxTree (tokens);
-        ast_result.tree.print();
+        // ast_result.tree.print();
 
         this.result = whereHelper (ast_result.tree, this.result);
         return this;
@@ -315,7 +315,7 @@ export class HtmlParserQueryResult {
      * @param fun
      * @returns 
      */
-    map (fun : MapFunc<HtmlNode>) : HtmlNode[] {
+    map (fun : MapFunc<HtmlNode>) : unknown[] {
         return this.result.map (fun);
     }
 

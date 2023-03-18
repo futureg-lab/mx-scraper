@@ -1,7 +1,11 @@
 import { parse } from "yaml"
 import { readFileSync } from "node:fs"
-import { Book } from "./BookDef";
-import { contents } from "cheerio/lib/api/traversing";
+import { Book, Chapter, Page, Tag } from "./BookDef";
+import { feedValues, resumeText } from "../utils/Utils";
+import { CustomRequest } from "../utils/CustomRequest";
+import { HtmlParser } from "../utils/HtmlParser";
+import { MXLogger } from "../cli/MXLogger";
+
 
 export type OnTarget = {
     (
@@ -12,16 +16,19 @@ export type OnTarget = {
     ): void
 };
 
+export type OnErrorFlag = 'continue' | 'break';
+
 export type Filter = {
     select: string;
-    where: string;
+    where?: string;
+    linkFrom: string;
     followLink?: Filter;
 };
 
 export type Counter = {
     range: [number, number];
-    onError: string;
-    each?: Counter;
+    onError: OnErrorFlag;
+    each?: Iterate;
 };
 
 export type Iterate = {
@@ -39,16 +46,18 @@ export type Plan = {
 
 export class QueryPlan {
     plan: Plan;
-    params: Record<string, string>;
+    params: Record<string, string | string>;
     usedNames: Set<string>;
+    request : CustomRequest;
+
     private constructor(source_code: string) {
         // init props
         this.params = {};
         this.usedNames = new Set<string>();
+        this.request = new CustomRequest();
         // load, validate and sanitize the plan
         const raw_plan = parse(source_code);
         this.plan = this.validate(raw_plan);
-        console.log(this.plan);
     }
 
     static fromString (source: string) {
@@ -72,8 +81,131 @@ export class QueryPlan {
     }
 
     async run (callback?: OnTarget): Promise<Book> {
-        return null;
+        const {version, target, title, filter, iterate } = this.plan;
+        if (version != '1.0.0') 
+            throw Error(`version ${version} not supported`);
+        const allTargets = Array.isArray(target) ? target : [target];
+
+        let pageCount = 1;
+        let depth = 0;
+        const indent = (str: string) => new Array(depth).fill('=').join('') + str; 
+        const navigateUrl = async (root: Filter, pages: Page[], url: string, baseUrl: string) => {
+            depth++;
+            if (url.startsWith('/'))
+                url = new URL(url, baseUrl).href;
+            
+            MXLogger.infoRefresh(indent('> ' + url));
+
+            const html = await this.request.get(url);
+            const { select, where, linkFrom } = root;
+            const nodes = HtmlParser.use(html).select(select);
+            const selection = (where ? nodes.where(where) : nodes).all();
+            for (const item of selection) {
+                let link = item.asText().trim();
+                if (linkFrom.startsWith('attr.')) {
+                    const [ _, attribute] = linkFrom.split('.');
+                    link = item.attr(attribute).trim();
+                }
+                if (root.followLink) {
+                    if (!link || link == '') {
+                        MXLogger.infoRefresh("Unable to fetch", link);
+                        continue;
+                    }
+                    await navigateUrl(root.followLink, pages, link, baseUrl);
+                } else {
+                    MXLogger.infoRefresh(indent('> Fetched'), resumeText(link));
+                    const ext = link.split('.').pop() ?? 'jpg';
+                    pages.push({
+                        filename: pageCount + '.' + ext,
+                        number: pageCount,
+                        title: item.attr('alt') ?? pageCount.toString(),
+                        url: link
+                    });
+                    pageCount++;
+                }
+            }
+            depth--;
+        };
+
+        const processUrl = async (url: string): Promise<Page[]> => {
+            const urlProcessed = feedValues(url, this.params);
+            const baseUrl = new URL(urlProcessed).origin;
+            const pages = new Array<Page>();
+            await navigateUrl(filter, pages, urlProcessed, baseUrl);
+            return pages;
+        };
+
+        const chapters = new Array<Chapter>();
+        
+        if (iterate) {
+            const processIterate = async (root: Iterate, target: string, chapter: Chapter) => {
+                const [counterName] = Object.keys(root);
+                const counter = root[counterName];
+                const [start, end] = counter.range;
+                for (let i = start; i <= end; i++) {
+                    this.params[counterName] = i.toString();
+                    if (counter.each) {
+                        await processIterate(counter.each, target, chapter);
+                    } else {
+                        try {
+                            chapter.pages = await processUrl(target);
+                        } catch (err) {
+                            if(counter.onError == 'break') {
+                                break;
+                            } else /* ignore */;
+                        }
+                    }
+                }
+            }
+            let chapterCount = 1;
+            for (const url of allTargets) {
+                const chapter = <Chapter>{
+                    title: this.titleFromUrl(url),
+                    description: '',
+                    number: chapterCount++,
+                    pages: [],
+                    url: url
+                };
+                await processIterate(iterate, url, chapter);
+                chapters.push(chapter);
+            }
+        } else {
+            let chapterCount = 1;
+            for (const url of allTargets) {
+                const chapter = <Chapter>{
+                    title: this.titleFromUrl(url),
+                    description: '',
+                    number: chapterCount++,
+                    pages: [],
+                    url: url
+                };
+                chapter.pages = await processUrl(url);
+            }
+        }
+
+        const bookTitle = title ?? this.params['TITLE'] ?? 'untitled';
+        return <Book> {
+            title: bookTitle,
+            authors: [],
+            chapters: chapters,
+            metadatas: [],
+            description: allTargets.join(', '),
+            source_id: bookTitle,
+            tags: allTargets.map(target => <Tag>{
+                name: new URL(target).hostname.replace('www.', ''),
+                metadatas: []
+            }),
+            url: allTargets[0] ?? '', // any idea ?
+            title_aliases: [],
+        };
     }
+
+
+    private titleFromUrl(url: string) {
+        const {hostname, pathname} = new URL(url);
+        return [hostname, pathname].join('-');
+    }
+
 
     private validate (raw_plan: unknown): Plan {
         const res: any = {};
@@ -92,8 +224,8 @@ export class QueryPlan {
             const curr_path = path.join('.');
             if (!filter.select) 
                 throw Error (`html object not selected at ${curr_path}`);
-            if (!filter.where) 
-                throw Error (`where query is undefined at ${curr_path}`);
+            if (!filter.linkFrom)
+                throw Error (`linkFrom is undefined at ${curr_path}`);
             if (filter.followLink)
                 filterProcessor(filter.followLink, [...path, 'followLink']);
             return filter;

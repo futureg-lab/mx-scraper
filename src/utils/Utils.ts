@@ -184,3 +184,19 @@ export function interSet <T> (a : Set<T>, b : Set<T>) : Set<T> {
     
     return result;
 }
+
+
+export function feedValues(str: string, values: Record<string, string>) {
+    return str.replace(/{([A-Za-z0-9_ ]+)}/g, (match, name) => {
+        const key = name.trim();
+        return (key in values) ? values[key] : match;
+    });
+}
+
+export function resumeText(str: string, max = 50) {
+    if (str.length < max) return str;
+    const delta = str.length - max;
+    const chunkEnd =  Math.floor(str.length / 2 - delta / 2);
+    return str.substring(0, chunkEnd)
+        + ' .. ' + str.substring(chunkEnd + delta, str.length)
+}

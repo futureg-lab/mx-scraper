@@ -1,7 +1,15 @@
 import { QueryPlan } from "../core/QueryPlan";
 
-const plan = QueryPlan.load("./sample.yaml").with({
-    cli_param: "some_param"
+const plan = QueryPlan.load("./src/plugins/plans/danbooru.yaml").with({
+    TAG: "bocchi_the_rock%21+"
 });
 
-const book = plan.run();
+(async () => {
+    const book = await plan.run();
+
+    console.log(book);
+    console.log(book.chapters.length);
+    book.chapters.forEach(ch => {
+        console.log(ch.pages);
+    });
+}) ();

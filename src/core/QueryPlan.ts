@@ -2,14 +2,12 @@ import { parse } from "yaml"
 import { readFileSync } from "node:fs"
 import { Book, Chapter, Page, Tag } from "./BookDef";
 import { feedValues, resumeText } from "../utils/Utils";
-import { CustomRequest } from "../utils/CustomRequest";
+import { CustomRequest, FlareSolverrProxyOption } from "../utils/CustomRequest";
 import { HtmlParser } from "../utils/HtmlParser";
 import { MXLogger } from "../cli/MXLogger";
-import { computeSignatureQuery, hashResume } from "../utils/Downloader";
-import { config } from "../environment";
-import * as path from "node:path";
-import * as fs from "node:fs";
+import { hashResume } from "../utils/Downloader";
 import { MXPlugin } from "./MXPlugin";
+import { config } from "../environment";
 
 export type OnTarget = {
     (
@@ -39,12 +37,14 @@ export type Iterate = {
 
 export type Plan = {
     version: string;
+    title?: string;
     target: string | string[];
-    headless: boolean;
+    filter: Filter;
+    headless?: boolean;
+    flaresolverr?: boolean;
+    verbose?: boolean;
     required?: string[],
     default?: Record<string, string>;
-    title?: string;
-    filter: Filter;
     iterate?: Iterate;
 };
 
@@ -112,12 +112,18 @@ export class QueryPlan {
             iterate,
             required,
             headless,
+            flaresolverr,
+            verbose,
             default: defaultArgs
         } = this.plan;
         if (version != '1.0.0') 
             throw Error(`version ${version} not supported`);
         
-        
+        if (verbose) {
+            MXLogger.info('[QueryPlan] verbose enabled');
+            this.verbose = true;
+        }
+
         // first, populate the default value if not present
         if (defaultArgs) {
             for (const [key, value] of Object.entries(defaultArgs)) {
@@ -128,8 +134,17 @@ export class QueryPlan {
         }
 
         if (headless) {
-            this.verbose && MXLogger.infoRefresh('Headless mode enabled');
+            this.verbose && MXLogger.info('[QueryPlan] Headless mode enabled');
             this.request.enableRendering();
+        }
+
+        if (flaresolverr) {
+            this.verbose && MXLogger.info('[QueryPlan] Flaresolverr enabled');
+            const solver_option = <FlareSolverrProxyOption>{
+                proxy_url: config.CLOUDFARE_PROXY_HOST,
+                timeout: config.CLOUDFARE_MAX_TIMEOUT
+            };
+            this.request.configureProxy (solver_option);
         }
 
         if (required) {
@@ -175,7 +190,7 @@ export class QueryPlan {
                 }
                 try {
                     if (!link || link == '')
-                        throw Error(`Unable to fetch link "${link}"`);
+                        throw Error(`Unable to fetch link "${link}": empty or undefined`);
 
                     if (root.followLink) {
                         await navigateUrl(root.followLink, pages, link, baseUrl);
@@ -192,7 +207,7 @@ export class QueryPlan {
                         });
                     }
                 } catch(err) {
-                    this.verbose && MXLogger.infoRefresh(err.message);
+                    this.verbose && MXLogger.info(err.message);
                     callback && callback(link, err);
                 }
             }
@@ -233,7 +248,7 @@ export class QueryPlan {
             for (const url of allTargets) {
                 const chapterCount = chapters.length + 1;
                 const chapter = <Chapter>{
-                    title: `CH.${chapterCount}_${this.titleFromUrl(url)}`,
+                    title: `CH.${chapterCount}`,
                     description: '',
                     number: chapterCount,
                     pages: [],
@@ -246,7 +261,7 @@ export class QueryPlan {
             for (const url of allTargets) {
                 const chapterCount = chapters.length + 1;
                 const chapter = <Chapter>{
-                    title: `CH.${chapterCount}_${this.titleFromUrl(url)}`,
+                    title: `CH.${chapterCount}}`,
                     description: '',
                     number: chapterCount,
                     pages: [],
@@ -274,16 +289,6 @@ export class QueryPlan {
         };
     }
 
-
-    private titleFromUrl(url: string) {
-        const joinParams = Object
-            .entries(this.params)
-            .map(item => item.join(''))
-            .join('');
-        return hashResume(joinParams);
-    }
-
-
     private validate (raw_plan: unknown): Plan {
         const res: any = {};
         const get = (root: any, key: string, required: boolean = false, process?: any) => {
@@ -299,11 +304,16 @@ export class QueryPlan {
         get(raw_plan, 'version', true);
         get(raw_plan, 'target', true);
         get(raw_plan, 'title', false);
-        get(raw_plan, 'headless', false, (headless: any) => {
-            if (typeof headless != 'boolean')
-                throw Error(`"${headless}" is not a boolean`);
-            return headless;
-        });
+
+        const processBoolean = (value: any) => {
+            if (typeof value != 'boolean')
+                throw Error(`"${value}" is not a boolean`);
+            return value;
+        };
+
+        get(raw_plan, 'headless', false, processBoolean);
+        get(raw_plan, 'flaresolverr', false, processBoolean);
+        get(raw_plan, 'verbose', false, processBoolean);
 
         get(raw_plan, 'required', false, (required: any) => {
             if (required && !Array.isArray(required))

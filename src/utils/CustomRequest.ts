@@ -1,9 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import {JSDOM} from "jsdom";
 import { FlareSolverrClient, FlareSolverrCommand } from './FlareSolverrClient';
 import * as fs from 'fs';
 import { UniqueHeadlessBrowser } from './UniqueHeadlessBrowser';
-import { MXLogger } from '../cli/MXLogger';
 
 export interface FlareSolverrProxyOption {
     proxy_url : string;

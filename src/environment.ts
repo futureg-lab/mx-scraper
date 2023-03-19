@@ -9,7 +9,7 @@ const config = {
         'Eyval'
     ],
     HEADLESS : {
-        ENGINE : 'JSDOM',
+        ENGINE : 'PUPPETEER',
         ENABLE : true,
         EXEC_PATH : './browser/chrome'
     },

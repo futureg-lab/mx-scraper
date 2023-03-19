@@ -10,6 +10,7 @@ const config = {
     ],
     HEADLESS : {
         ENGINE : 'PUPPETEER',
+        FULL_HEADLESS: false,
         ENABLE : true,
         EXEC_PATH : './browser/chrome'
     },

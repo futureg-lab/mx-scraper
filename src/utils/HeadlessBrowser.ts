@@ -51,7 +51,10 @@ export class HeadlessBrowser {
                 if ( ! DynamicConfigurer.isDevMode () ) 
                     browser_path = config.HEADLESS['EXEC_PATH'] || browser_path;
                 
-                this.browser = await Puppeteer.launch ({ executablePath : browser_path });
+                this.browser = await Puppeteer.launch ({ 
+                    executablePath : browser_path,
+                    headless: !config.HEADLESS['FULL_HEADLESS']
+                });
                 this.instance_infos.exec_path = browser_path;
                 break;
             default:

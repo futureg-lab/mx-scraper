@@ -132,6 +132,10 @@ export class HeadlessBrowser {
         }
     }
 
+    getBrowser() {
+        return this.browser;
+    }
+
     infos () {
         return this.instance_infos;
     }

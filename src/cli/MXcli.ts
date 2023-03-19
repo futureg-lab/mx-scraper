@@ -37,7 +37,8 @@ export class MXcli extends CLIEngine {
                 parallel : parsed.has ('Parallel-Download') && (
                     parsed.has ('FetchMeta-List') || parsed.has ('FetchMeta-List-From-File')
                 ),
-                meta_only : parsed.has ('Meta-Only')
+                meta_only : parsed.has ('Meta-Only'),
+                forceHeadless: false
             };
         }
 
@@ -67,11 +68,13 @@ export class MXcli extends CLIEngine {
                             .join(', ')
                 );
             }
-            const plan = QueryPlan
+            const planner = QueryPlan
                 .load(filepath)
                 .with(params);
             
-            const book = await plan.get(!parsed.has('No-Cache') || parsed.has('Use-Cache'));
+            const book = await planner.get(!parsed.has('No-Cache') || parsed.has('Use-Cache'));
+            
+            doption.forceHeadless = planner.plan.headless;
             await this.fetchBookInteractively(book, doption, verbose);
         }
 

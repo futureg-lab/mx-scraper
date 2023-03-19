@@ -40,6 +40,11 @@ export interface DownloadOption {
      * If set to true, a download process is expected to metadata only
      */
     meta_only? : boolean;
+
+    /**
+     * If set to true, the downloader will use a headless browser
+     */
+    forceHeadless : boolean;
 }
 
 
@@ -71,6 +76,9 @@ export async function downloadBook (
     loading_callback : DownloadProgressCallback = null
 ) {    
     const request : CustomRequest = new CustomRequest ();
+
+    if (config.HEADLESS.ENABLE || option.forceHeadless)
+        request.enableRendering();
 
     // compute total items
     let total = 0, current_item = 0;
@@ -155,7 +163,7 @@ export async function downloadBook (
                         chapter_folder_temp_path,
                         page.filename
                     );
-                    await request.download (real_page_url, dest_path);
+                    await request.downloadImage (real_page_url, dest_path);
                 } else
                     skip_msg = 'Skipped';
                 // progress status

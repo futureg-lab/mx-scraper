@@ -2,6 +2,7 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { FlareSolverrClient, FlareSolverrCommand } from './FlareSolverrClient';
 import * as fs from 'fs';
 import { UniqueHeadlessBrowser } from './UniqueHeadlessBrowser';
+import * as Puppeteer from 'puppeteer';
 
 export interface FlareSolverrProxyOption {
     proxy_url : string;
@@ -108,6 +109,45 @@ export class CustomRequest {
         return <string> data;
     }
 
+    async downloadImage (target_url : string, output_location_path : string, count_max : number = 1) {
+        if (this.renderHTML) {
+            const unique = await UniqueHeadlessBrowser.getInstance ();
+            const headless = unique.getHeadlessBrowser ();
+            if (headless.infos().current_type != 'JSDOM') {
+                const browser = headless.getBrowser() as Puppeteer.Browser;
+                const page = await browser.newPage();
+                try {
+                    let count = 0;
+                    page.on('response', async (response) => {
+                        if (count > count_max) return;
+                        const matches = /.*\.(jpg|jpeg|png|svg|gif|webp)$/.exec(response.url());
+                        if (
+                            response.request().resourceType() == 'image'
+                        || matches && (matches.length == 2)
+                        ) {
+                            const buffer = await response.buffer();
+                            fs.writeFileSync(output_location_path, buffer, 'base64');
+                            count++;
+                        }
+                    });
+                    await page.goto(target_url);
+                    return true;
+                } catch(err) {
+                    throw err;
+                } finally {
+                    if (!this.reuse_instance)
+                        // kill everything
+                        await UniqueHeadlessBrowser.destroy();
+                    else
+                        await page.close();
+                }
+            }
+        }
+        // renderHtml false | headless.infos() == 'JSDOM'
+        await new CustomRequest().download(target_url, output_location_path);
+        return true;
+    }
+
     /**
      * @param target_url download url
      * @param output_location_path where to save the file
@@ -121,8 +161,8 @@ export class CustomRequest {
         const writer = fs.createWriteStream (output_location_path);
         response.data.pipe (writer);
         return new Promise<unknown> ((resolve, reject) => {
-            writer.on ('finish', resolve)
-            writer.on ('error', reject)
+            writer.on ('finish', resolve);
+            writer.on ('error', reject);
         });
     }
 

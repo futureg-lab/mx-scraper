@@ -1,4 +1,3 @@
-import { MXLogger } from "../cli/MXLogger";
 import { HeadlessBrowser, TypeEngine } from "./HeadlessBrowser";
 
 /**

@@ -10,8 +10,8 @@ const config = {
     ],
     HEADLESS : {
         ENGINE : 'PUPPETEER',
-        FULL_HEADLESS: false,
-        ENABLE : true,
+        FULL_HEADLESS: true,
+        ENABLE : false,
         EXEC_PATH : './browser/chrome'
     },
     PLUGIN_PROXY_ENABLE : [

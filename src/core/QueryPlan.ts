@@ -117,6 +117,7 @@ export class QueryPlan {
         if (version != '1.0.0') 
             throw Error(`version ${version} not supported`);
         
+        
         // first, populate the default value if not present
         if (defaultArgs) {
             for (const [key, value] of Object.entries(defaultArgs)) {
@@ -149,7 +150,9 @@ export class QueryPlan {
             }
         }
 
-        const allTargets = Array.isArray(target) ? target : [target];
+        const allTargets = (Array.isArray(target) ? target : [target]).map(
+            link => feedValues(link, this.params)
+        );
 
         let depth = 0;
         const indent = (str: string) => new Array(depth).fill('=').join('') + str; 
@@ -178,7 +181,7 @@ export class QueryPlan {
                         await navigateUrl(root.followLink, pages, link, baseUrl);
                     } else {
                         callback && callback(link);
-                        this.verbose && MXLogger.infoRefresh(indent('> Fetched'), resumeText(link));
+                        this.verbose && MXLogger.info('\n' + indent('> Fetched'), resumeText(link));
                         const ext = link.split('.').pop() ?? 'jpg';
                         const pageCount = pages.length + 1;
                         pages.push({
@@ -250,6 +253,7 @@ export class QueryPlan {
                     url: url
                 };
                 chapter.pages = await processUrl(url);
+                chapters.push(chapter);
             }
         }
 
@@ -286,7 +290,10 @@ export class QueryPlan {
             const value = root[key];
             if (value === undefined && required)
                 throw Error(`required command "${key}" not found in the query plan`);
-            res[key] = process ? process(value) : value;
+            if (process) 
+                res[key] = value ? process(value) : value;
+            else
+                res[key] = value;
         };
         
         get(raw_plan, 'version', true);

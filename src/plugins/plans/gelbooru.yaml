@@ -1,0 +1,18 @@
+version: 1.0.0
+# Example
+# TAG=saitou_kaede_(yama_no_susume) PID=0
+target: "https://gelbooru.com/index.php?page=post&s=list&tags={TAG}&pid={PID}"
+title: "{TAG}"
+
+# args required
+required: [ TAG, PID ]
+
+headless: false
+
+# applied to each target generated
+filter: 
+  select: "article>a"
+  linkFrom: attr.href
+  followLink:
+    select: "#image"
+    linkFrom: attr.src

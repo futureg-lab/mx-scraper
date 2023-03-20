@@ -216,3 +216,8 @@ export function splitKeyValue(str: string): [string, string] {
     const key = str.split('=').shift();
     return [key, value];
 }
+
+export function extractFilenameFromUrl(str: string) {
+    str = str.replace(/\\/g, '/');
+    return str.substring(str.lastIndexOf('/') + 1);
+}

@@ -1,7 +1,7 @@
 import { parse } from "yaml"
 import { readFileSync } from "node:fs"
 import { Book, Chapter, Page, Tag } from "./BookDef";
-import { feedValues, resumeText } from "../utils/Utils";
+import { extractFilenameFromUrl, feedValues, resumeText } from "../utils/Utils";
 import { CustomRequest, FlareSolverrProxyOption } from "../utils/CustomRequest";
 import { HtmlParser } from "../utils/HtmlParser";
 import { MXLogger } from "../cli/MXLogger";
@@ -43,6 +43,7 @@ export type Plan = {
     headless?: boolean;
     flaresolverr?: boolean;
     verbose?: boolean;
+    canonicalName?: boolean;
     required?: string[],
     default?: Record<string, string>;
     iterate?: Iterate;
@@ -114,6 +115,7 @@ export class QueryPlan {
             headless,
             flaresolverr,
             verbose,
+            canonicalName,
             default: defaultArgs
         } = this.plan;
         if (version != '1.0.0') 
@@ -136,6 +138,10 @@ export class QueryPlan {
         if (headless) {
             this.verbose && MXLogger.info('[QueryPlan] Headless mode enabled');
             this.request.enableRendering();
+        }
+
+        if (canonicalName) {
+            this.verbose && MXLogger.info('[QueryPlan] use default name enabled');
         }
 
         if (flaresolverr) {
@@ -195,12 +201,14 @@ export class QueryPlan {
                     if (root.followLink) {
                         await navigateUrl(root.followLink, pages, link, baseUrl);
                     } else {
-                        callback && callback(link);
-                        this.verbose && MXLogger.info('\n' + indent('> Fetched'), resumeText(link));
-                        const ext = link.split('.').pop() ?? 'jpg';
                         const pageCount = pages.length + 1;
+                        callback && callback(link);
+                        this.verbose && MXLogger.info(indent('\n> Fetched'), resumeText(link), '#' + pageCount);
+                        const ext = link.split('.').pop() ?? 'jpg';
+                        const generatedName = pageCount + '.' + ext;
+                        const canonName = extractFilenameFromUrl(link);
                         pages.push({
-                            filename: pageCount + '.' + ext,
+                            filename: canonicalName ? canonName : generatedName,
                             number: pageCount,
                             title: item.attr('alt') ?? pageCount.toString(),
                             url: link
@@ -235,7 +243,7 @@ export class QueryPlan {
                         await processIterate(counter.each, target, chapter);
                     } else {
                         try {
-                            chapter.pages = await processUrl(target);
+                            chapter.pages.push(...await processUrl(target));
                         } catch (err) {
                             if(counter.onError == 'break') {
                                 break;
@@ -314,6 +322,7 @@ export class QueryPlan {
         get(raw_plan, 'headless', false, processBoolean);
         get(raw_plan, 'flaresolverr', false, processBoolean);
         get(raw_plan, 'verbose', false, processBoolean);
+        get(raw_plan, 'canonicalName', false, processBoolean);
 
         get(raw_plan, 'required', false, (required: any) => {
             if (required && !Array.isArray(required))

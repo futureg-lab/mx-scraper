@@ -16,6 +16,13 @@ export type OnTarget = {
     ): void
 };
 
+export type OnErrorThrown = {
+    (
+        url: string,
+        error?: Error
+    ): void
+};
+
 export type OnErrorFlag = 'continue' | 'break';
 
 export type Filter = {
@@ -177,13 +184,18 @@ export class QueryPlan {
 
         let depth = 0;
         const indent = (str: string) => new Array(depth).fill('=').join('') + str; 
-        const navigateUrl = async (root: Filter, pages: Page[], url: string, baseUrl: string) => {
-            depth++;
+        const navigateUrl = async (
+            root: Filter, 
+            pages: Page[], 
+            url: string, 
+            baseUrl: string,
+            onErrorCallback: OnErrorThrown
+            ) => {
             if (url.startsWith('/'))
                 url = new URL(url, baseUrl).href;
+            this.verbose && MXLogger.infoRefresh(indent('> Focus on ' + url));
             
-            this.verbose && MXLogger.infoRefresh(indent('> ' + url));
-
+            depth++;
             const html = await this.request.get(url);
             const { select, where, linkFrom } = root;
             const nodes = HtmlParser.use(html).select(select);
@@ -199,11 +211,11 @@ export class QueryPlan {
                         throw Error(`Unable to fetch link "${link}": empty or undefined`);
 
                     if (root.followLink) {
-                        await navigateUrl(root.followLink, pages, link, baseUrl);
+                        await navigateUrl(root.followLink, pages, link, baseUrl, onErrorCallback);
                     } else {
                         const pageCount = pages.length + 1;
                         callback && callback(link);
-                        this.verbose && MXLogger.info(indent('\n> Fetched'), resumeText(link), '#' + pageCount);
+                        this.verbose && MXLogger.info(indent('> Detected'), resumeText(link), '#' + pageCount);
                         const ext = link.split('.').pop() ?? 'jpg';
                         const generatedName = pageCount + '.' + ext;
                         const canonName = extractFilenameFromUrl(link);
@@ -217,16 +229,17 @@ export class QueryPlan {
                 } catch(err) {
                     this.verbose && MXLogger.info(err.message);
                     callback && callback(link, err);
+                    onErrorCallback(link, err);
                 }
             }
             depth--;
         };
 
-        const processUrl = async (url: string): Promise<Page[]> => {
+        const processUrl = async (url: string, onErrorCallback: OnErrorThrown): Promise<Page[]> => {
             const urlProcessed = feedValues(url, this.params);
             const baseUrl = new URL(urlProcessed).origin;
             const pages = new Array<Page>();
-            await navigateUrl(filter, pages, urlProcessed, baseUrl);
+            await navigateUrl(filter, pages, urlProcessed, baseUrl, onErrorCallback);
             return pages;
         };
 
@@ -243,7 +256,22 @@ export class QueryPlan {
                         await processIterate(counter.each, target, chapter);
                     } else {
                         try {
-                            chapter.pages.push(...await processUrl(target));
+                            const fetchErrors = new Array<[string, Error]>();
+                            const onErrorCallback = (url: string, error: Error) => {
+                                fetchErrors.push([url, error]);
+                            };
+                            const newPages = await processUrl(target, onErrorCallback);
+                            if (newPages.length == 0)
+                                throw Error(`no content found at ${target}`);
+
+                            chapter.pages.push(...newPages);
+                            if (fetchErrors.length > 0) {
+                                throw Error(`Fetch error(s) has occured: [${
+                                    fetchErrors.map(err => {
+                                        return err.join(': ')
+                                    }).join(',')
+                                }]`);
+                            }
                         } catch (err) {
                             if(counter.onError == 'break') {
                                 break;
@@ -275,7 +303,10 @@ export class QueryPlan {
                     pages: [],
                     url: url
                 };
-                chapter.pages = await processUrl(url);
+                const onErrorCallback = (url: string, _: Error) => {
+                    this.verbose && MXLogger.infoRefresh('Fetch error '+ url); 
+                };
+                chapter.pages = await processUrl(url, onErrorCallback);
                 chapters.push(chapter);
             }
         }

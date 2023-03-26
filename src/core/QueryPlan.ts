@@ -204,11 +204,11 @@ export class QueryPlan {
                 let link = item.asText().trim();
                 if (linkFrom.startsWith('attr.')) {
                     const [ _, attribute] = linkFrom.split('.');
-                    link = item.attr(attribute).trim();
+                    link = item.attr(attribute)?.trim();
                 }
                 try {
                     if (!link || link == '')
-                        throw Error(`Unable to fetch link "${link}": empty or undefined`);
+                        throw Error(`Unable to fetch link from "${select}", got "${link}"`);
 
                     if (root.followLink) {
                         await navigateUrl(root.followLink, pages, link, baseUrl, onErrorCallback);
@@ -216,7 +216,9 @@ export class QueryPlan {
                         const pageCount = pages.length + 1;
                         callback && callback(link);
                         this.verbose && MXLogger.info(indent('> Detected'), resumeText(link), '#' + pageCount);
-                        const ext = link.split('.').pop() ?? 'jpg';
+                        // name can have parameters
+                        const rawExt = link.split('.').pop();
+                        const ext = rawExt?.match(/[a-z]+/i)?.[0] ?? 'jpg';
                         const generatedName = pageCount + '.' + ext;
                         const canonName = extractFilenameFromUrl(link);
                         pages.push({
@@ -304,7 +306,7 @@ export class QueryPlan {
                     url: url
                 };
                 const onErrorCallback = (url: string, _: Error) => {
-                    this.verbose && MXLogger.infoRefresh('Fetch error '+ url); 
+                    this.verbose && MXLogger.info('Fetch error '+ url); 
                 };
                 chapter.pages = await processUrl(url, onErrorCallback);
                 chapters.push(chapter);

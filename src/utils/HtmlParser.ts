@@ -315,7 +315,7 @@ export class HtmlParserQueryResult {
      * @param fun
      * @returns 
      */
-    map (fun : MapFunc<HtmlNode>) : unknown[] {
+    map<T> (fun : MapFunc<HtmlNode>) : T[] {
         return this.result.map (fun);
     }
 

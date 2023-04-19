@@ -6,11 +6,12 @@ const config = {
         'NHentai',
         'EHentai',
         'GPrincess',
-        'Eyval'
+        'Eyval',
+        'Kemono'
     ],
     HEADLESS : {
         ENGINE : 'PUPPETEER',
-        FULL_HEADLESS: true,
+        FULL_HEADLESS: false,
         ENABLE : false,
         EXEC_PATH : './browser/chrome'
     },

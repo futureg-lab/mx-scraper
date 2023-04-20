@@ -75,7 +75,8 @@ export class MXcli extends CLIEngine {
             const book = await planner.get(!parsed.has('No-Cache') || parsed.has('Use-Cache'));
             
             doption.forceHeadless = planner.plan.headless;
-            await this.fetchBookInteractively(book, doption, verbose);
+            console.log(resumeBook(book, verbose));
+            await this.fetchBookInteractively(book, doption);
         }
 
         // show help / plugins
@@ -278,17 +279,15 @@ export class MXcli extends CLIEngine {
     private async fetchBookInteractively(
         book : Book, 
         download_option : DownloadOption = null,
-        verbose : boolean
     ) {
-        console.log (resumeBook (book, verbose));
         if (download_option) {
             const progress = new cliProgress.SingleBar({
                 format : '[{bar}] {percentage}% | ETA: {eta}s {value}/{total} | {msg}'
             }, cliProgress.Presets.shades_classic);
 
             let started = true;
-            const callback : DownloadProgressCallback = (msg, curr, total, p) => {
-                const payload = { msg : msg };
+            const callback : DownloadProgressCallback = (msg, curr, total, _p) => {
+                const payload = { msg };
                 if (started) {
                     progress.start (total, curr, payload);
                     started = false;
@@ -312,7 +311,7 @@ export class MXcli extends CLIEngine {
             try {
                 let book : Book = await plugin.getBook (title);
                 console.log (resumeBook (book, verbose));
-                await this.fetchBookInteractively(book, download_option, verbose);
+                await this.fetchBookInteractively(book, download_option);
             } catch (err) {
                 console.error ('\nFailed to fetch "' + title + '"');
                 console.error (err.message);

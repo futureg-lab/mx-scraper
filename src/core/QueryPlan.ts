@@ -5,7 +5,6 @@ import { extractFilenameFromUrl, feedValues, resumeText } from "../utils/Utils";
 import { CustomRequest, FlareSolverrProxyOption } from "../utils/CustomRequest";
 import { HtmlParser } from "../utils/HtmlParser";
 import { MXLogger } from "../cli/MXLogger";
-import { hashResume } from "../utils/Downloader";
 import { MXPlugin } from "./MXPlugin";
 import { config } from "../environment";
 
@@ -29,6 +28,7 @@ export type Filter = {
     select: string;
     where?: string;
     linkFrom: string;
+    linkModifier?: Record<string, string>;
     followLink?: Filter;
 };
 
@@ -197,7 +197,8 @@ export class QueryPlan {
             
             depth++;
             const html = await this.request.get(url);
-            const { select, where, linkFrom } = root;
+            const { select, where, linkFrom, linkModifier } = root;
+
             const nodes = HtmlParser.use(html).select(select);
             const selection = (where ? nodes.where(where) : nodes).all();
             for (const item of selection) {
@@ -209,6 +210,14 @@ export class QueryPlan {
                 try {
                     if (!link || link == '')
                         throw Error(`Unable to fetch link from "${select}", got "${link}"`);
+
+                    if (linkModifier) {
+                        for (const pattern of Object.keys(linkModifier)) {
+                            const reg = new RegExp(pattern, "g");
+                            const newLink = link.replace(reg, linkModifier[pattern]);
+                            link = newLink;
+                        }
+                    }
 
                     if (root.followLink) {
                         await navigateUrl(root.followLink, pages, link, baseUrl, onErrorCallback);
@@ -246,7 +255,7 @@ export class QueryPlan {
         };
 
         const chapters = new Array<Chapter>();
-        
+
         if (iterate) {
             const processIterate = async (root: Iterate, target: string, chapter: Chapter) => {
                 const [counterName] = Object.keys(root);
@@ -374,6 +383,12 @@ export class QueryPlan {
                 throw Error (`html object not selected at ${curr_path}`);
             if (!filter.linkFrom)
                 throw Error (`linkFrom is undefined at ${curr_path}`);
+            if (filter.linkModifier) {
+                if (typeof filter.linkModifier !== "object")
+                    throw Error (`linkModifier is not a key-value object at ${curr_path}`);
+                if (Array.isArray(filter.linkModifier))
+                    throw Error (`linkModifier should ba an object at ${curr_path}, got array`);
+            }
             if (filter.followLink)
                 filterProcessor(filter.followLink, [...path, 'followLink']);
             return filter;

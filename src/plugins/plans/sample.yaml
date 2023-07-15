@@ -10,6 +10,9 @@ filter:
   select: a
   where: "attr.class: %pic"
   linkFrom: attr.href
+  linkModifier: {
+    "[\d]x[\d]": "dim=1200x1200",
+  }
   followLink:
     select: img
     where: "attr.src: %.jpg"

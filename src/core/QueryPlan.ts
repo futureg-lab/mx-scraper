@@ -56,6 +56,12 @@ export type Plan = {
     iterate?: Iterate;
 };
 
+export type PageUnit = {
+    extension: string;
+    title: string;
+    url: string;
+}
+
 export class QueryPlan {
     plan: Plan;
     params: Record<string, string | string>;
@@ -183,10 +189,21 @@ export class QueryPlan {
         );
 
         let depth = 0;
-        const indent = (str: string) => new Array(depth).fill('=').join('') + str; 
+        const indent = (str: string) => new Array(depth).fill('=').join('') + str;
+        
+        const translatePageUnit = (pageUnit: PageUnit, index: number): Page => {
+            const filename = index + '.' + pageUnit.extension;
+            return {
+                filename,
+                number: index,
+                title: pageUnit.title,
+                url: pageUnit.url
+            };
+        }
+
         const navigateUrl = async (
             root: Filter, 
-            pages: Page[], 
+            pagesUnits: PageUnit[], 
             url: string, 
             baseUrl: string,
             onErrorCallback: OnErrorThrown
@@ -220,20 +237,16 @@ export class QueryPlan {
                     }
 
                     if (root.followLink) {
-                        await navigateUrl(root.followLink, pages, link, baseUrl, onErrorCallback);
+                        await navigateUrl(root.followLink, pagesUnits, link, baseUrl, onErrorCallback);
                     } else {
-                        const pageCount = pages.length + 1;
                         callback && callback(link);
-                        this.verbose && MXLogger.info(indent('> Detected'), resumeText(link), '#' + pageCount);
+                        this.verbose && MXLogger.info(indent('> Detected'), resumeText(link), '#' + (pagesUnits.length + 1));
                         // name can have parameters
                         const rawExt = link.split('.').pop();
                         const ext = rawExt?.match(/[a-z]+/i)?.[0] ?? 'jpg';
-                        const generatedName = pageCount + '.' + ext;
-                        const canonName = extractFilenameFromUrl(link);
-                        pages.push({
-                            filename: canonicalName ? canonName : generatedName,
-                            number: pageCount,
-                            title: item.attr('alt') ?? pageCount.toString(),
+                        pagesUnits.push({
+                            extension: ext,
+                            title: item.attr('alt') ?? "",
                             url: link
                         });
                     }
@@ -246,12 +259,12 @@ export class QueryPlan {
             depth--;
         };
 
-        const processUrl = async (url: string, onErrorCallback: OnErrorThrown): Promise<Page[]> => {
+        const processUrl = async (url: string, onErrorCallback: OnErrorThrown): Promise<PageUnit[]> => {
             const urlProcessed = feedValues(url, this.params);
             const baseUrl = new URL(urlProcessed).origin;
-            const pages = new Array<Page>();
-            await navigateUrl(filter, pages, urlProcessed, baseUrl, onErrorCallback);
-            return pages;
+            const pagesUnits = new Array<PageUnit>();
+            await navigateUrl(filter, pagesUnits, urlProcessed, baseUrl, onErrorCallback);
+            return pagesUnits;
         };
 
         const chapters = new Array<Chapter>();
@@ -275,7 +288,14 @@ export class QueryPlan {
                             if (newPages.length == 0)
                                 throw Error(`no content found at ${target}`);
 
-                            chapter.pages.push(...newPages);
+                            let offset = chapter.pages.length;
+                            for (let i = 0; i < newPages.length; i++) {
+                                chapter.pages.push(translatePageUnit(
+                                    newPages[i],
+                                    offset + i
+                                ));
+                            }
+
                             if (fetchErrors.length > 0) {
                                 throw Error(`Fetch error(s) has occured: [${
                                     fetchErrors.map(err => {
@@ -317,7 +337,7 @@ export class QueryPlan {
                 const onErrorCallback = (url: string, _: Error) => {
                     this.verbose && MXLogger.info('Fetch error '+ url); 
                 };
-                chapter.pages = await processUrl(url, onErrorCallback);
+                chapter.pages = (await processUrl(url, onErrorCallback)).map(translatePageUnit);
                 chapters.push(chapter);
             }
         }

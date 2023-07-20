@@ -1,4 +1,3 @@
-import axios, { AxiosRequestConfig } from "axios";
 import { config } from "../environment";
 
 export interface FlareSolverrCommand {
@@ -23,16 +22,16 @@ export class FlareSolverrClient {
     async performCommand (command : FlareSolverrCommand) {
         if (!command.maxTimeout)
             command.maxTimeout = config.CLOUDFARE_MAX_TIMEOUT;
-        const axios_req_conf : AxiosRequestConfig = {
-            url : this.base_url, // change the target to the solver
-            method : 'POST',
-            headers : {
-                'Content-Type' : 'application/json'
-            },
-            data : command
-        };
         // the data field contains the response
-        const {data} = await axios(axios_req_conf);
-        return data;
+
+        const headers = new Headers();
+        headers.set('Content-Type', 'application/json');
+        
+        const res = await fetch(this.base_url, {
+            method : 'POST',
+            headers,
+            body: JSON.stringify(command)
+        });
+        return await res.json();
     }
 }

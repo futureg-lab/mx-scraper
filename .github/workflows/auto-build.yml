@@ -1,8 +1,9 @@
+# git tag <= list versions
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    tags:
+      - v*
+
 jobs:
   build-linux-x64:
     runs-on: ubuntu-latest

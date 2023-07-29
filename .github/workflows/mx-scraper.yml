@@ -21,6 +21,9 @@ jobs:
     services:
       flaresolverr:
         image: flaresolverr/flaresolverr
+        ports:
+          - 8191
+        options: --cpus 1
 
     steps:
       - name: Checkout

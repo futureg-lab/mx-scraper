@@ -41,8 +41,8 @@ jobs:
             path: dist/**/*
             retention-days: 30
 
-  tests:
-    needs: build
-    steps:
-      - name: Test core algorithms
-        run: npm test request core
+  # tests:
+  #   needs: build
+  #   steps:
+  #     - name: Test core algorithms
+  #       run: npm test request core

@@ -19,7 +19,6 @@ import { MXLogger } from "./MXLogger";
 import { config } from "../environment";
 import { DynamicConfigurer } from "./DynamicConfigurer";
 import { UniqueHeadlessBrowser } from "../utils/UniqueHeadlessBrowser";
-import { TypeEngine } from "../utils/HeadlessBrowser";
 import { QueryPlan } from "../core/QueryPlan";
 
 export class MXcli extends CLIEngine {
@@ -183,7 +182,7 @@ export class MXcli extends CLIEngine {
     }
   }
 
-  async commandPrintInfos(verbose: boolean) {
+  async commandPrintInfos(_verbose: boolean) {
     const singleton = await UniqueHeadlessBrowser.getInstance();
     const infos = singleton.getHeadlessBrowser().infos();
     const is_headless = config.HEADLESS["ENABLE"];

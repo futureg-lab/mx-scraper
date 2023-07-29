@@ -1,4 +1,4 @@
-import { HeadlessBrowser, TypeEngine } from "./HeadlessBrowser";
+import { HeadlessBrowser } from "./HeadlessBrowser";
 
 /**
  * Singleton wrapper for `HeadlessBrowser`

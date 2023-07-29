@@ -2,13 +2,7 @@ import * as Puppeteer from "puppeteer";
 import { config } from "../environment";
 import { DynamicConfigurer } from "../cli/DynamicConfigurer";
 
-export enum TypeEngine {
-  JSDOM = 1, // do not start at 0 (0 == undefined)
-  PUPPETEER = 2,
-}
-
 type HeadlessBrowserInfos = {
-  current_type: string;
   exec_path: string;
 };
 
@@ -18,7 +12,6 @@ export class HeadlessBrowser {
   private browser: Puppeteer.Browser = null;
 
   private instance_infos: HeadlessBrowserInfos = {
-    current_type: "",
     exec_path: ""
   };
 

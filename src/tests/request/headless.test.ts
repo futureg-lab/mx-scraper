@@ -1,5 +1,4 @@
-import { config } from "../../environment";
-import { HeadlessBrowser, TypeEngine } from "../../utils/HeadlessBrowser";
+import { HeadlessBrowser } from "../../utils/HeadlessBrowser";
 import { UniqueHeadlessBrowser } from "../../utils/UniqueHeadlessBrowser";
 
 

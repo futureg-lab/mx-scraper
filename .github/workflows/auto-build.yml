@@ -1,12 +1,21 @@
 # git tag <= list versions
 on:
-  push:
-    tags:
-      - v*
+ push:
+   tags:
+     - v*
 
 jobs:
-  build-linux-x64:
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            extension: ""
+          - os: windows-latest
+            extension: ".exe"
+
+    runs-on: ${{ matrix.os }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -23,41 +32,28 @@ jobs:
       - name: Installing pkg cli
         run: npm install -g pkg
 
-      - name: Building mx-scraper
+      - name: Building mx-scraper ${{ matrix.os }}
         run: node auto-build.js
-
-      - name: Archive compiled build
-        uses: actions/upload-artifact@v3
-        with:
-            name: mx-scraper-linux-x64
-            path: bin/**/*
-            retention-days: 30
-
-
-  build-windows-x64:
-    runs-on: windows-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Install nodejs
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18.x'
-          cache: 'npm'
-
-      - name: Installing packages
-        run: npm ci
         
-      - name: Installing pkg cli
-        run: npm install -g pkg
+      - name: Run mx-scraper --help
+        run: |
+          cd bin
+          ./mx-scraper${{ matrix.extension }} --help
 
-      - name: Building mx-scraper
-        run: node auto-build.js
+      - name: Run mx-scraper --infos
+        run: |
+          cd bin
+          ./mx-scraper${{ matrix.extension }} --infos
 
-      - name: Archive compiled build
-        uses: actions/upload-artifact@v3
+      - name: Archive build for ${{ matrix.os }}
+        run: |
+          cd bin
+          tar -czvf ../mx-scraper-${{ github.ref_name }}-${{ matrix.os }}.tar.gz *
+      
+      - name: Run release 
+        uses: svenstaro/upload-release-action@v2
         with:
-            name: mx-scraper-windows-x64
-            path: bin/**/*
-            retention-days: 30
+          tag: ${{ github.ref }}
+          file: "mx-scraper-${{ github.ref_name }}-${{ matrix.target }}.tar.gz"
+          asset_name: "mx-scraper-${{ github.ref_name }}-${{ matrix.target }}.tar.gz"
+          overwrite: true

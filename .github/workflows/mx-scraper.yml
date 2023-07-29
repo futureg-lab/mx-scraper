@@ -22,7 +22,6 @@ jobs:
       flaresolverr:
         image: flaresolverr/flaresolverr
         options: >-
-          -p 8191:8191
           --cpus 1
           --health-interval 10s
           --health-timeout 5s

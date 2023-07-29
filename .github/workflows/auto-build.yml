@@ -58,6 +58,6 @@ jobs:
       - name: Archive compiled build
         uses: actions/upload-artifact@v3
         with:
-            name: mx-scraper-windowns-x64
+            name: mx-scraper-windows-x64
             path: bin/**/*
             retention-days: 30

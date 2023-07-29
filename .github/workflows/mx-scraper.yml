@@ -21,7 +21,10 @@ jobs:
     services:
       flaresolverr:
         image: flaresolverr/flaresolverr
+        ports:
+          - 8191
         options: >-
+          -p 8191:8191
           --cpus 1
 
     steps:

@@ -20,7 +20,7 @@ jobs:
     
     services:
       flaresolverr:
-        image: flaresolverr:flaresolverr
+        image: flaresolverr/flaresolverr
 
     steps:
       - name: Checkout

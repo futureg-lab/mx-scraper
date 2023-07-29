@@ -41,10 +41,8 @@ jobs:
             path: dist/**/*
             retention-days: 30
 
-  tests:
-    needs: 
-      - build
-    runs-on: ubuntu-latest
-    steps:
       - name: Test core algorithms
         run: npm test request core
+      - name: Test plugin sample
+        run: npm test gprincess
+

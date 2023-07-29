@@ -7,7 +7,9 @@ on:
   push:
     branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+    types:
+      - opened
+      - synchronize
 
 jobs:
   build:
@@ -40,3 +42,9 @@ jobs:
           name: mx-scraper-dist-folder
           path: dist/**/*
           retention-days: 30
+  tests:
+    needs:
+    
+    - name: Test core algorithms
+      run: npm test core request
+    

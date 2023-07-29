@@ -52,156 +52,162 @@ const html2 = `
     </div>
 `;
 
+test("HtmlParser.testMatch behaves correctly", () => {
+  expect(HtmlParser.testMatch("Hello World", "%World")).toBeTruthy();
+  expect(HtmlParser.testMatch("Hello World", "%World%")).toBeTruthy();
+  expect(HtmlParser.testMatch("Hello World", "@reg /wo(.+)/ig")).toBeTruthy();
 
-test('HtmlParser.testMatch behaves correctly', () => {
-    expect(HtmlParser.testMatch('Hello World', '%World')).toBeTruthy();
-    expect(HtmlParser.testMatch('Hello World', '%World%')).toBeTruthy();
-    expect(HtmlParser.testMatch('Hello World', '@reg /wo(.+)/ig')).toBeTruthy();
-
-    expect(HtmlParser.testMatch('Hello World', 'World%')).toBeFalsy();
-    expect(HtmlParser.testMatch('Hello World', 'World')).toBeFalsy();
-    expect(HtmlParser.testMatch('Hello World', 'world%')).toBeFalsy();
+  expect(HtmlParser.testMatch("Hello World", "World%")).toBeFalsy();
+  expect(HtmlParser.testMatch("Hello World", "World")).toBeFalsy();
+  expect(HtmlParser.testMatch("Hello World", "world%")).toBeFalsy();
 });
 
-test('Querying : Filter expects 5 results', () => {
-    const result = HtmlParser.use (html)
-                    .select ('span');
-    expect(result.all().length).toBe(5);
-    expect(result.count()).toBe(5);
+test("Querying : Filter expects 5 results", () => {
+  const result = HtmlParser.use(html)
+    .select("span");
+  expect(result.all().length).toBe(5);
+  expect(result.count()).toBe(5);
 });
 
-test('Querying : Filter with regex expects 1 result', () => {
-    const parser = HtmlParser.use (html);
-    const result = parser
-                    .select ('input[class="foo"]')
-                    .filter ('value', '@reg /[0-9]+/i');
-    expect(result.count()).toBe(1);
-    expect(result.first().asValue()).toBe('My pseudo is @JSX1234');
+test("Querying : Filter with regex expects 1 result", () => {
+  const parser = HtmlParser.use(html);
+  const result = parser
+    .select('input[class="foo"]')
+    .filter("value", "@reg /[0-9]+/i");
+  expect(result.count()).toBe(1);
+  expect(result.first().asValue()).toBe("My pseudo is @JSX1234");
 });
 
-test('Querying : Filter with attribute expects 3 results', () => {
-    const parser = HtmlParser.use (html);
-    const result = parser
-                    .select ('span')
-                    .filterAttr ('class', '@reg   /(.+)primary/');
-    expect(result.count()).toBe(3);
-    expect(result.nth(2).asText()).toContain('Two');
+test("Querying : Filter with attribute expects 3 results", () => {
+  const parser = HtmlParser.use(html);
+  const result = parser
+    .select("span")
+    .filterAttr("class", "@reg   /(.+)primary/");
+  expect(result.count()).toBe(3);
+  expect(result.nth(2).asText()).toContain("Two");
 });
 
+test("HtmlParserQueryResult.eval behaves correctly", () => {
+  const parser = HtmlParser.use(html);
 
-test('HtmlParserQueryResult.eval behaves correctly', () => {
-    const parser = HtmlParser.use (html);
-    
-    expect(parser.select('span').eval('attr.class = @reg /primary/').count())
-        .toBe(3); // One, Two, Three
+  expect(parser.select("span").eval("attr.class = @reg /primary/").count())
+    .toBe(3); // One, Two, Three
 
-    expect(parser.select('span').eval('text = @reg /One|Two/i').count())
-        .toBe(2); // ' One ', ' two '    
-    
-    expect(parser.select('input').eval('attr.type = text').count())
-        .toBe(2); // 'My name is John', 'My pseudo is @JSX1234'
-    
-    expect(parser.select('input').eval('attr.value = "%John%"').count())
-        .toBe(1); // 'My name is John'
-    
+  expect(parser.select("span").eval("text = @reg /One|Two/i").count())
+    .toBe(2); // ' One ', ' two '
+
+  expect(parser.select("input").eval("attr.type = text").count())
+    .toBe(2); // 'My name is John', 'My pseudo is @JSX1234'
+
+  expect(parser.select("input").eval('attr.value = "%John%"').count())
+    .toBe(1); // 'My name is John'
 });
 
-test('HtmlParserQueryResult.eval throws error correctly', () => {
-    const parser = HtmlParser.use (html);
-    // invalid (empty) literal 
-    expect(() => { parser.select('input').eval('attr.value = ') })
-        .toThrow();
-    // invalid expression
-    expect(() => { parser.select('input').eval('at tr.value = 1234') })
-        .toThrow();
-    // invalid expression
-    expect(() => { parser.select('input').eval('foo = 1234') })
-        .toThrow();
-    // invalid "
-    expect(() => { parser.select('input').eval('value = 1234"') })
-        .toThrow();
+test("HtmlParserQueryResult.eval throws error correctly", () => {
+  const parser = HtmlParser.use(html);
+  // invalid (empty) literal
+  expect(() => {
+    parser.select("input").eval("attr.value = ");
+  })
+    .toThrow();
+  // invalid expression
+  expect(() => {
+    parser.select("input").eval("at tr.value = 1234");
+  })
+    .toThrow();
+  // invalid expression
+  expect(() => {
+    parser.select("input").eval("foo = 1234");
+  })
+    .toThrow();
+  // invalid "
+  expect(() => {
+    parser.select("input").eval('value = 1234"');
+  })
+    .toThrow();
 });
 
-test('HtmlParserQueryResult.where throws error correctly', () => {
-    const parser = HtmlParser.use (html2);
-    // invalid symbol
-    expect(() => { parser.select('input').where ('text : %silly% --- html : %silly%') })
-        .toThrow();
-    // invalid expression
-    expect(() => { parser.select('input').where ('at tr.value = 1234') })
-        .toThrow();
+test("HtmlParserQueryResult.where throws error correctly", () => {
+  const parser = HtmlParser.use(html2);
+  // invalid symbol
+  expect(() => {
+    parser.select("input").where("text : %silly% --- html : %silly%");
+  })
+    .toThrow();
+  // invalid expression
+  expect(() => {
+    parser.select("input").where("at tr.value = 1234");
+  })
+    .toThrow();
 });
 
 test('Querying : "where" function behaves correctly', () => {
-    const parser = HtmlParser.use (html2);
+  const parser = HtmlParser.use(html2);
 
-    expect(
-        parser.select ('span')
-            .where (`text : %silly% | html : %silly%`)
-            .count()
-    ).toBe (2);
+  expect(
+    parser.select("span")
+      .where(`text : %silly% | html : %silly%`)
+      .count(),
+  ).toBe(2);
 
-    expect(
-        parser.select ('span')
-            .where (`text : %silly% & text : %bit% | attr.class : %urban%`)
-            .count()
-    ).toBe (3);
-    
-    expect(
-        parser.select ('span')
-            .where (`text : %silly% & (text : %bit% | attr.class : %urban%)`)
-            .count()
-    ).toBe (1);
+  expect(
+    parser.select("span")
+      .where(`text : %silly% & text : %bit% | attr.class : %urban%`)
+      .count(),
+  ).toBe(3);
 
-    expect(
-        parser.select ('span')
-            .where (`attr.class : text text-primary`)
-            .count()
-    ).toBe (4);
+  expect(
+    parser.select("span")
+      .where(`text : %silly% & (text : %bit% | attr.class : %urban%)`)
+      .count(),
+  ).toBe(1);
 
-    expect(
-        parser.select ('a>img')
-            .where (`attr.src : @reg /cat[0-1]+/`)
-            .count()
-    ).toBe (5);
+  expect(
+    parser.select("span")
+      .where(`attr.class : text text-primary`)
+      .count(),
+  ).toBe(4);
 
-    expect(
-        parser.select ('a>img')
-            .where (`attr.alt : %sleeping%   &  attr.src : @reg /cAt[0-1]+/i`)
-            .count()
-    ).toBe (1);
+  expect(
+    parser.select("a>img")
+      .where(`attr.src : @reg /cat[0-1]+/`)
+      .count(),
+  ).toBe(5);
 
+  expect(
+    parser.select("a>img")
+      .where(`attr.alt : %sleeping%   &  attr.src : @reg /cAt[0-1]+/i`)
+      .count(),
+  ).toBe(1);
 
-    expect(
-        parser.select ('a')
-            .where (`attr.href : %page%`)
-            .count()
-    ).toBe (3);
+  expect(
+    parser.select("a")
+      .where(`attr.href : %page%`)
+      .count(),
+  ).toBe(3);
 });
 
-
 test('Querying : "where" function edgecases should resolve', () => {
-    const parser = HtmlParser.use (html2);
+  const parser = HtmlParser.use(html2);
 
-    expect(
-        parser.select ('span')
-            .where (`
+  expect(
+    parser.select("span")
+      .where(`
                 text : %silly% & html : %silly% | html : %silly% 
                 & html : %silly% & html : %silly% | html : %silly%
             `)
-            .count()
-    ).toBe (2);
+      .count(),
+  ).toBe(2);
 
-    expect(
-        parser.select ('img')
-            .where (`(attr.src : %cat% | attr.src : %dog%) & attr.src : %.jpg`)
-            .count()
-    ).toBe (6);
+  expect(
+    parser.select("img")
+      .where(`(attr.src : %cat% | attr.src : %dog%) & attr.src : %.jpg`)
+      .count(),
+  ).toBe(6);
 
-    expect(
-        parser.select ('img')
-            .where (`attr.src : %dog% & attr.src : %.gif`)
-            .count()
-    ).toBe (0);
-
+  expect(
+    parser.select("img")
+      .where(`attr.src : %dog% & attr.src : %.gif`)
+      .count(),
+  ).toBe(0);
 });

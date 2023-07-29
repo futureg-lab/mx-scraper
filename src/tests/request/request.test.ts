@@ -5,12 +5,8 @@ import {
 
 test("Perform a get request without a proxy on example.com", async () => {
   const request = new CustomRequest();
-  try {
-    const text_response = await request.get("http://www.example.com/");
-    expect(text_response).toContain("example");
-  } catch (err) {
-    fail(err);
-  }
+  const text_response = await request.get("http://www.example.com/");
+  expect(text_response).toContain("example");
 });
 
 test("Perform a get request with headless_mode=true on example.com", async () => {

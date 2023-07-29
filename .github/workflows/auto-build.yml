@@ -33,5 +33,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
             name: mx-scraper-dist-folder
-            path: build/**/*
+            path: bin/**/*
             retention-days: 30

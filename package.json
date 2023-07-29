@@ -1,6 +1,6 @@
 {
   "name": "mx-scraper",
-  "version": "3.2.2",
+  "version": "3.2.1",
   "description": "Manga website scraper",
   "main": "index.js",
   "scripts": {
@@ -55,6 +55,7 @@
   },
   "dependencies": {
     "@types/puppeteer": "^5.4.7",
+    "axios": "^0.27.2",
     "cheerio": "^1.0.0-rc.12",
     "cli-progress": "^3.11.2",
     "fs-extra": "^10.1.0",

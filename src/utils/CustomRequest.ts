@@ -1,3 +1,4 @@
+import axios, { AxiosRequestConfig } from 'axios';
 import { FlareSolverrClient, FlareSolverrCommand } from './FlareSolverrClient';
 import * as fs from 'fs';
 import { UniqueHeadlessBrowser } from './UniqueHeadlessBrowser';
@@ -77,7 +78,7 @@ export class CustomRequest {
                 cmd : 'request.get',
                 url : target_url
             };
-            const { solution } = await solver.performCommand (cmd);
+            const {solution} = await solver.performCommand (cmd);
             return solution.response;
         }
         return await CustomRequest.doGet (target_url, this.renderHTML, this.reuse_instance);
@@ -99,8 +100,13 @@ export class CustomRequest {
             return html;
         }
 
-        const res = await fetch(target_url, { redirect: 'follow' });
-        return await res.text();
+        // perform a simple request with axios
+        let axios_req_conf : AxiosRequestConfig = {
+            url : target_url,
+            method : 'GET'
+        };
+        const {data} = await axios(axios_req_conf);
+        return <string> data;
     }
 
     async downloadImage (target_url : string, output_location_path : string, count_max : number = 1) {
@@ -147,10 +153,17 @@ export class CustomRequest {
      * @param output_location_path where to save the file
      */
     async download (target_url : string, output_location_path : string) {
-        const response = await fetch (target_url);
-        const buffer = await response.arrayBuffer();
-        fs.writeFileSync(output_location_path, Buffer.from(buffer));
-        return output_location_path;
+        const response = await axios ({
+            method: 'get',
+            url: target_url,
+            responseType: 'stream'
+        });
+        const writer = fs.createWriteStream (output_location_path);
+        response.data.pipe (writer);
+        return new Promise<unknown> ((resolve, reject) => {
+            writer.on ('finish', resolve);
+            writer.on ('error', reject);
+        });
     }
 
 

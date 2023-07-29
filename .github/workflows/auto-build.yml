@@ -1,4 +1,7 @@
-# git tag <= list versions
+# git tag
+# git tag vx.y.z
+# git push --tag
+
 on:
  push:
    tags:
@@ -36,9 +39,7 @@ jobs:
         run: node auto-build.js
         
       - name: Run mx-scraper --help
-        run: |
-          cd bin
-          ./mx-scraper${{ matrix.extension }} --help
+        run: ./bin/mx-scraper${{ matrix.extension }} --help
 
       - name: Run mx-scraper --infos
         run: |
@@ -50,10 +51,10 @@ jobs:
           cd bin
           tar -czvf ../mx-scraper-${{ github.ref_name }}-${{ matrix.os }}.tar.gz *
       
-      - name: Run release 
+      - name: Release ${{ matrix.os }}
         uses: svenstaro/upload-release-action@v2
         with:
           tag: ${{ github.ref }}
-          file: "mx-scraper-${{ github.ref_name }}-${{ matrix.target }}.tar.gz"
-          asset_name: "mx-scraper-${{ github.ref_name }}-${{ matrix.target }}.tar.gz"
+          file: "mx-scraper-${{ github.ref_name }}-${{ matrix.os }}.tar.gz"
+          asset_name: "mx-scraper-${{ github.ref_name }}-${{ matrix.os }}.tar.gz"
           overwrite: true

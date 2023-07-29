@@ -21,9 +21,12 @@ jobs:
     services:
       flaresolverr:
         image: flaresolverr/flaresolverr
-        ports:
-          - 8191
-        options: --cpus 1
+        options: >-
+          -p 8191:8191
+          --cpus 1
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout

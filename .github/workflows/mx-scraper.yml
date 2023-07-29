@@ -17,6 +17,15 @@ jobs:
       matrix:
         node-version: [14.x, 16.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+    
+    services:
+      flaresolverr:
+        image: flaresolverr/flaresolverr
+        ports:
+          - 8191
+        options: >-
+          -p 8191:8191
+          --cpus 1
 
     steps:
       - name: Checkout
@@ -41,10 +50,8 @@ jobs:
             path: dist/**/*
             retention-days: 30
 
-  tests:
-    needs: 
-      - build
-    runs-on: ubuntu-latest
-    steps:
       - name: Test core algorithms
         run: npm test request core
+      - name: Test plugin sample
+        run: npm test gprincess
+

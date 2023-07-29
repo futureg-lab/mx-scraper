@@ -19,29 +19,30 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-      
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          
+      - name: Installing packages
+        run: npm ci
         
-    - name: Installing packages
-      run: npm ci
-      
-    - name: Trying to compile
-      run: npx tsc
-    
-    - name: Archive compiled js files
-      uses: actions/upload-artifact@v3
-      with:
-          name: mx-scraper-dist-folder
-          path: dist/**/*
-          retention-days: 30
+      - name: Trying to compile
+        run: npx tsc
+
+      - name: Archive compiled js files
+        uses: actions/upload-artifact@v3
+        with:
+            name: mx-scraper-dist-folder
+            path: dist/**/*
+            retention-days: 30
+
   tests:
     needs: build
-    - name: Test core algorithms
-      run: npm test request core
-
+    steps:
+      - name: Test core algorithms
+        run: npm test request core

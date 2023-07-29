@@ -1,4 +1,8 @@
-import { HtmlNode, HtmlParser, HtmlParserQueryResult } from "../utils/HtmlParser";
+import {
+  HtmlNode,
+  HtmlParser,
+  HtmlParserQueryResult,
+} from "../utils/HtmlParser";
 
 const html = `
     <div>
@@ -31,8 +35,7 @@ const html = `
     </div>
 `;
 
-
-const parser = HtmlParser.use (html);
+const parser = HtmlParser.use(html);
 // const res = parser
 //                 .select ('input[class="foo"]')
 //                 .filter ('value', '@reg /[0-9]+/i');
@@ -40,16 +43,15 @@ const parser = HtmlParser.use (html);
 
 // const res2 = parser.select ('#gender');
 // console.log('Item count', res2.count(), res2.all().map(x => x.asValue()));
-    // .where ('(1 & ('2 | 3)) | (4 & 5 | 6)');
+// .where ('(1 & ('2 | 3)) | (4 & 5 | 6)');
 
 // console.log(parser.select('span').eval('attr.class = @reg /primary/').map((_, i) => _.asText()));
 // console.log(parser.select('input').eval('attr.type = text').all().map(_ => _.asValue()));
 // console.log(parser.select('input').eval('value = "%John%"').all().map(_ => _.asValue()));
 // console.log(parser.select('span').eval('text = @reg /One|Two/i').all().map(_ => _.asText()));
 
-
 let res = parser
-            .select('span')
-            .where(`text : %One% & (text : %One% | text : %Two%)`);
+  .select("span")
+  .where(`text : %One% & (text : %One% | text : %Two%)`);
 
-console.log (res.map(x => x.asText()), res.count());
+console.log(res.map((x) => x.asText()), res.count());

@@ -1,7 +1,4 @@
-import * as Puppeteer from "puppeteer";
 import { CustomRequest } from "../utils/CustomRequest";
-import { HeadlessBrowser, TypeEngine } from "../utils/HeadlessBrowser";
-import { UniqueHeadlessBrowser } from "../utils/UniqueHeadlessBrowser";
 
 (async () => {
   // const headless = await HeadlessBrowser.getInstance (TypeEngine.JSDOM);

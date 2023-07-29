@@ -17,6 +17,10 @@ jobs:
       matrix:
         node-version: [14.x, 16.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+    
+    services:
+      flaresolverr:
+        image: flaresolverr
 
     steps:
       - name: Checkout

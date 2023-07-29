@@ -25,7 +25,7 @@ test("Perform a get request with headless_mode=true on example.com", async () =>
     const text_response = await request.get("http://www.example.com/");
     expect(text_response).toContain("example");
   } catch (err) {
-    fail(err);
+    throw err;
   } finally {
     await request.destroy();
   }
@@ -36,30 +36,22 @@ test("Perform a get request using a proxy on example.com", async () => {
     proxy_url: "http://localhost:8191/v1",
   };
   const request = new CustomRequest(option);
-  try {
-    const text_response = await request.get("http://www.example.com/");
-    expect(text_response).toContain("example");
-  } catch (err) {
-    fail(err);
-  }
+  const text_response = await request.get("http://www.example.com/");
+  expect(text_response).toContain("example");
 });
 
 test("Browser context should not conflict when request is destroyed", async () => {
-  try {
-    let n_instances = 3;
-    const target_url = "http://www.example.com/";
-    while (n_instances--) {
-      const request = new CustomRequest();
+  let n_instances = 3;
+  const target_url = "http://www.example.com/";
+  while (n_instances--) {
+    const request = new CustomRequest();
 
-      request.enableRendering();
-      request.enableReUsingBrowserInstance();
-      const html = await request.get(target_url);
-      expect(html).toContain("example");
+    request.enableRendering();
+    request.enableReUsingBrowserInstance();
+    const html = await request.get(target_url);
+    expect(html).toContain("example");
 
-      await request.destroy();
-    }
-  } catch (err) {
-    fail(err);
+    await request.destroy();
   }
 });
 
@@ -69,10 +61,7 @@ test("Perform a get request on example.com", async () => {
   };
 
   const request = new CustomRequest(option);
-  try {
-    const text_response = await request.get("http://www.example.com/");
-    expect(text_response).toContain("example");
-  } catch (err) {
-    fail(err);
-  }
+  const text_response = await request.get("http://www.example.com/");
+  expect(text_response).toContain("example");
+
 });

@@ -22,8 +22,11 @@ jobs:
           
       - name: Installing packages
         run: npm ci
+        
+      - name: Installing pkg cli
+        run: npm install -g pkg
 
-      - name: Trying to compile
+      - name: Building mx-scraper
         run: node auto-build.js
 
       - name: Archive compiled build

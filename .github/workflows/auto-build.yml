@@ -1,0 +1,63 @@
+# git tag <= list versions
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  build-linux-x64:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install nodejs
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+
+      - name: Installing packages
+        run: npm ci
+        
+      - name: Installing pkg cli
+        run: npm install -g pkg
+
+      - name: Building mx-scraper
+        run: node auto-build.js
+
+      - name: Archive compiled build
+        uses: actions/upload-artifact@v3
+        with:
+            name: mx-scraper-linux-x64
+            path: bin/**/*
+            retention-days: 30
+
+
+  build-windows-x64:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install nodejs
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+
+      - name: Installing packages
+        run: npm ci
+        
+      - name: Installing pkg cli
+        run: npm install -g pkg
+
+      - name: Building mx-scraper
+        run: node auto-build.js
+
+      - name: Archive compiled build
+        uses: actions/upload-artifact@v3
+        with:
+            name: mx-scraper-windows-x64
+            path: bin/**/*
+            retention-days: 30

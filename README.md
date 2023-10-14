@@ -25,9 +25,10 @@ mx-scraper -v -d --load-plan danbooru.yaml --plan-params TAG=bocchi_the_rock! "T
 mx-scraper -v -d -mo --load-plan danbooru.yaml --plan-params TAG=bocchi_the_rock!
 ```
 
-## Configuring
+## Configuration
 MXScraper will automatically create a `mx-scraper.config.json` file
 ```ts
+// config spec
 interface MXConfiguration {
   VERSION: string;
   CLOUDFARE_PROXY_HOST: string,
@@ -55,23 +56,13 @@ interface MXConfiguration {
 };
 ```
 
-## Building and Testing
-### Testing
-```
+## Testing
+```bash
 npm test
 ```
 
-### Compile to javascript
-```
-npx tsc
-```
-### Compile to javascript and Watch
-```
-npm start
-```
-
-# Packaging
+## Building
 You must specify the target platform in your package.json depending on your host computer 
-```
+```bash
 node auto-build.js
 ```

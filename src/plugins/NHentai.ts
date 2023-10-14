@@ -11,8 +11,7 @@ import {
   TitleAlias,
 } from "../core/BookDef";
 import { MXPlugin } from "../core/MXPlugin";
-import { CustomRequest, FlareSolverrProxyOption } from "../utils/CustomRequest";
-import { config } from "../environment";
+import { CustomRequest } from "../utils/CustomRequest";
 import { decodeUnicodeCharacters } from "../utils/Utils";
 import { MXLogger } from "../cli/MXLogger";
 
@@ -47,7 +46,7 @@ export class NHentai extends MXPlugin {
 
     // titles
     const titles: TitleAlias[] = [];
-    for (let lang in json.title) {
+    for (const lang in json.title) {
       if (!json.title[lang] || json.title[lang] == "") continue;
       titles.push(
         <TitleAlias> {
@@ -61,7 +60,7 @@ export class NHentai extends MXPlugin {
     );
 
     // author ?
-    let authors: Author[] = json
+    const authors: Author[] = json
       .tags
       .filter((tag: any) => ["artist", "group"].includes(tag.type))
       .map((tag: any) =>

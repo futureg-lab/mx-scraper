@@ -124,30 +124,26 @@ export class CustomRequest {
   async downloadImage(
     target_url: string,
     output_location_path: string,
-    count_max: number = 1,
   ) {
     if (this.renderHTML) {
       const unique = await UniqueHeadlessBrowser.getInstance();
       const headless = unique.getHeadlessBrowser();
-      const browser = headless.getBrowser() as Puppeteer.Browser;
+      const browser = headless.getBrowser();
       const page = await browser.newPage();
       try {
         let count = 0;
-        page.on("response", async (response) => {
-          if (count > count_max) return;
-          const matches = /.*\.(jpg|jpeg|png|svg|gif|webp)$/.exec(
-            response.url(),
-          );
-          if (
-            response.request().resourceType() == "image" ||
-            matches && (matches.length == 2)
-          ) {
-            const buffer = await response.buffer();
-            fs.writeFileSync(output_location_path, buffer, "base64");
-            count++;
-          }
-        });
-        await page.goto(target_url);
+        const response = await page.goto(target_url);
+        const matches = /.*\.(jpg|jpeg|png|svg|gif|webp)$/.exec(
+          response.url(),
+        );
+        if (
+          response.request().resourceType() == "image" ||
+          matches && (matches.length == 2)
+        ) {
+          const buffer = await response.buffer();
+          fs.writeFileSync(output_location_path, buffer, "base64");
+          count++;
+        }
         return true;
       } catch (err) {
         throw err;

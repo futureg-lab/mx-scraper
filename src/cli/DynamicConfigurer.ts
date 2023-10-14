@@ -3,7 +3,6 @@ import * as path from "path";
 import { config } from "../environment";
 import { MXLogger } from "./MXLogger";
 import { argv } from "node:process";
-import * as mx from "../core/MXScraper";
 
 /**
  * Provides a way to override the configuration located in `src/environment.ts`
@@ -65,8 +64,8 @@ export class DynamicConfigurer {
         `Cannot override configuration: config v${version ?? "<=3.2.2"} not compatible with MXScraper v${this.mxVersion()}`
       );
     }
-    for (const key in json) {
-      config[key] = json[key];
+    for (const [k, v] of Object.entries(json)) {
+      this.overrideField(k, v);
     }
   }
 

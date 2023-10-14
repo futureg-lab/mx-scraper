@@ -9,6 +9,7 @@ import {
 } from "../core/BookDef";
 import { MXPlugin } from "../core/MXPlugin";
 import { CustomRequest } from "../utils/CustomRequest";
+import { HtmlParser } from "../utils/HtmlParser";
 
 export class Example extends MXPlugin {
   title: string = "Example";
@@ -26,8 +27,11 @@ export class Example extends MXPlugin {
 
   override async fetchBook(identifier: string): Promise<Book> {
     const html = await this.request.get(this.target_url);
-    const $: CheerioAPI = load(html);
-    const content = $("body").text().trim();
+    const parser = HtmlParser.use(html);
+    const content = parser
+      .select("body")
+      .first()
+      .asText();
 
     return <Book> {
       title: "Example",

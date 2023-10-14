@@ -67,7 +67,7 @@ export class Kemono extends MXPlugin {
         `(total ${result.length})`,
       );
 
-      for (let imageUrl of result) {
+      for (const imageUrl of result) {
         const [name, ext] = imageUrl
           .substring(imageUrl.lastIndexOf("/") + 1)
           .split(".");

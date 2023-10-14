@@ -23,15 +23,15 @@ export class HeadlessBrowser {
    * @param type
    */
   private async initializeBrowser() {
-    let browser_path = Puppeteer.executablePath();
+    let browser_path = config.BROWSER.EXEC_PATH;
 
-    if (!DynamicConfigurer.isDevMode()) {
-      browser_path = config.HEADLESS["EXEC_PATH"] || browser_path;
+    if (DynamicConfigurer.isDevMode()) {
+      browser_path = Puppeteer.executablePath();
     }
 
     this.browser = await Puppeteer.launch({
       executablePath: browser_path,
-      headless: config.HEADLESS.HEADFULL ? false: "new",
+      headless: config.BROWSER.MODE == "HEADLESS" ? "new" : false,
     });
     this.instance_infos.exec_path = browser_path;
   }

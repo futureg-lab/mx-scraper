@@ -6,9 +6,7 @@ import {
   Metadata,
   Page,
   PluginOption,
-  SearchOption,
   Tag,
-  TitleAlias,
 } from "../core/BookDef";
 import { MXPlugin } from "../core/MXPlugin";
 import { CustomRequest } from "../utils/CustomRequest";

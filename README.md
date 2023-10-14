@@ -27,38 +27,32 @@ mx-scraper -v -d -mo --load-plan danbooru.yaml --plan-params TAG=bocchi_the_rock
 
 ## Configuring
 MXScraper will automatically create a `mx-scraper.config.json` file
-```json
-{
-  "CLOUDFARE_PROXY_HOST": "http://localhost:8191/v1",
-  "CLOUDFARE_MAX_TIMEOUT": 120000,
-  "LOAD_PLUGINS": [
-    "Plugin1",
-    "Plugin2",
-    "...."
-  ],
-  "PLUGIN_PROXY_ENABLE": [
-    "Plugin1",
-    "Plugin9",
-    "..."
-  ],
-  "HEADLESS": {
-    "ENGINE": "PUPPETEER",
-    "ENABLE": true,
-    "EXEC_PATH": "./browser/chrome"
+```ts
+interface MXConfiguration {
+  VERSION: string;
+  CLOUDFARE_PROXY_HOST: string,
+  CLOUDFARE_MAX_TIMEOUT: number,
+  LOAD_PLUGINS: Array<string>,
+  BROWSER: {
+    ENABLE: boolean,
+    MODE: "HEADFULL" | "HEADLESS";
+    EXEC_PATH: string,
   },
-  "DOWNLOAD_FOLDER": {
-    "DOWNLOAD": "./download/download",
-    "TEMP": "./download/temp"
+  PLUGIN_PROXY_ENABLE: Array<string>,
+  DOWNLOAD_FOLDER: {
+    DOWNLOAD: string,
+    TEMP: string,
   },
-  "CACHE": {
-    "ENABLE": true,
-    "FOLDER": "./query_cache"
+  CACHE: {
+    ENABLE: boolean,
+    FOLDER: string,
   },
-  "LOGGER": {
-    "ENABLE": true
+  MAX_SIZE_BATCH: number,
+  LOGGER: {
+    ENABLE: boolean,
   },
-  "SHOW_CLI_ERROR_STACK": true
-}
+  SHOW_CLI_ERROR_STACK: boolean,
+};
 ```
 
 ## Building and Testing

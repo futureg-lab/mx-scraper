@@ -75,7 +75,7 @@ export async function downloadBook(
 ) {
   const request: CustomRequest = new CustomRequest();
 
-  if (config.HEADLESS.ENABLE || option.forceHeadless) {
+  if (config.BROWSER.ENABLE || option.forceHeadless) {
     request.enableRendering();
   }
 

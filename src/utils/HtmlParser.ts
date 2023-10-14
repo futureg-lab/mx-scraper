@@ -8,7 +8,8 @@ type MapFunc<T> = {
 };
 
 /**
- * Simple CheerioAPI wrapper
+ * CheerioAPI wrapper for enabling SQL-like filters.
+ * 
  * In most cases, we may want :
  * * An array of things
  * * The nth item
@@ -17,22 +18,20 @@ type MapFunc<T> = {
  * * A count
  * * A recursive load call (example from one page to another)
  *
- * * Logic :
+ * Example:
+ * ```
  *  parser.select('div')
- *        .where('property = some_text [& [| ...]] ')
+ *        .where('attr.name1 = v1 & (attr.name2 = v2 | some_prop = v3) ..')
  *        .nth(x), all(), last(), first()
  *        .asText(), asHtml(), asValue ()
+ * ```
  */
 export class HtmlParser {
   private $: CheerioAPI = null;
-  private html: string = null;
-  private query: string = null;
-
-  private constructor() {}
+  private constructor(readonly html: string) {}
 
   static use(html: string) {
-    const parser = new HtmlParser();
-    parser.html = html;
+    const parser = new HtmlParser(html);
     parser.$ = load(html);
     return parser;
   }
@@ -95,7 +94,6 @@ export class HtmlParser {
    */
   select(query: string): HtmlParserQueryResult {
     const $ = this.$;
-    this.query = query;
     const result = $(query).toArray()
       .map((node) => HtmlNode.from($, node));
     return new HtmlParserQueryResult(result);

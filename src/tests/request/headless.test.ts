@@ -37,6 +37,6 @@ test("Perform a request using PUPPETEER", async () => {
   } catch (err) {
     throw err;
   } finally {
-    headless?.destroy();
+    await headless?.destroy();
   }
 });

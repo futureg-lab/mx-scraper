@@ -20,6 +20,7 @@ import { config } from "../environment";
 import { DynamicConfigurer } from "./DynamicConfigurer";
 import { UniqueHeadlessBrowser } from "../utils/UniqueHeadlessBrowser";
 import { QueryPlan } from "../core/QueryPlan";
+import { outdent } from "outdent";
 
 export class MXcli extends CLIEngine {
   constructor() {
@@ -122,7 +123,7 @@ export class MXcli extends CLIEngine {
         "FetchMeta-List",
         "FetchMeta-List-From-File",
       ];
-      for (let fetch_method of list_expected) {
+      for (const fetch_method of list_expected) {
         if (parsed.has(fetch_method)) {
           used_count++;
           input_entries = parsed.get(fetch_method);
@@ -156,7 +157,7 @@ export class MXcli extends CLIEngine {
           throw Error('Plugin named "' + plugin_name + '" is not present');
         }
       } else {
-        let result = engine.searchPluginFor(
+        const result = engine.searchPluginFor(
           titles[0],
           parsed.has("Exact-Match"),
         );
@@ -185,30 +186,24 @@ export class MXcli extends CLIEngine {
   async commandPrintInfos(_verbose: boolean) {
     const singleton = await UniqueHeadlessBrowser.getInstance();
     const infos = singleton.getHeadlessBrowser().infos();
-    const is_headless = config.HEADLESS["ENABLE"];
-    const puppeter_enabled = config.HEADLESS["ENABLE"] &&
-      config.HEADLESS["ENGINE"] == "PUPPETEER";
-    const str = this.headerString() +
-      " - Current mode: " + (DynamicConfigurer.isDevMode() ? "Dev" : "Prod") +
-      "\n" +
-      " - FlareSolverr:\n" +
-      "    - Host: " + config.CLOUDFARE_PROXY_HOST + "\n" +
-      "    - Max timeout: " + config.CLOUDFARE_MAX_TIMEOUT + "\n" +
-      "    - Active on: " + config.PLUGIN_PROXY_ENABLE.join(", ") + "\n" +
-      " - Cache: " + (config.CACHE.ENABLE ? "Enabled" : "Disabled") + "\n" +
-      " - Full error stack: " +
-      (config.SHOW_CLI_ERROR_STACK ? "Enabled" : "Disabled") + "\n" +
-      " - Headless mode: \n" +
-      "    - Status: " + (config.HEADLESS["ENABLE"] ? "Enabled" : "Disabled") + "\n"
-      "    - Headfull: " + (config.HEADLESS["HEADFULL"] ? "Enabled" : "Disabled")  + "\n" +
-      "\n" +
-      "    - Current engine : " +
-      (is_headless ? (config.HEADLESS["ENGINE"] || "---") : "---") + "\n" +
-      (puppeter_enabled
-        ? ("    - Executable: \n" +
-          "       - Config: " + config.HEADLESS["EXEC_PATH"] + "\n" +
-          "       - Active: " + infos.exec_path + "\n")
-        : "\n");
+
+    const str = this.headerString() + outdent`
+    - MXScraper environment: ${
+      DynamicConfigurer.isDevMode() ? "Dev" : "Release"
+    }
+    - FlareSolverr:
+      - Host: ${config.CLOUDFARE_PROXY_HOST}
+      - Max timeout: ${config.CLOUDFARE_MAX_TIMEOUT}
+      - Active on: ${config.PLUGIN_PROXY_ENABLE.join(", ")}
+    - Cache: ${config.CACHE.ENABLE ? "Enabled" : "Disabled"}
+    - Full error stack: ${config.SHOW_CLI_ERROR_STACK ? "Enabled" : "Disabled"}
+    - Browser:
+      - Status: ${config.BROWSER.ENABLE ? "Enabled" : "Disabled"}
+      - Mode: ${config.BROWSER.MODE}
+      - Executable:
+        - Config: ${config.BROWSER.EXEC_PATH}
+        - Active: ${infos.exec_path}
+    `;
 
     UniqueHeadlessBrowser.destroy();
     console.log(str);
@@ -229,8 +224,8 @@ export class MXcli extends CLIEngine {
     this.displayPluginList(plugins, verbose);
   }
 
-  private commandPrintHelp(engine: MXScraper, verbose: boolean = false) {
-    let examples = [
+  private commandPrintHelp(_: MXScraper, verbose: boolean = false) {
+    const examples = [
       "mx-scraper --help --verbos",
       "mx-scraper --infos",
       "mx-scraper -h -v",
@@ -248,9 +243,9 @@ export class MXcli extends CLIEngine {
       'mx-scraper -v -d --load-plan danbooru.yaml --plan-params TAG=bocchi_the_rock! "TITLE=Bocchi The Rock"',
     ];
 
-    let commands_instr = [];
+    const commands_instr = [];
     const keys = Array.from(this.commands.keys());
-    for (let key of keys) {
+    for (const key of keys) {
       const command = this.commands.get(key);
       let verb_text = "";
       if (verbose) {
@@ -282,7 +277,7 @@ export class MXcli extends CLIEngine {
   private displayPluginList(plugins: MXPlugin[], verbose: boolean = false) {
     let infos = "";
 
-    for (let { title, version, target_url, author } of plugins) {
+    for (const { title, version, target_url, author } of plugins) {
       infos += "\t* " +
         title +
         " version " + version +
@@ -309,7 +304,7 @@ export class MXcli extends CLIEngine {
     if (download_option && download_option.parallel) {
       const batches = batchAListOf<string>(titles, config.MAX_SIZE_BATCH);
       let count = 1;
-      for (let batch of batches) {
+      for (const batch of batches) {
         MXLogger.info("\n # Batch " + (count++) + "/" + batches.length);
         await this.parallelFetchAllThenDownload(plugin, batch, download_option);
       }
@@ -351,9 +346,9 @@ export class MXcli extends CLIEngine {
     download_option: DownloadOption = null,
     verbose: boolean,
   ) {
-    for (let title of titles) {
+    for (const title of titles) {
       try {
-        let book: Book = await plugin.getBook(title);
+        const book: Book = await plugin.getBook(title);
         console.log(resumeBook(book, verbose));
         await this.fetchBookInteractively(book, download_option);
       } catch (err) {
@@ -379,7 +374,7 @@ export class MXcli extends CLIEngine {
     try {
       // Fetch metadatas first
       console.log(" Fetching book metadata.. ");
-      for (let title of titles) {
+      for (const title of titles) {
         const book = await plugin.getBook(title);
         books.push(book);
       }
@@ -387,7 +382,7 @@ export class MXcli extends CLIEngine {
 
       // download concurrently
       const processes: Promise<void>[] = [];
-      for (let book of books) {
+      for (const book of books) {
         let sub_progress: cliProgress.SingleBar = null;
         const callback: DownloadProgressCallback = (msg, curr, total, _) => {
           const payload = { sourceid: book.source_id, msg: msg };
@@ -421,6 +416,6 @@ export class MXcli extends CLIEngine {
   }
 
   private headerString() {
-    return "MXScraper-CLI v" + DynamicConfigurer.mxVersion() + " - FutureG-lab\n";
+    return `MXScraper-CLI v${DynamicConfigurer.mxVersion()} - FutureG-lab\n`;
   }
 }

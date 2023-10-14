@@ -1,6 +1,31 @@
 import { DynamicConfigurer } from "./cli/DynamicConfigurer";
+export interface MXConfiguration {
+  VERSION: string;
+  CLOUDFARE_PROXY_HOST: string;
+  CLOUDFARE_MAX_TIMEOUT: number;
+  LOAD_PLUGINS: Array<string>;
+  BROWSER: {
+    ENABLE: boolean;
+    MODE: "HEADFULL" | "HEADLESS";
+    EXEC_PATH: string;
+  };
+  PLUGIN_PROXY_ENABLE: Array<string>;
+  DOWNLOAD_FOLDER: {
+    DOWNLOAD: string;
+    TEMP: string;
+  };
+  CACHE: {
+    ENABLE: boolean;
+    FOLDER: string;
+  };
+  MAX_SIZE_BATCH: number;
+  LOGGER: {
+    ENABLE: boolean;
+  };
+  SHOW_CLI_ERROR_STACK: boolean;
+}
 
-export const config = {
+export const config: MXConfiguration = {
   VERSION: DynamicConfigurer.mxVersion(),
   CLOUDFARE_PROXY_HOST: "http://localhost:8191/v1",
   CLOUDFARE_MAX_TIMEOUT: 120000,
@@ -12,8 +37,8 @@ export const config = {
     "Eyval",
     "Kemono",
   ],
-  HEADLESS: {
-    HEADFULL: false,
+  BROWSER: {
+    MODE: "HEADLESS",
     ENABLE: false,
     EXEC_PATH: "./browser/chrome",
   },

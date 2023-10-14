@@ -98,13 +98,12 @@ export class HtmlParser {
     this.query = query;
     const result = $(query).toArray()
       .map((node) => HtmlNode.from($, node));
-    return new HtmlParserQueryResult(this, result);
+    return new HtmlParserQueryResult(result);
   }
 }
 
 export class HtmlParserQueryResult {
   private result: HtmlNode[] = [];
-  private parser: HtmlParser = null;
 
   static SYMBOLS: PSymbol[] = ["&", "|", "(", ")"];
   static SYM_PRIORITY: PPriority = {
@@ -118,8 +117,7 @@ export class HtmlParserQueryResult {
       unionSet<HtmlNode>(new Set<HtmlNode>(a), new Set<HtmlNode>(b)),
   };
 
-  constructor(parser: HtmlParser, result: HtmlNode[]) {
-    this.parser = parser;
+  constructor(result: HtmlNode[]) {
     this.result = result;
   }
 
@@ -148,11 +146,11 @@ export class HtmlParserQueryResult {
       throw Error('invalid expression "' + qstr + "'");
     }
 
-    let [, field, operator, value] = matches;
+    let [, field, _operator, value] = matches;
     [field, value] = [field, value].map((_) => _.trim());
 
     const str_regex = /^"(.*)"$|^'(.*)'$/;
-    let is_string = str_regex.test(value);
+    const is_string = str_regex.test(value);
     if (is_string) {
       // assuming value is trimed
       const temp = value.match(str_regex);
@@ -205,21 +203,22 @@ export class HtmlParserQueryResult {
     }
 
     if (node.isLeaf()) {
-      // node.value
       const node_eval = HtmlParserQueryResult.evalResult(
         node.value,
         list_nodes,
       );
       return node_eval;
     }
-    let operator = node.value;
-    let operator_func = HtmlParserQueryResult.OPERATOR_FUNC[operator];
+    const operator = node.value;
+    const operator_func = HtmlParserQueryResult.OPERATOR_FUNC[operator];
     if (!operator_func) {
       throw Error('symbol "' + operator + "' is not an operator");
     }
-    let left_eval = HtmlParserQueryResult.whereHelper(node.left, list_nodes);
-    let right_eval = HtmlParserQueryResult.whereHelper(node.right, list_nodes);
-    let res_set: Set<HtmlNode> = operator_func(left_eval, right_eval);
+    // TODO: optimize
+    // maybe tag known excluded subsets?
+    const left_eval = HtmlParserQueryResult.whereHelper(node.left, list_nodes);
+    const right_eval = HtmlParserQueryResult.whereHelper(node.right, list_nodes);
+    const res_set: Set<HtmlNode> = operator_func(left_eval, right_eval);
     return Array.from(res_set);
   }
 

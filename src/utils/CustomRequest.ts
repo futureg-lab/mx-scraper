@@ -160,7 +160,6 @@ export class CustomRequest {
         }
       }
     }
-    // renderHtml false | headless.infos() == 'JSDOM'
     await new CustomRequest().download(target_url, output_location_path);
     return true;
   }

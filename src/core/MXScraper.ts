@@ -5,11 +5,10 @@ import { levenshtein } from "../utils/Utils";
 import * as fs from "fs";
 import * as path from "path";
 import { MXLogger } from "../cli/MXLogger";
-
-const version: string = require("../../package.json").version;
+import { DynamicConfigurer } from "../cli/DynamicConfigurer";
 
 export class MXScraper {
-  static version = version;
+  static version = DynamicConfigurer.mxVersion();
   static plugin_base_path = "../plugins";
   private plugins: MXPlugin[] = [];
   private enable_proxy_map: Map<string, PluginOption> = new Map<

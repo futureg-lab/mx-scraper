@@ -6,8 +6,8 @@ import * as fs from "fs";
 import * as fsextra from "fs-extra";
 import * as crypto from "crypto";
 import { config } from "../environment";
-import { MXScraper } from "../core/MXScraper";
 import { MXPlugin } from "../core/MXPlugin";
+import { DynamicConfigurer } from "../cli/DynamicConfigurer";
 
 /**
  * Callback used to notify download progression
@@ -54,7 +54,7 @@ export interface DownloadOption {
  */
 export function createJsonDataOf(folder_path: string, book: Book) {
   const json = <DownloadBookMeta> {
-    engine: "MXScraper v" + MXScraper.version,
+    engine: "MXScraper v" + DynamicConfigurer.mxVersion(),
     date: new Date(),
     book: book,
   };
@@ -115,9 +115,8 @@ export async function downloadBook(
   };
 
   if (!option.meta_only) {
-    for (let chapter of book.chapters) {
+    for (const chapter of book.chapters) {
       // ex: temp/mangatitle/chapter-1
-      // there is no need
       const chapter_folder_temp_path = getChapterPath(
         book_temp_folder_path,
         chapter,
@@ -133,7 +132,7 @@ export async function downloadBook(
 
       createJsonDataOf(book_temp_folder_path, book);
 
-      for (let page of chapter.pages) {
+      for (const page of chapter.pages) {
         // download
         const download_anyway = !(
           option != null &&

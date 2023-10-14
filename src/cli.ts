@@ -2,7 +2,6 @@ import { MXcli } from "./cli/MXcli";
 import { config } from "./environment";
 import { MXScraper } from "./core/MXScraper";
 import { DynamicConfigurer } from "./cli/DynamicConfigurer";
-import { MXLogger } from "./cli/MXLogger";
 
 const [, , ...argv] = process.argv;
 

@@ -90,7 +90,7 @@ export class CustomAST {
       ast_nodes.push(node);
     };
 
-    for (let token of tokens) {
+    for (const token of tokens) {
       running_expr += token;
       if (this.symbols.includes(token)) {
         if (token == EParenthesis.OPEN) {
@@ -141,7 +141,7 @@ export class CustomAST {
       throw Error("parenthesis invalid");
     }
 
-    // leftover
+    // remainder
     while (operators.length > 0) {
       const top = operators.pop();
       expressions += top;

@@ -11,7 +11,7 @@ import {
   TitleAlias,
 } from "../core/BookDef";
 import { MXPlugin } from "../core/MXPlugin";
-import { CustomRequest, FlareSolverrProxyOption } from "../utils/CustomRequest";
+import { CustomRequest } from "../utils/CustomRequest";
 import { MXLogger } from "../cli/MXLogger";
 import { addUrlParams } from "../utils/Utils";
 

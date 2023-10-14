@@ -111,7 +111,7 @@ export class GPrincess extends MXPlugin {
 
   private extractTagsFromTitle(title: string): string[] {
     return title
-      .replace(/[()(),;/-]/g, " ")
+      .replace(/[(),;/-]/g, " ")
       .split(/[ \t]+/g)
       .filter((str) => str != "");
   }

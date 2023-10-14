@@ -3,6 +3,7 @@ import * as path from "path";
 import { config } from "../environment";
 import { MXLogger } from "./MXLogger";
 import { argv } from "node:process";
+import * as mx from "../core/MXScraper";
 
 /**
  * Provides a way to override the configuration located in `src/environment.ts`
@@ -12,6 +13,8 @@ export class DynamicConfigurer {
    * Filename of the project configuration file
    */
   static CONFIG_FILENAME: string = "mx-scraper.config.json";
+
+  private static MX_VERSION: string | null = null; 
 
   /**
    * Commplete path of the project configuration file
@@ -56,7 +59,13 @@ export class DynamicConfigurer {
     const file_path = DynamicConfigurer.configPath();
     const json = JSON.parse(fs.readFileSync(file_path).toString());
     MXLogger.info("[Config] Using " + file_path);
-    for (let key in json) {
+    const version = json?.["VERSION"];
+    if (version !== this.mxVersion()) {
+      throw Error(
+        `Cannot override configuration: config v${version ?? "<=3.2.2"} not compatible with MXScraper v${this.mxVersion()}`
+      );
+    }
+    for (const key in json) {
       config[key] = json[key];
     }
   }
@@ -75,5 +84,12 @@ export class DynamicConfigurer {
    */
   static isDevMode() {
     return process["pkg"] == undefined;
+  }
+
+  static mxVersion() {
+    if (!this.MX_VERSION) {
+      this.MX_VERSION = require("../../package.json").version;
+    }
+    return this.MX_VERSION;
   }
 }

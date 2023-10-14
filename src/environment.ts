@@ -1,4 +1,7 @@
-const config = {
+import { DynamicConfigurer } from "./cli/DynamicConfigurer";
+
+export const config = {
+  VERSION: DynamicConfigurer.mxVersion(),
   CLOUDFARE_PROXY_HOST: "http://localhost:8191/v1",
   CLOUDFARE_MAX_TIMEOUT: 120000,
   LOAD_PLUGINS: [
@@ -31,5 +34,3 @@ const config = {
   },
   SHOW_CLI_ERROR_STACK: false,
 };
-
-export { config };

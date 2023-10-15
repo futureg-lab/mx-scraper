@@ -1,7 +1,7 @@
 import { parse } from "yaml";
 import { readFileSync } from "node:fs";
 import { Book, Chapter, Page, Tag } from "./BookDef";
-import { extractFilenameFromUrl, feedValues, resumeText } from "../utils/Utils";
+import { feedValues, resumeText } from "../utils/Utils";
 import { CustomRequest, FlareSolverrProxyOption } from "../utils/CustomRequest";
 import { HtmlParser } from "../utils/HtmlParser";
 import { MXLogger } from "../cli/MXLogger";

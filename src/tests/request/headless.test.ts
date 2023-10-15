@@ -3,7 +3,7 @@ import { UniqueHeadlessBrowser } from "../../utils/UniqueHeadlessBrowser";
 
 
 test("Singleton logic of UniqueHeadlessBrowser", async () => {
-  let [a, b] = [
+  const [a, b] = [
     await UniqueHeadlessBrowser.getInstance(),
     await UniqueHeadlessBrowser.getInstance(),
   ];

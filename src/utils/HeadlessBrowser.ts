@@ -1,6 +1,7 @@
 import * as Puppeteer from "puppeteer";
 import { config } from "../environment";
 import { DynamicConfigurer } from "../cli/DynamicConfigurer";
+import { release as osRelease } from "os";
 
 type HeadlessBrowserInfos = {
   exec_path: string;
@@ -26,7 +27,14 @@ export class HeadlessBrowser {
     let browser_path = config.BROWSER.EXEC_PATH;
 
     if (DynamicConfigurer.isDevMode()) {
-      browser_path = Puppeteer.executablePath();
+      if (osRelease().includes("rpi4")) {
+        // FIXME: ARM processors
+        // https://github.com/puppeteer/puppeteer/issues/7740
+        // this only solves the case for RPi4 with chromium installed
+        browser_path = "/usr/bin/chromium-browser";
+      } else {
+        browser_path = Puppeteer.executablePath();
+      }
     }
 
     this.browser = await Puppeteer.launch({

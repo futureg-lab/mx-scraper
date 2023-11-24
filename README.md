@@ -1,9 +1,9 @@
 # mx-scraper
-mx-scraper (Manga Xtreme Scraper) is an opensource Manga website scraper<br/>
+mx-scraper (Manga eXtreme Scraper) is an opensource Manga website scraper<br/>
 
 ![alt text](misc/demo.gif)
 
-## CLI examples
+## Usage examples
 ```bash
 mx-scraper --help --verbose
 mx-scraper -h -v
@@ -28,7 +28,6 @@ mx-scraper -v -d -mo --load-plan danbooru.yaml --plan-params TAG=bocchi_the_rock
 ## Configuration
 MXScraper will automatically create a `mx-scraper.config.json` file
 ```ts
-// config spec
 interface MXConfiguration {
   VERSION: string;
   CLOUDFARE_PROXY_HOST: string,
@@ -62,7 +61,6 @@ npm test
 ```
 
 ## Building
-You must specify the target platform in your package.json depending on your host computer 
 ```bash
 node auto-build.js
 ```

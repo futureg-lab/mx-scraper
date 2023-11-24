@@ -98,6 +98,19 @@ export class HtmlParser {
       .map((node) => HtmlNode.from($, node));
     return new HtmlParserQueryResult(result);
   }
+
+  /**
+   * Retrieve text from `<title>..</title>`
+   * Example :
+   * * HtmlParser.use(exampleHtml).title(); // returns Example
+   * @returns
+   */
+  title(): string {
+    return this
+      .select("title")
+      .first()
+      .asText();
+  }
 }
 
 export class HtmlParserQueryResult {

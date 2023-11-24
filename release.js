@@ -18,10 +18,11 @@ const version = require("./package.json").version;
         console.log(execSync(`git tag v${version}`).toString());
         console.log(execSync(`git push --tag`).toString());
       } else {
-        console.warn("release aborted");
+        console.warn("Release aborted");
       }
       rl.close();
     });
+
   } catch (err) {
     console.error("Release failed", err.toString());
   }

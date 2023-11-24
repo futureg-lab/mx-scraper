@@ -57,10 +57,11 @@ export class MXPlugin {
    * * Get a book from source if not cached
    * * if `cache` is disabled, it is equivalent to `MXPlugin.fetchBook`
    * @param query query string | book identifier
+   * @param disableCache enable or disable fetch cache
    * @returns
    */
-  async getBook(query: string): Promise<Book> {
-    if (config.CACHE.ENABLE) {
+  async getBook(query: string, disableCache = false): Promise<Book> {
+    if (config.CACHE.ENABLE && !disableCache) {
       let book: Book = null;
       const cached: Book = this.fetchBookFromCache(query);
       if (cached) {

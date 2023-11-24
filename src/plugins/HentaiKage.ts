@@ -26,9 +26,10 @@ export class HentaiKage extends MXPlugin {
     this.request = new CustomRequest();
   }
 
-  override async fetchBook(identifier: string): Promise<Book> {
-    const url = this.target_url + "/" + identifier;
-    const html = await this.request.get(url);
+  override async fetchBook(identifierOrUrl: string): Promise<Book> {
+    const identifier = this.extractIdFromPotentialUrl(identifierOrUrl);
+    const bookUrl = this.target_url + "/" + identifier;
+    const html = await this.request.get(bookUrl);
     const parser = HtmlParser.use(html);
     const [title, ...aliases] = parser
       .select(".vcard>h1")
@@ -60,12 +61,12 @@ export class HentaiKage extends MXPlugin {
         }
       );
 
-    const pages = await this.inferPages(url);
+    const pages = await this.inferPages(bookUrl);
     const chapter = {
       number: 1,
       title,
       pages,
-      url,
+      url: bookUrl,
       description: "",
     } as Chapter;
 
@@ -75,7 +76,7 @@ export class HentaiKage extends MXPlugin {
       title_aliases: aliases
         .map((alias: any) => <TitleAlias> { title: alias, description: "" }),
 
-      url: identifier,
+      url: bookUrl,
       source_id: identifier,
 
       chapters: [chapter],
@@ -122,6 +123,11 @@ export class HentaiKage extends MXPlugin {
     } catch (err) {
       throw new Error(`cannot infer pages at ${url}, ${err.message}`);
     }
+  }
+
+  private extractIdFromPotentialUrl(str: string) {
+    const [code] = str.match(/([0-9]+)/);
+    return code;
   }
 
   override async search(term: string, option: SearchOption): Promise<Book[]> {

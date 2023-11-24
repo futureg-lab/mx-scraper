@@ -39,6 +39,6 @@ const browser_path_dest = path.join(exec_path_dest, "browser");
     console.info("Executable path: ", exec_path_dest);
     console.info("Browser path: ", browser_path_dest);
   } catch (err) {
-    console.error("Download or build failed ! ", err);
+    console.error("Download or build failed ! ", err?.toString() ?? err);
   }
 })();

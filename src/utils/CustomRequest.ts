@@ -1,8 +1,8 @@
-import axios, { AxiosRequestConfig } from "axios";
+import axios, { AxiosRequestConfig, AxiosRequestHeaders } from "axios";
 import { FlareSolverrClient, FlareSolverrCommand } from "./FlareSolverrClient";
-import * as fs from "fs";
+import * as fs from "node:fs";
 import { UniqueHeadlessBrowser } from "./UniqueHeadlessBrowser";
-import * as Puppeteer from "puppeteer";
+import { config } from "../environment";
 
 export interface FlareSolverrProxyOption {
   proxy_url: string;
@@ -113,9 +113,17 @@ export class CustomRequest {
     }
 
     // perform a simple request with axios
+    const headers = new Headers();
+    if (config.REQUEST.HEADER_COOKIE) {
+      // headers.set("Set-Cookie", config.REQUEST.HEADER_SET_COOKIES);
+      headers.set("Cookie", config.REQUEST.HEADER_COOKIE);
+    }
+    headers.set("User-Agent", config.REQUEST.HEADER_USER_AGENT);
+
     let axios_req_conf: AxiosRequestConfig = {
       url: target_url,
       method: "GET",
+      headers: Object.fromEntries(headers.entries()),
     };
     const { data } = await axios(axios_req_conf);
     return <string> data;

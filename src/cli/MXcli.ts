@@ -62,6 +62,12 @@ export class MXcli extends CLIEngine {
       DynamicConfigurer.overrideField("CACHE", cache);
     }
 
+    if (parsed.has("Cookie")) {
+      const [cookie] = parsed.get("Cookie");
+      console.log(`Override cookie value to "${cookie}"`);
+      config.REQUEST.HEADER_COOKIE = cookie;
+    }
+
     if (parsed.has("Load-Plan")) {
       const [filepath] = parsed.get("Load-Plan");
       const params = {};

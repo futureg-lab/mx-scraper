@@ -1,4 +1,8 @@
 import { DynamicConfigurer } from "./cli/DynamicConfigurer";
+
+const VERSION = DynamicConfigurer.mxVersion();
+const machine = DynamicConfigurer.mxPlatformInfos();
+
 export interface MXConfiguration {
   VERSION: string;
   CLOUDFARE_PROXY_HOST: string;
@@ -23,10 +27,14 @@ export interface MXConfiguration {
     ENABLE: boolean;
   };
   SHOW_CLI_ERROR_STACK: boolean;
+  REQUEST: {
+    HEADER_COOKIE: string | null;
+    HEADER_USER_AGENT: string; 
+  }
 }
 
 export const config: MXConfiguration = {
-  VERSION: DynamicConfigurer.mxVersion(),
+  VERSION,
   CLOUDFARE_PROXY_HOST: "http://localhost:8191/v1",
   CLOUDFARE_MAX_TIMEOUT: 120000,
   LOAD_PLUGINS: [
@@ -59,4 +67,8 @@ export const config: MXConfiguration = {
     ENABLE: true,
   },
   SHOW_CLI_ERROR_STACK: false,
+  REQUEST: {
+    HEADER_COOKIE: null,
+    HEADER_USER_AGENT: `mx-scraper/${VERSION} (${machine.type}; ${machine.platform}; ${machine.arch})`
+  }
 };

@@ -115,8 +115,10 @@ export class CustomRequest {
     // perform a simple request with axios
     const headers = new Headers();
     if (config.REQUEST.HEADER_SET_COOKIES) {
-      headers.set("Set-Cookie", config.REQUEST.HEADER_SET_COOKIES);
+      // headers.set("Set-Cookie", config.REQUEST.HEADER_SET_COOKIES);
+      headers.set("Cookie", config.REQUEST.HEADER_SET_COOKIES);
     }
+    headers.set("User-Agent", config.REQUEST.HEADER_USER_AGENT);
 
     let axios_req_conf: AxiosRequestConfig = {
       url: target_url,

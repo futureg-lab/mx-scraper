@@ -164,4 +164,11 @@ export const COMMAND_DEF = <CLICommand[]> [
       "Set params for a query plan (Example: -pp var1=val1 var2=val2 ...)",
     expect_commands: ["Load-Plan"],
   },
+  <CLICommand> {
+    name: "Cookie",
+    arg_count: 1,
+    aliases: ["--cookie", "-co"],
+    description:
+      `Set client Cookie header value in the format "c1=c1; c2=v2; .."`,
+  },
 ];

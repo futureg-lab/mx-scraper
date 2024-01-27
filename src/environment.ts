@@ -69,6 +69,6 @@ export const config: MXConfiguration = {
   SHOW_CLI_ERROR_STACK: false,
   REQUEST: {
     HEADER_SET_COOKIES: null,
-    HEADER_USER_AGENT: `mx-scraper/${VERSION} (${machine.type}; ${machine.platform}; ${machine.arch})}`
+    HEADER_USER_AGENT: `mx-scraper/${VERSION} (${machine.type}; ${machine.platform}; ${machine.arch})`
   }
 };

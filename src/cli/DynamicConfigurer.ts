@@ -1,8 +1,9 @@
-import * as fs from "fs";
-import * as path from "path";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import * as os from "node:os";
+import { argv } from "node:process";
 import { config } from "../environment";
 import { MXLogger } from "./MXLogger";
-import { argv } from "node:process";
 
 /**
  * Provides a way to override the configuration located in `src/environment.ts`
@@ -90,5 +91,14 @@ export class DynamicConfigurer {
       this.MX_VERSION = require("../../package.json").version;
     }
     return this.MX_VERSION;
+  }
+
+  static mxPlatformInfos() {
+    return {
+      type: os.type(),
+      release: os.release(),
+      platform: os.platform(),
+      arch: os.arch()
+    };
   }
 }

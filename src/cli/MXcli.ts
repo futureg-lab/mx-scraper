@@ -65,7 +65,7 @@ export class MXcli extends CLIEngine {
     if (parsed.has("Cookie")) {
       const [cookie] = parsed.get("Cookie");
       console.log(`Override cookie value to "${cookie}"`);
-      config.REQUEST.HEADER_SET_COOKIES = cookie;
+      config.REQUEST.HEADER_COOKIE = cookie;
     }
 
     if (parsed.has("Load-Plan")) {

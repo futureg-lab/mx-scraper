@@ -28,7 +28,7 @@ export interface MXConfiguration {
   };
   SHOW_CLI_ERROR_STACK: boolean;
   REQUEST: {
-    HEADER_SET_COOKIES: Record<string, string> | null;
+    HEADER_SET_COOKIES: string | null;
     HEADER_USER_AGENT: string; 
   }
 }

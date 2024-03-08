@@ -44,7 +44,8 @@ export const config: MXConfiguration = {
     "GPrincess",
     "Eyval",
     "Kemono",
-    "HentaiKage"
+    "HentaiKage",
+    "Rule34Comic"
   ],
   BROWSER: {
     MODE: "HEADLESS",

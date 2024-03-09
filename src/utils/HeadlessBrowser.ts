@@ -1,7 +1,7 @@
 import * as Puppeteer from "puppeteer";
-import { config } from "../environment";
-import { DynamicConfigurer } from "../cli/DynamicConfigurer";
-import { release as osRelease } from "os";
+import { config } from "../environment.ts";
+import { DynamicConfigurer } from "../cli/DynamicConfigurer.ts";
+import { release as osRelease } from "node:os";
 
 type HeadlessBrowserInfos = {
   exec_path: string;

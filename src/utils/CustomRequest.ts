@@ -1,8 +1,8 @@
-import axios, { AxiosRequestConfig, AxiosRequestHeaders } from "axios";
-import { FlareSolverrClient, FlareSolverrCommand } from "./FlareSolverrClient";
+import axios, { AxiosRequestConfig } from "axios";
+import { FlareSolverrClient, FlareSolverrCommand } from "./FlareSolverrClient.ts";
 import * as fs from "node:fs";
-import { UniqueHeadlessBrowser } from "./UniqueHeadlessBrowser";
-import { config } from "../environment";
+import { UniqueHeadlessBrowser } from "./UniqueHeadlessBrowser.ts";
+import { config } from "../environment.ts";
 
 export interface FlareSolverrProxyOption {
   proxy_url: string;

@@ -86,7 +86,7 @@ export class DynamicConfigurer {
     return process["pkg"] == undefined;
   }
 
-  static mxVersion() {
+  static async mxVersion() {
     if (!this.MX_VERSION) {
       this.MX_VERSION = require("../../package.json").version;
     }

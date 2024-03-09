@@ -1,4 +1,4 @@
-import { topValueOf } from "./Utils";
+import { topValueOf } from "./Utils.ts";
 
 export enum EParenthesis {
   OPEN = "(",
@@ -11,12 +11,12 @@ export type PPriority = { [key: string]: PPrecedence };
 export type PSymbol = string;
 
 export class ASTNode {
-  parent: ASTNode = null;
-  left: ASTNode = null;
-  right: ASTNode = null;
-  value: string = null;
+  parent: ASTNode | null = null;
+  left: ASTNode | null = null;
+  right: ASTNode | null = null;
+  value: string | null = null;
 
-  constructor(value: string, left: ASTNode = null, right: ASTNode = null) {
+  constructor(value: string, left: ASTNode | null = null, right: ASTNode | null = null) {
     this.value = value;
     this.left = left;
     this.right = right;
@@ -30,8 +30,8 @@ export class ASTNode {
     if (node == null) {
       return "";
     }
-    const left_str = this.printHelper(node.left, depth + 1);
-    const right_str = this.printHelper(node.right, depth + 1);
+    const left_str = this.printHelper(node?.left!, depth + 1);
+    const right_str = this.printHelper(node?.right!, depth + 1);
     let final_str = "---- '" + node.value + "'";
     if (left_str != "") {
       final_str += "\n" + this.indentHelper(depth + 1) + "|" + left_str;
@@ -123,7 +123,7 @@ export class CustomAST {
                 prec_poperator.associative == "left");
 
             if (should_pop) {
-              const top = operators.pop();
+              const top = operators.pop()!;
               expressions += top;
               // AST
               popPopPushNode(top);
@@ -143,7 +143,7 @@ export class CustomAST {
 
     // remainder
     while (operators.length > 0) {
-      const top = operators.pop();
+      const top = operators.pop()!;
       expressions += top;
       popPopPushNode(top);
     }

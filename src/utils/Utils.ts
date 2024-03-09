@@ -1,6 +1,5 @@
-import { Book } from "../core/BookDef";
-import * as fs from "fs";
-import { MXLogger } from "../cli/MXLogger";
+import { Book } from "../core/BookDef.ts";
+import * as fs from "node:fs";
 
 /**
  * @param a

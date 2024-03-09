@@ -1,13 +1,13 @@
-import { Book, Chapter, DownloadBookMeta } from "../core/BookDef";
-import { CustomRequest } from "./CustomRequest";
-import { cleanFolderName, waitFor } from "./Utils";
-import * as path from "path";
-import * as fs from "fs";
+import { Book, Chapter, DownloadBookMeta } from "../core/BookDef.ts";
+import { CustomRequest } from "./CustomRequest.ts";
+import { cleanFolderName } from "./Utils.ts";
+import * as path from "node:path";
+import * as fs from "node:fs";
 import * as fsextra from "fs-extra";
-import * as crypto from "crypto";
-import { config } from "../environment";
-import { MXPlugin } from "../core/MXPlugin";
-import { DynamicConfigurer } from "../cli/DynamicConfigurer";
+import * as crypto from "node:crypto";
+import { config } from "../environment.ts";
+import { MXPlugin } from "../core/MXPlugin.ts";
+import { DynamicConfigurer } from "../cli/DynamicConfigurer.ts";
 
 /**
  * Callback used to notify download progression
@@ -70,18 +70,18 @@ export function createJsonDataOf(folder_path: string, book: Book) {
  */
 export async function downloadBook(
   book: Book,
-  option: DownloadOption = null,
-  loading_callback: DownloadProgressCallback = null,
+  option: DownloadOption | null = null,
+  loading_callback: DownloadProgressCallback | null = null,
 ) {
   const request: CustomRequest = new CustomRequest();
 
-  if (config.BROWSER.ENABLE || option.forceHeadless) {
+  if (config.BROWSER.ENABLE || option?.forceHeadless) {
     request.enableRendering();
   }
 
   // compute total items
   let total = 0, current_item = 0;
-  for (let chapter of book.chapters) {
+  for (const chapter of book.chapters) {
     total += chapter.pages.length;
   }
 
@@ -114,7 +114,7 @@ export async function downloadBook(
     return path.join(base, cleanFolderName(ch.title));
   };
 
-  if (!option.meta_only) {
+  if (!option?.meta_only) {
     for (const chapter of book.chapters) {
       // ex: temp/mangatitle/chapter-1
       const chapter_folder_temp_path = getChapterPath(
@@ -171,7 +171,7 @@ export async function downloadBook(
             real_page_url = real_url;
             filename_modified = true;
           }
-          let dest_path = path.join(
+          const dest_path = path.join(
             chapter_folder_temp_path,
             page.filename,
           );
@@ -180,7 +180,7 @@ export async function downloadBook(
           skip_msg = "Skipped";
         }
         // progress status
-        let message =
+        const message =
           `CH. ${chapter.number} - Page ${page.number}/${chapter.pages.length} ${skip_msg}`;
 
         current_item++;
@@ -227,7 +227,7 @@ export function imageExistsAtLocationIgnoreExtension(
 
   const content = fs.readdirSync(location);
   return content
-    .filter((item) => {
+    .filter((item: string) => {
       return item.startsWith(canonical_name);
     })
     .length > 0;

@@ -1,6 +1,6 @@
 import { AnyNode, CheerioAPI, load } from "cheerio";
-import { ASTNode, CustomAST, PPriority, PSymbol } from "./CustomAST";
-import { interSet, unionSet } from "./Utils";
+import { ASTNode, CustomAST, PPriority, PSymbol } from "./CustomAST.ts";
+import { interSet, unionSet } from "./Utils.ts";
 
 type FilterContent = "value" | "html" | "text" | "**";
 type MapFunc<T> = {
@@ -95,7 +95,7 @@ export class HtmlParser {
   select(query: string): HtmlParserQueryResult {
     const $ = this.$;
     const result = $(query).toArray()
-      .map((node) => HtmlNode.from($, node));
+      .map((node: any) => HtmlNode.from($, node));
     return new HtmlParserQueryResult(result);
   }
 
@@ -108,7 +108,7 @@ export class HtmlParser {
   title(): string {
     return this
       .select("title")
-      .first()
+      .first()!
       .asText();
   }
 }
@@ -126,7 +126,7 @@ export class HtmlParserQueryResult {
       interSet<HtmlNode>(new Set<HtmlNode>(a), new Set<HtmlNode>(b)),
     "|": (a: HtmlNode[], b: HtmlNode[]) =>
       unionSet<HtmlNode>(new Set<HtmlNode>(a), new Set<HtmlNode>(b)),
-  };
+  } as Record<string, CallableFunction>;
 
   constructor(result: HtmlNode[]) {
     this.result = result;
@@ -137,7 +137,7 @@ export class HtmlParserQueryResult {
     const rstr = "[" + sym_str + "]{1}";
     const astr = "[^" + sym_str + "]+";
     const tokens = filter
-      .match(new RegExp(rstr + "|" + astr, "g"))
+      .match(new RegExp(rstr + "|" + astr, "g"))!
       .map((token) => token.trim())
       .filter((token) => token != "");
     return tokens;
@@ -165,7 +165,7 @@ export class HtmlParserQueryResult {
     if (is_string) {
       // assuming value is trimed
       const temp = value.match(str_regex);
-      const [, content] = temp;
+      const [, content] = temp!;
       value = content;
     }
 
@@ -215,20 +215,20 @@ export class HtmlParserQueryResult {
 
     if (node.isLeaf()) {
       const node_eval = HtmlParserQueryResult.evalResult(
-        node.value,
+        node?.value!,
         list_nodes,
       );
       return node_eval;
     }
-    const operator = node.value;
+    const operator = node.value!;
     const operator_func = HtmlParserQueryResult.OPERATOR_FUNC[operator];
     if (!operator_func) {
       throw Error('symbol "' + operator + "' is not an operator");
     }
     // TODO: optimize
     // maybe tag known excluded subsets?
-    const left_eval = HtmlParserQueryResult.whereHelper(node.left, list_nodes);
-    const right_eval = HtmlParserQueryResult.whereHelper(node.right, list_nodes);
+    const left_eval = HtmlParserQueryResult.whereHelper(node?.left!, list_nodes);
+    const right_eval = HtmlParserQueryResult.whereHelper(node?.right!, list_nodes);
     const res_set: Set<HtmlNode> = operator_func(left_eval, right_eval);
     return Array.from(res_set);
   }
@@ -268,7 +268,7 @@ export class HtmlParserQueryResult {
     str: string,
   ) {
     const func = new Map<FilterContent, any>();
-    func.set("**", (x: HtmlNode, _: number) => true);
+    func.set("**", (_x: HtmlNode, _: number) => true);
     func.set(
       "html",
       (x: HtmlNode, _: number) => HtmlParser.testMatch(x.asHtml(), str),
@@ -379,7 +379,7 @@ export class HtmlParserQueryResult {
    * @param num
    * @returns node at a specific place in the current result (1-indexed)
    */
-  nth(num: number): HtmlNode {
+  nth(num: number): HtmlNode | null {
     if (num <= 0) {
       throw Error("num <= 0 encountered");
     }

@@ -1,4 +1,4 @@
-import { DynamicConfigurer } from "./cli/DynamicConfigurer";
+import { DynamicConfigurer } from "./cli/DynamicConfigurer.ts";
 
 const VERSION = DynamicConfigurer.mxVersion();
 const machine = DynamicConfigurer.mxPlatformInfos();

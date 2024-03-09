@@ -1,7 +1,7 @@
-import { MXcli } from "./cli/MXcli";
-import { config } from "./environment";
-import { MXScraper } from "./core/MXScraper";
-import { DynamicConfigurer } from "./cli/DynamicConfigurer";
+import { MXcli } from "./cli/MXcli.ts";
+import { config } from "./environment.ts";
+import { MXScraper } from "./core/MXScraper.ts";
+import { DynamicConfigurer } from "./cli/DynamicConfigurer.ts";
 
 const [, , ...argv] = process.argv;
 

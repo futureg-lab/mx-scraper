@@ -1,4 +1,4 @@
-import { HeadlessBrowser } from "./HeadlessBrowser";
+import { HeadlessBrowser } from "./HeadlessBrowser.ts";
 
 /**
  * Singleton wrapper for `HeadlessBrowser`

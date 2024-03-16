@@ -3,7 +3,7 @@
 > Notice: This project has been migrated to deno starting from v4.0.0 due to
 > [pkg](https://github.com/vercel/pkg) being deprecated.
 
-# Usage examples
+## Usage
 
 > The Flaresolverr proxy feature requires
 > [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr)
@@ -30,7 +30,7 @@ mx-scraper -a -d -pa -ff list.txt
 mx-scraper -v -d --load-plan danbooru.yaml --plan-params TAG=bocchi_the_rock! "TITLE=Bocchi The Rock"
 ```
 
-# Development
+## Development
 
 1. Download
    [deno](https://docs.deno.com/runtime/manual/getting_started/installation)

@@ -1,0 +1,13 @@
+{
+    "deno.enable": true,
+    "editor.formatOnSave": true,
+    "deno.enablePaths": [
+        "./src",
+        "./tests",
+        "./sandbox"
+    ],
+    "deno.config": "./src/config.json",
+    "[typescript]": {
+        "editor.defaultFormatter": "denoland.vscode-deno"
+    },
+}

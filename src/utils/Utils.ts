@@ -1,5 +1,5 @@
-import { Book } from "../core/BookDef.ts";
-import * as fs from "node:fs";
+import outdent from "outdent";
+import { Book } from "../core/book.ts";
 
 /**
  * @param a
@@ -7,9 +7,9 @@ import * as fs from "node:fs";
  * @returns Edit distance of two strings
  */
 export function levenshtein(a: string, b: string): number {
-  let u = a.length,
+  const u = a.length,
     v = b.length;
-  let arr = [];
+  const arr = [] as number[][];
 
   for (let k = -1; k < u; k++) {
     arr[k] = [];
@@ -34,13 +34,10 @@ export function levenshtein(a: string, b: string): number {
 
 /**
  * Add url parameters to a string url
- * @param url_str
- * @param params
- * @returns
  */
-export function addUrlParams(url_str: string, params: Object) {
-  let url = new URL(url_str);
-  for (let key in params) {
+export function addUrlParams(urlStr: string, params: any) {
+  const url = new URL(urlStr);
+  for (const key in params) {
     url.searchParams.set(key, params[key]);
   }
   return url.toString();
@@ -74,55 +71,43 @@ export function cleanFolderName(title: string): string {
  */
 export function decodeUnicodeCharacters(str: string): string {
   const escaped = str.replace(/\"/g, '\\"');
-  const repl_word = "__~perc~__";
-  const no_perc = escaped.replace(/%/g, repl_word);
-  const decoded = decodeURIComponent(JSON.parse('"' + no_perc + '"'));
-  return decoded.replace(new RegExp(repl_word, "g"), "%");
+  const replWord = "__~perc~__";
+  const noPerc = escaped.replace(/%/g, replWord);
+  const decoded = decodeURIComponent(JSON.parse('"' + noPerc + '"'));
+  return decoded.replace(new RegExp(replWord, "g"), "%");
 }
 
 /**
  * Describe a book for stdout
- * @param book
- * @param verbose
- * @returns
  */
 export function resumeBook(book: Book, verbose: boolean): string {
   if (!book) {
     return "";
   }
 
-  let str = `\n# Title : ${book.title}\n` +
-    ` - Authors : ${book.authors.map((author) => author.name).join(", ")}\n` +
-    ` - Source : ${book.url}\n`;
+  const chaptersStr = book.chapters.map((chapter) =>
+    `   - CH. ${chapter.number} (${chapter.pages.length} pages) :: ${chapter.title}`
+  ).join("\n");
 
-  let chap_str = ` - Chapters (${book.chapters.length})`;
+  return outdent`
+  # Title: ${book.title}
+    - Authors: ${book.authors.map((author) => author.name).join(", ")}
+    - Source: ${book.url}
+    - Tags: ${book.tags.map((tag) => tag.name).join(", ")}
+    - Description: ${book.description}
+    - Chapters (${book.chapters.length})
+    ${verbose ? chaptersStr : ""}
 
-  if (verbose) {
-    chap_str += ":\n" + book.chapters
-      .map((chapter) =>
-        "  - CH " + chapter.number + " (" + chapter.pages.length +
-        " pages) :: " + chapter.title + "\n"
-      )
-      .join("\n");
-  } else {
-    chap_str += "\n";
-  }
-
-  let more_text = "" +
-    ` - Description : ${book.description}\n` +
-    ` - Tags : ${book.tags.map((tag) => tag.name).join(", ")}\n`;
-
-  return str + (verbose ? more_text : "") + chap_str;
+`;
 }
 
 /**
  * Read a list of ids/url from a file
  * * Each entry must be separated by a space | newline
- * @param file_path
  */
-export function readListFromFile(file_path: string) {
+export function readListFromFile(filePath: string) {
   const separator = /[\n\t\r ]+/g;
-  const content = fs.readFileSync(file_path).toString();
+  const content = Deno.readTextFileSync(filePath);
   const entries = content.split(separator);
   return entries
     .filter((token) => token != null && token != "");
@@ -132,29 +117,26 @@ export function readListFromFile(file_path: string) {
  * Batch a list of items
  * * Example :
  * `list = [1, 2, 3, 4, 5]`, `batch_size = 3` => `[[1, 2, 3], [4, 5]]`
- * @param list
- * @param batch_size
- * @returns
  */
-export function batchAListOf<T>(list: T[], batch_size: number): T[][] {
-  if (batch_size <= 0) {
+export function batchAListOf<T>(list: T[], batchSize: number): T[][] {
+  if (batchSize <= 0) {
     throw Error("Batch size cannot be negative or 0");
   }
 
   const batches: T[][] = [];
-  let current_batch: T[] = [];
+  let currentBatch: T[] = [];
   let cursor = 0;
   while (cursor < list.length) {
-    current_batch.push(list[cursor++]);
-    if (current_batch.length == batch_size) {
-      batches.push(current_batch);
-      current_batch = [];
+    currentBatch.push(list[cursor++]);
+    if (currentBatch.length == batchSize) {
+      batches.push(currentBatch);
+      currentBatch = [];
     }
   }
 
   // leftover
-  if (current_batch.length > 0) {
-    batches.push(current_batch);
+  if (currentBatch.length > 0) {
+    batches.push(currentBatch);
   }
 
   return batches;
@@ -172,22 +154,22 @@ export function topValueOf<T>(arr: T[]) {
 }
 
 export function unionSet<T>(a: Set<T>, b: Set<T>): Set<T> {
-  let result = new Set<T>();
-  for (let x of a) result.add(x);
-  for (let x of b) result.add(x);
+  const result = new Set<T>();
+  for (const x of a) result.add(x);
+  for (const x of b) result.add(x);
   return result;
 }
 
 export function interSet<T>(a: Set<T>, b: Set<T>): Set<T> {
-  let result = new Set<T>();
+  const result = new Set<T>();
 
-  for (let x of a) {
+  for (const x of a) {
     if (b.has(x)) {
       result.add(x);
     }
   }
 
-  for (let x of b) {
+  for (const x of b) {
     if (a.has(x)) {
       result.add(x);
     }
@@ -206,7 +188,7 @@ export function feedValues(str: string, values: Record<string, string>) {
     if (key in values) {
       return values[key];
     }
-    return key in special ? special[key] : match;
+    return key in special ? (special as any)[key] : match;
   });
 }
 
@@ -223,12 +205,21 @@ export function resumeText(str: string, max = 50) {
  * Handle cases such as "k=v=c" => ["k", "v=c"]
  */
 export function splitKeyValue(str: string): [string, string] {
-  const [, value] = str.match(/=(.+)?/);
+  const [, value] = str.match(/=(.+)?/) ?? [];
   const key = str.split("=").shift();
-  return [key, value];
+  return [key!, value];
 }
 
 export function extractFilenameFromUrl(str: string) {
   str = str.replace(/\\/g, "/");
   return str.substring(str.lastIndexOf("/") + 1);
+}
+
+export function isURL(str: string) {
+  try {
+    const _ = new URL(str);
+    return true;
+  } catch (_) {
+    return false;
+  }
 }

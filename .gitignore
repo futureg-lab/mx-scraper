@@ -1,11 +1,5 @@
-TODO
-TODO.md
-.vscode
-node_modules
-dist
-download
-bin
-mx-scraper.config.json
-test.txt
+*.exe
 query_cache
-CONTRIBUTING.md
+mx-scraper.config.json
+download
+temp

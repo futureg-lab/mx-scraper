@@ -1,0 +1,1 @@
+deno cache --config=./src/config.json --lock-write ./src/main.ts

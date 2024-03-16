@@ -2,7 +2,7 @@ version: 1.0.0
 target: "https://danbooru.donmai.us/posts?page={page}&tags={TAG}"
 title: "{TITLE}"
 
-# args required
+# args
 required: [ TITLE, TAG ]
 default:
   TITLE: "Danbooru {_TIMESTAMP_}"

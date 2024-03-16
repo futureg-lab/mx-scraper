@@ -1,13 +1,12 @@
-import { Book, Chapter, DownloadBookMeta } from "../core/BookDef.ts";
-import { CustomRequest } from "./CustomRequest.ts";
-import { cleanFolderName } from "./Utils.ts";
+import { Book, Chapter, DownloadBookMeta } from "../core/book.ts";
+import { CustomRequest } from "./custom_request.ts";
+import { cleanFolderName } from "./utils.ts";
+import * as fs from "std/fs/mod.ts";
 import * as path from "node:path";
-import * as fs from "node:fs";
-import * as fsextra from "fs-extra";
 import * as crypto from "node:crypto";
-import { config } from "../environment.ts";
-import { MXPlugin } from "../core/MXPlugin.ts";
-import { DynamicConfigurer } from "../cli/DynamicConfigurer.ts";
+import { config } from "../mx_configuration.ts";
+import { MXPlugin } from "../core/mx_plugin.ts";
+import { DynamicConfigurer } from "../cli/dynamic_configurer.ts";
 
 /**
  * Callback used to notify download progression
@@ -38,7 +37,7 @@ export interface DownloadOption {
   /**
    * If set to true, a download process is expected to metadata only
    */
-  meta_only?: boolean;
+  metaOnly?: boolean;
 
   /**
    * If set to true, the downloader will use a headless browser
@@ -52,15 +51,15 @@ export interface DownloadOption {
  * @param folder_path
  * @param book
  */
-export function createJsonDataOf(folder_path: string, book: Book) {
+export function createJsonDataOf(folderPath: string, book: Book) {
   const json = <DownloadBookMeta> {
-    engine: "MXScraper v" + DynamicConfigurer.mxVersion(),
+    engine: `MXScraper v${DynamicConfigurer.mxVersion()}`,
     date: new Date(),
     book: book,
   };
   const text = JSON.stringify(json, null, 2);
-  const full_path = path.join(folder_path, book.source_id + ".json");
-  fs.writeFileSync(full_path, text);
+  const fullPath = path.join(folderPath, book.source_id + ".json");
+  Deno.writeTextFileSync(fullPath, text);
 }
 
 /**
@@ -71,7 +70,7 @@ export function createJsonDataOf(folder_path: string, book: Book) {
 export async function downloadBook(
   book: Book,
   option: DownloadOption | null = null,
-  loading_callback: DownloadProgressCallback | null = null,
+  loadingCallback: DownloadProgressCallback | null = null,
 ) {
   const request: CustomRequest = new CustomRequest();
 
@@ -80,135 +79,136 @@ export async function downloadBook(
   }
 
   // compute total items
-  let total = 0, current_item = 0;
+  let total = 0, currentItem = 0;
   for (const chapter of book.chapters) {
     total += chapter.pages.length;
   }
 
   // path destinations
 
-  const base_folder_source = getDestFolderNameUsingSourceOf(book);
+  const baseFolderSource = getDestFolderNameUsingSourceOf(book);
 
-  const book_temp_folder_path = path.join(
+  const bookTempFolderPath = path.join(
     config.DOWNLOAD_FOLDER.TEMP,
-    base_folder_source,
+    baseFolderSource,
     folderNameFromBook(book),
   );
 
-  const book_downloaded_folder_path = path.join(
+  const bookDownloadedFolderPath = path.join(
     config.DOWNLOAD_FOLDER.DOWNLOAD,
-    base_folder_source,
+    baseFolderSource,
     folderNameFromBook(book),
   );
 
   // create chapter folder
-  if (!fs.existsSync(book_temp_folder_path)) {
-    fs.mkdirSync(book_temp_folder_path, { recursive: true });
+  if (!fs.existsSync(bookTempFolderPath)) {
+    Deno.mkdirSync(bookTempFolderPath, { recursive: true });
   }
 
   // save metadatas first
-  createJsonDataOf(book_temp_folder_path, book);
-  let filename_modified = false;
+  createJsonDataOf(bookTempFolderPath, book);
+  let filenameModified = false;
 
   const getChapterPath = (base: string, ch: Chapter) => {
     return path.join(base, cleanFolderName(ch.title));
   };
 
-  if (!option?.meta_only) {
+  if (!option?.metaOnly) {
     for (const chapter of book.chapters) {
       // ex: temp/mangatitle/chapter-1
-      const chapter_folder_temp_path = getChapterPath(
-        book_temp_folder_path,
+      const chapterFolderTempPath = getChapterPath(
+        bookTempFolderPath,
         chapter,
       );
-      const chapter_folder_down_path = getChapterPath(
-        book_downloaded_folder_path,
+      const chapterFolderDownPath = getChapterPath(
+        bookDownloadedFolderPath,
         chapter,
       );
 
-      if (!fs.existsSync(chapter_folder_temp_path)) {
-        fs.mkdirSync(chapter_folder_temp_path, { recursive: true });
+      if (!fs.existsSync(chapterFolderTempPath)) {
+        Deno.mkdirSync(chapterFolderTempPath, { recursive: true });
       }
 
-      createJsonDataOf(book_temp_folder_path, book);
+      createJsonDataOf(bookTempFolderPath, book);
 
       for (const page of chapter.pages) {
         // download
-        const download_anyway = !(
+        const downloadAnyway = !(
           option != null &&
           option.continue && // if interrupted
           (
             imageExistsAtLocationIgnoreExtension(
-              chapter_folder_temp_path,
+              chapterFolderTempPath,
               page.filename,
             ) || // file already exist in 'temp'
             imageExistsAtLocationIgnoreExtension(
-              chapter_folder_down_path,
+              chapterFolderDownPath,
               page.filename,
             ) // file already exist in 'download'
           )
         );
 
-        let skip_msg = "";
-        if (download_anyway) {
+        let skipMsg = "";
+        if (downloadAnyway) {
           // handle intermediate link
-          let real_page_url = page.url;
+          let realPageUrl = page.url;
           if (page.intermediate_link_hint) {
             // intermediate link
-            const [real_url, computed_ext] = await MXPlugin
+            const [realUrl, computedExt] = await MXPlugin
               .autoScanIndirectLink(
                 request,
                 page.url,
                 page.intermediate_link_hint,
               );
             // set proper filename
-            const [page_filename, ext] = page.filename.split(".");
-            if (!page_filename) { // undefined filename
-              page.filename = page.number + "." + computed_ext;
-            } else if (page_filename && !ext) {
-              page.filename = page_filename + "." + computed_ext;
+            const [pageFilename, ext] = page.filename.split(".");
+            if (!pageFilename) { // undefined filename
+              page.filename = page.number + "." + computedExt;
+            } else if (pageFilename && !ext) {
+              page.filename = pageFilename + "." + computedExt;
             } // else { filename properly defined }
-            real_page_url = real_url;
-            filename_modified = true;
+            realPageUrl = realUrl;
+            filenameModified = true;
           }
-          const dest_path = path.join(
-            chapter_folder_temp_path,
+          const destPath = path.join(
+            chapterFolderTempPath,
             page.filename,
           );
-          await request.downloadImage(real_page_url, dest_path);
+          await request.downloadImage(realPageUrl, destPath);
         } else {
-          skip_msg = "Skipped";
+          skipMsg = "Skipped";
         }
         // progress status
         const message =
-          `CH. ${chapter.number} - Page ${page.number}/${chapter.pages.length} ${skip_msg}`;
+          `CH. ${chapter.number} - Page ${page.number}/${chapter.pages.length} ${skipMsg}`;
 
-        current_item++;
-        if (loading_callback) {
-          loading_callback(
+        currentItem++;
+        if (loadingCallback) {
+          loadingCallback(
             message,
-            current_item,
+            currentItem,
             total,
-            Math.round(100. * current_item / total),
+            Math.round(100. * currentItem / total),
           );
         }
       }
     }
   }
 
-  if (filename_modified) {
-    createJsonDataOf(book_temp_folder_path, book);
+  if (filenameModified) {
+    createJsonDataOf(bookTempFolderPath, book);
   }
 
   // move if done
-  if (loading_callback) {
-    loading_callback("[Done]", total, total, 100);
+  if (loadingCallback) {
+    loadingCallback("[Done]", total, total, 100);
   }
 
-  if (!fs.existsSync(book_downloaded_folder_path)) {
-    fsextra.moveSync(book_temp_folder_path, book_downloaded_folder_path, {
-      overwrite: true,
+  if (!fs.existsSync(bookDownloadedFolderPath)) {
+    await Deno.mkdir(path.dirname(bookDownloadedFolderPath), {
+      recursive: true,
     });
+    await Deno.rename(bookTempFolderPath, bookDownloadedFolderPath);
   }
 }
 
@@ -219,16 +219,16 @@ export async function downloadBook(
  */
 export function imageExistsAtLocationIgnoreExtension(
   location: string,
-  canonical_name: string,
+  canonicalName: string,
 ) {
   if (!fs.existsSync(location)) {
     return false;
   }
 
-  const content = fs.readdirSync(location);
+  const content = Array.from(Deno.readDirSync(location));
   return content
-    .filter((item: string) => {
-      return item.startsWith(canonical_name);
+    .filter(({ name }) => {
+      return name.startsWith(canonicalName);
     })
     .length > 0;
 }
@@ -249,16 +249,16 @@ export function computeSignature(book: Book): string {
 /**
  * Compute the corresponding sha256 signature of a query string
  * @param query
- * @param plugin_name
+ * @param pluginName
  * @returns
  */
 export function computeSignatureQuery(
   query: string,
-  plugin_name: string,
+  pluginName: string,
 ): string {
   return "mx_" + crypto
     .createHash("sha256")
-    .update(query + plugin_name)
+    .update(query + pluginName)
     .digest("hex");
 }
 

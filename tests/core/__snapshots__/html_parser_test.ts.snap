@@ -1,0 +1,15 @@
+export const snapshot = {};
+
+snapshot[`Querying: "where" parses the query correctly 1`] = `
+"---- '|'
+  |---- '&'
+    |---- '&'
+      |---- '&'
+        |---- 'text: A'
+        |---- '|'
+          |---- 'html: B'
+          |---- 'attr.class: .C'
+      |---- 'html: D%'
+    |---- 'attr.id: %E%'
+  |---- 'html: @reg /A/i'"
+`;

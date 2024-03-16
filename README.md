@@ -1,66 +1,51 @@
 # mx-scraper
-mx-scraper (Manga eXtreme Scraper) is an opensource Manga website scraper<br/>
 
-![alt text](misc/demo.gif)
+> Notice: This project has been migrated to deno starting from v4.0.0 due to
+> [pkg](https://github.com/vercel/pkg) being deprecated.
 
-## Usage examples
+# Usage examples
+
+> The Flaresolverr proxy feature requires
+> [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr)
+
+> The headless/headfull browser feature, you may want to install the appropriate
+> chrome or firefox version [here](https://deno.land/x/puppeteer@16.2.0), if a
+> browser is already available locally, you can set it on the configuration
+> file.
+
 ```bash
 mx-scraper --help --verbose
-mx-scraper -h -v
 mx-scraper --infos
-mx-scraper -i
+mx-scraper -h -v
 mx-scraper --show-plugins -v
+mx-scraper --show-plugins -v -cs
 mx-scraper --search-plugin -v http://link/to/a/title
 mx-scraper --auto --fetch http://link/to/a/title
-mx-scraper --plugin plugin_name --fetch-all title1 title2 title3
-mx-scraper --plugin nhentai --download --fetch-all 420166 420132
+mx-scraper --plugin <PLUGIN_NAME> --fetch-all title1 title2 title3
 mx-scraper --auto --fetch-all --download --parallel http://link/to/title1 http://link/to/title2
 mx-scraper --auto --download --parallel --fetch-file list.txt
 mx-scraper --auto --download --parallel --fetch-file list.txt --meta-only
 mx-scraper -a -d -pa -ff list.txt -mo
 mx-scraper -a -d -pa -ff list.txt
 mx-scraper -v -d --load-plan danbooru.yaml --plan-params TAG=bocchi_the_rock! "TITLE=Bocchi The Rock"
-# using a custom query plan
-# Examples can be found at src/plugins/plans
-mx-scraper -v -d -mo --load-plan danbooru.yaml --plan-params TAG=bocchi_the_rock!
 ```
 
-## Configuration
-MXScraper will automatically create a `mx-scraper.config.json` file
-```ts
-interface MXConfiguration {
-  VERSION: string;
-  CLOUDFARE_PROXY_HOST: string,
-  CLOUDFARE_MAX_TIMEOUT: number,
-  LOAD_PLUGINS: Array<string>,
-  BROWSER: {
-    ENABLE: boolean,
-    MODE: "HEADFULL" | "HEADLESS";
-    EXEC_PATH: string,
-  },
-  PLUGIN_PROXY_ENABLE: Array<string>,
-  DOWNLOAD_FOLDER: {
-    DOWNLOAD: string,
-    TEMP: string,
-  },
-  CACHE: {
-    ENABLE: boolean,
-    FOLDER: string,
-  },
-  MAX_SIZE_BATCH: number,
-  LOGGER: {
-    ENABLE: boolean,
-  },
-  SHOW_CLI_ERROR_STACK: boolean,
-};
-```
+# Development
 
-## Testing
+1. Download
+   [deno](https://docs.deno.com/runtime/manual/getting_started/installation)
+2. Install [puppeteer](https://deno.land/x/puppeteer@16.2.0)
+3. Install [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) or
+   update the configuration file if an instance is available on your network
+4. Run the following commands to make sure everything is working
+
 ```bash
-npm test
-```
-
-## Building
-```bash
-node auto-build.js
+# Cache dependencies
+deno cache --config=./src/config.json --lock-write ./src/main.ts
+# Testing (some tests require Flaresolverr)
+deno test -A --config=./src/config.json ./tests
+# Running (dev)
+deno run -A --config=./src/config.json ./src/main.ts --infos
+# Compiling
+# deno compile -A --output mx-scraper --config=./src/config.json ./src/main.ts --is_compiled_binary
 ```

@@ -18,39 +18,38 @@ jobs:
             extension: ".exe"
 
     runs-on: ${{ matrix.os }}
-
     steps:
-      - name: Checkout
+      - name: Setup repo
         uses: actions/checkout@v3
-
-      - name: Install nodejs
-        uses: actions/setup-node@v3
+      - name: Setup Deno
+        # uses: denoland/setup-deno@v1
+        uses: denoland/setup-deno@61fe2df320078202e33d7d5ad347e7dcfa0e8f31  # v1.1.2
         with:
-          node-version: '18.x'
-          cache: 'npm'
+          deno-version: v1.x
 
-      - name: Installing packages
-        run: npm ci
-        
-      - name: Installing pkg cli
-        run: npm install -g pkg
+      - name: Cache deps
+        env:
+          PUPPETEER_PRODUCT: chrome
+        run: | 
+          deno cache --config=./src/config.json --lock-write ./src/main.ts
+          deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts
 
-      - name: Building mx-scraper ${{ matrix.os }}
-        run: node auto-build.js
-        
-      - name: Run mx-scraper --help
-        run: ./bin/mx-scraper${{ matrix.extension }} --help
+      - name: Run mx-scraper
+        run: deno run -A --config=./src/config.json ./src/main.ts --infos
 
-      - name: Run mx-scraper --infos
+      - name: Building mx-scraper on ${{ matrix.os }}
         run: |
-          cd bin
-          ./mx-scraper${{ matrix.extension }} --infos
+          mkdir bin
+          deno compile -A --output ./bin/mx-scraper --config=./src/config.json ./src/main.ts --is_compiled_binary
+
+      - name: Run mx-scraper${{ matrix.extension }} --help
+        run: ./bin/mx-scraper${{ matrix.extension }} --infos
 
       - name: Archive build for ${{ matrix.os }}
         run: |
           cd bin
           tar -czvf ../mx-scraper-${{ github.ref_name }}-${{ matrix.os }}.tar.gz *
-      
+
       - name: Release ${{ matrix.os }}
         uses: svenstaro/upload-release-action@v2
         with:

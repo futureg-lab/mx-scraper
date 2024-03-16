@@ -1,0 +1,55 @@
+export const snapshot = {};
+
+snapshot[`Example plugin should return a book 1`] = `
+{
+  authors: [
+    {
+      description: "",
+      name: "Shiki",
+    },
+    {
+      description: "",
+      name: "Ayumu",
+    },
+    {
+      description: "",
+      name: "Nanachi",
+    },
+  ],
+  chapters: [],
+  description: "
+
+    Example Domain
+    This domain is for use in illustrative examples in documents. You may use this
+    domain in literature without prior coordination or asking for permission.
+    More information...
+
+
+
+",
+  metadatas: [],
+  source_id: "test",
+  tags: [
+    {
+      metadatas: [],
+      name: "Example tag 1",
+    },
+    {
+      metadatas: [],
+      name: "Another tag",
+    },
+  ],
+  title: "Example Domain",
+  title_aliases: [
+    {
+      description: "",
+      title: "Example",
+    },
+    {
+      description: "",
+      title: "Example alias",
+    },
+  ],
+  url: "test",
+}
+`;

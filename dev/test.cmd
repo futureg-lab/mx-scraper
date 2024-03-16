@@ -1,0 +1,1 @@
+deno test -A --config=./src/config.json ./tests %*

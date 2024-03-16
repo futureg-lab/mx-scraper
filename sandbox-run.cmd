@@ -1,1 +1,0 @@
-npm run ts-node src/sandbox/%*

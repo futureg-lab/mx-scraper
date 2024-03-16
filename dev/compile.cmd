@@ -1,0 +1,1 @@
+deno compile %* -A --output mx-scraper --config=./src/config.json ./src/main.ts --is_compiled_binary

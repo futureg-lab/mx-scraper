@@ -1,0 +1,1 @@
+deno run -A --config=./src/config.json ./src/main.ts %*

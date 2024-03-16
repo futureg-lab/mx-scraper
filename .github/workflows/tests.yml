@@ -1,0 +1,40 @@
+name: mx-scraper tests
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      flaresolverr:
+        image: flaresolverr/flaresolverr
+        ports:
+          - 8191
+        options: >-
+          -p 8191:8191
+          --cpus 1
+    steps:
+      - name: Setup repo
+        uses: actions/checkout@v3
+      - name: Setup Deno
+        # uses: denoland/setup-deno@v1
+        uses: denoland/setup-deno@61fe2df320078202e33d7d5ad347e7dcfa0e8f31  # v1.1.2
+        with:
+          deno-version: v1.x
+      # - name: Verify formatting
+      #   run: deno fmt --check
+      # - name: Run linter
+      #   run: deno lint
+      - name: Cache deps
+        run: | 
+          deno cache --config=./src/config.json --lock-write ./src/main.ts
+          PUPPETEER_PRODUCT=chrome deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts
+
+      - name: Run tests
+        run: deno test -A --config=./src/config.json ./tests
+      - name: Run mx-scraper
+        run: deno run -A --config=./src/config.json ./src/main.ts --infos

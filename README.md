@@ -8,7 +8,7 @@
 > The Flaresolverr proxy feature requires
 > [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr)
 
-> The headless/headfull browser feature, you may want to install the appropriate
+> For the headless/headfull browser feature, you may want to install the appropriate
 > chrome or firefox version [here](https://deno.land/x/puppeteer@16.2.0), if a
 > browser is already available locally, you can set it on the configuration
 > file.

@@ -4,6 +4,7 @@ import { MXPlugin } from "../core/mx_plugin.ts";
 // Note: import_map does not work!
 const lazyParking = {
   "Example": async () => new (await import("./examples/example.ts")).default(),
+  "Batoto": async () => new (await import("./examples/batoto.ts")).default(),
   "GPrincess": async () =>
     new (await import("./examples/gprincess.ts")).default(),
   "Eyval": async () => new (await import("./examples/eyval.ts")).default(),

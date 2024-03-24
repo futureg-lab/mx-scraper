@@ -6,6 +6,9 @@
         "outdent": "https://deno.land/x/outdent@v0.8.0/mod.ts",
         "zod": "https://deno.land/x/zod@v3.22.4/mod.ts",
         "std/": "https://deno.land/std@0.219.0/",
-        "puppeteer": "https://deno.land/x/puppeteer@16.2.0/mod.ts"
+        "puppeteer": "https://deno.land/x/puppeteer@16.2.0/mod.ts",
+        "gql": "https://deno.land/x/gql@1.2.4/mod.ts",
+        "gql_schema": "npm:@graphql-tools/schema@10.0.0",
+        "graphql_tag": "https://deno.land/x/graphql_tag@0.1.2/mod.ts"
     }
 }

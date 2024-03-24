@@ -21,6 +21,7 @@ import { DynamicConfigurer } from "./dynamic_configurer.ts";
 import { QueryPlan } from "../core/query_plan.ts";
 import { outdent } from "outdent";
 import { UniqueBrowser } from "../utils/browser/unique_browser.ts";
+import spawnServer from "../dev/graphql/server.ts";
 
 export class MXcli extends CLIEngine {
   constructor() {
@@ -28,7 +29,7 @@ export class MXcli extends CLIEngine {
     super(COMMAND_DEF);
     // at least a plugin specification or info + a metafetch specification
     this.defineRequiredArgs([
-      "Plugin | Plugin-Auto-Detect | Show-Plugins | Show-Help | Show-Infos | Search-Plugin | Load-Plan",
+      `Parser-Graphql-Server | Plugin | Plugin-Auto-Detect | Show-Plugins | Show-Help | Show-Infos | Search-Plugin | Load-Plan`,
     ]);
   }
 
@@ -179,7 +180,7 @@ export class MXcli extends CLIEngine {
         MXLogger.infoRefresh(`[Using] ${plugin.title}`);
       }
 
-      await engine.configureSpecificPlugin(plugin.getPluginID());
+      engine.configureSpecificPlugin(plugin.getPluginID());
       const verbose = parsed.has("Verbose");
       const titlesSet = new Set<string>(titles);
       MXLogger.info("\n");
@@ -190,6 +191,10 @@ export class MXcli extends CLIEngine {
         verbose,
       );
       return;
+    }
+
+    if (parsed.has("Parser-Graphql-Server")) {
+      spawnServer();
     }
   }
 
@@ -235,22 +240,6 @@ export class MXcli extends CLIEngine {
   }
 
   private commandPrintHelp(_: MXScraper, verbose: boolean = false) {
-    const examples = [
-      "mx-scraper --help --verbose",
-      "mx-scraper --infos",
-      "mx-scraper -h -v",
-      "mx-scraper --show-plugins -v",
-      "mx-scraper --show-plugins -v -cs",
-      "mx-scraper --search-plugin -v http://link/to/a/title",
-      "mx-scraper --auto --fetch http://link/to/a/title",
-      "mx-scraper --plugin <plugin_name> --fetch-all title1 title2 title3",
-      "mx-scraper --auto --fetch-all --download --parallel http://link/to/title1 http://link/to/title2",
-      "mx-scraper --auto --download --parallel --fetch-file list.txt --meta-only",
-      "mx-scraper -a -d -pa -ff list.txt -mo",
-      "mx-scraper -a -d -pa -ff list.txt",
-      'mx-scraper -v -d --load-plan danbooru.yaml --plan-params TAG=bocchi_the_rock! "TITLE=Bocchi The Rock"',
-    ];
-
     const commandsInstr = [];
     const keys = Array.from(this.commands.keys());
     for (const key of keys) {
@@ -276,9 +265,6 @@ export class MXcli extends CLIEngine {
     ${this.headerString()}
     # Commands:
     ${commandsInstr.join("\n")}
-
-    # Examples:
-    ${examples.map((example) => " " + example).join("\n")}
     `);
   }
 

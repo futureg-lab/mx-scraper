@@ -2,7 +2,7 @@ import * as os from "node:os";
 import { z } from "zod";
 import { getParkedModuleNames } from "./plugins/static_load.ts";
 
-const VERSION = "4.0.1";
+const VERSION = "4.0.2";
 const MACHINE = {
   type: os.type(),
   release: os.release(),
@@ -37,6 +37,9 @@ const configSchema = z.object({
   REQUEST: z.object({
     HEADER_COOKIE: z.string().nullable().optional(),
     HEADER_USER_AGENT: z.string(),
+  }),
+  DEV: z.object({
+    SERVER_PORT: z.number().nullable().optional(),
   }),
 });
 
@@ -73,6 +76,9 @@ export const config = configSchema.parse({
     HEADER_COOKIE: null,
     HEADER_USER_AGENT:
       `mx-scraper/${VERSION} (${MACHINE.type}; ${MACHINE.platform}; ${MACHINE.arch})`,
+  },
+  DEV: {
+    SERVER_PORT: 3000,
   },
 });
 

@@ -23,7 +23,6 @@ mx-scraper --search-plugin -v http://link/to/a/title
 mx-scraper --auto --fetch http://link/to/a/title
 mx-scraper --plugin <PLUGIN_NAME> --fetch-all title1 title2 title3
 mx-scraper --auto --fetch-all --download --parallel http://link/to/title1 http://link/to/title2
-mx-scraper --auto --download --parallel --fetch-file list.txt
 mx-scraper --auto --download --parallel --fetch-file list.txt --meta-only
 mx-scraper -a -d -pa -ff list.txt -mo
 mx-scraper -a -d -pa -ff list.txt

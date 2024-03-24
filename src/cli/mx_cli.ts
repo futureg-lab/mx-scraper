@@ -240,22 +240,6 @@ export class MXcli extends CLIEngine {
   }
 
   private commandPrintHelp(_: MXScraper, verbose: boolean = false) {
-    const examples = [
-      "mx-scraper --help --verbose",
-      "mx-scraper --infos",
-      "mx-scraper -h -v",
-      "mx-scraper --show-plugins -v",
-      "mx-scraper --show-plugins -v -cs",
-      "mx-scraper --search-plugin -v http://link/to/a/title",
-      "mx-scraper --auto --fetch http://link/to/a/title",
-      "mx-scraper --plugin <plugin_name> --fetch-all title1 title2 title3",
-      "mx-scraper --auto --fetch-all --download --parallel http://link/to/title1 http://link/to/title2",
-      "mx-scraper --auto --download --parallel --fetch-file list.txt --meta-only",
-      "mx-scraper -a -d -pa -ff list.txt -mo",
-      "mx-scraper -a -d -pa -ff list.txt",
-      'mx-scraper -v -d --load-plan danbooru.yaml --plan-params TAG=bocchi_the_rock! "TITLE=Bocchi The Rock"',
-    ];
-
     const commandsInstr = [];
     const keys = Array.from(this.commands.keys());
     for (const key of keys) {
@@ -281,9 +265,6 @@ export class MXcli extends CLIEngine {
     ${this.headerString()}
     # Commands:
     ${commandsInstr.join("\n")}
-
-    # Examples:
-    ${examples.map((example) => " " + example).join("\n")}
     `);
   }
 

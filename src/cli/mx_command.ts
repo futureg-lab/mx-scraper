@@ -12,7 +12,7 @@ export const COMMAND_DEF = <CLICommand[]> [
     name: "Show-Help",
     argCount: 0,
     aliases: ["--help", "-h"],
-    description: "Show plugin list",
+    description: "Display command list",
   },
   <CLICommand> {
     name: "Verbose",

@@ -13,13 +13,17 @@ export default {
       const html = await request.get(url);
       const parser = HtmlParser.use(html);
 
-      const nodeResolver = (node: HtmlNode | null) => ({
-        html: () => node?.asHtml(),
-        text: () => node?.asText(),
-        href: () => node?.attr("href"),
-        src: () => node?.attr("src"),
-        attr: ({ name }: any) => node?.attr(name),
-      });
+      const nodeResolver = (node: HtmlNode | null) => {
+        return node
+          ? {
+            html: () => node.asHtml(),
+            text: () => node.asText(),
+            href: () => node.attr("href"),
+            src: () => node.attr("src"),
+            attr: ({ name }: any) => node.attr(name),
+          }
+          : null;
+      };
 
       return { // ParserResult
         title: () => parser.title(),

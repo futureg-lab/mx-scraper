@@ -21,6 +21,7 @@ import { DynamicConfigurer } from "./dynamic_configurer.ts";
 import { QueryPlan } from "../core/query_plan.ts";
 import { outdent } from "outdent";
 import { UniqueBrowser } from "../utils/browser/unique_browser.ts";
+import spawnServer from "../dev/graphql/server.ts";
 
 export class MXcli extends CLIEngine {
   constructor() {
@@ -28,7 +29,7 @@ export class MXcli extends CLIEngine {
     super(COMMAND_DEF);
     // at least a plugin specification or info + a metafetch specification
     this.defineRequiredArgs([
-      "Plugin | Plugin-Auto-Detect | Show-Plugins | Show-Help | Show-Infos | Search-Plugin | Load-Plan",
+      `Parser-Graphql-Server | Plugin | Plugin-Auto-Detect | Show-Plugins | Show-Help | Show-Infos | Search-Plugin | Load-Plan`,
     ]);
   }
 
@@ -179,7 +180,7 @@ export class MXcli extends CLIEngine {
         MXLogger.infoRefresh(`[Using] ${plugin.title}`);
       }
 
-      await engine.configureSpecificPlugin(plugin.getPluginID());
+      engine.configureSpecificPlugin(plugin.getPluginID());
       const verbose = parsed.has("Verbose");
       const titlesSet = new Set<string>(titles);
       MXLogger.info("\n");
@@ -190,6 +191,10 @@ export class MXcli extends CLIEngine {
         verbose,
       );
       return;
+    }
+
+    if (parsed.has("Parser-Graphql-Server")) {
+      spawnServer();
     }
   }
 

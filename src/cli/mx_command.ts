@@ -171,4 +171,10 @@ export const COMMAND_DEF = <CLICommand[]> [
     description:
       `Set client Cookie header value in the format "c1=c1; c2=v2; .."`,
   },
+  <CLICommand> {
+    name: "Parser-Graphql-Server",
+    argCount: 0,
+    aliases: ["--dev-parser", "-dev-p"],
+    description: "Run a graphql server that exposes the HtmlParser API",
+  },
 ];

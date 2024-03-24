@@ -8,10 +8,10 @@
 > The Flaresolverr proxy feature requires
 > [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr)
 
-> For the headless/headfull browser feature, you may want to install the appropriate
-> chrome or firefox version [here](https://deno.land/x/puppeteer@16.2.0), if a
-> browser is already available locally, you can set it on the configuration
-> file.
+> For the headless/headfull browser feature, you may want to install the
+> appropriate chrome or firefox version
+> [here](https://deno.land/x/puppeteer@16.2.0), if a browser is already
+> available locally, you can set it on the configuration file.
 
 ```bash
 mx-scraper --help --verbose
@@ -32,6 +32,8 @@ mx-scraper -v -d --load-plan danbooru.yaml --plan-params TAG=bocchi_the_rock! "T
 
 ## Development
 
+### Setup
+
 1. Download
    [deno](https://docs.deno.com/runtime/manual/getting_started/installation)
 2. Install [puppeteer](https://deno.land/x/puppeteer@16.2.0)
@@ -49,3 +51,12 @@ deno run -A --config=./src/config.json ./src/main.ts --infos
 # Compiling
 # deno compile -A --output mx-scraper --config=./src/config.json ./src/main.ts --is_compiled_binary
 ```
+
+### Playground
+
+`HtmlParser` engine can be used through a local graphql client, this is very
+useful if you want to understand how your a web page is generated. You can spawn
+a server with the `--dev-parser` flag (available by default on
+[http://localhost:3000/graphql](http://localhost:3000/graphql)).
+
+![image](misc/parser_playground.png)

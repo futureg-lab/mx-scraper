@@ -38,6 +38,9 @@ const configSchema = z.object({
     HEADER_COOKIE: z.string().nullable().optional(),
     HEADER_USER_AGENT: z.string(),
   }),
+  DEV: z.object({
+    SERVER_PORT: z.number().nullable().optional(),
+  }),
 });
 
 export type MXConfiguration = z.infer<typeof configSchema>;
@@ -73,6 +76,9 @@ export const config = configSchema.parse({
     HEADER_COOKIE: null,
     HEADER_USER_AGENT:
       `mx-scraper/${VERSION} (${MACHINE.type}; ${MACHINE.platform}; ${MACHINE.arch})`,
+  },
+  DEV: {
+    SERVER_PORT: 3000,
   },
 });
 

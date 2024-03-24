@@ -54,8 +54,8 @@ deno run -A --config=./src/config.json ./src/main.ts --infos
 ### Playground
 
 `HtmlParser` engine can be used through a local graphql client, this is very
-useful if you want to understand how your a web page is generated. You can spawn
-a server with the `--dev-parser` flag (available by default on
+useful if you want to understand how a web page is generated. A server can be
+spawn with the `--dev-parser` flag (available by default on
 [http://localhost:3000/graphql](http://localhost:3000/graphql)).
 
 ![image](misc/parser_playground.png)

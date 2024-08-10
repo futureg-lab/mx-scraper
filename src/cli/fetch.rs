@@ -1,10 +1,14 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, str::FromStr};
 
 use clap::{Args, Parser};
 use indexmap::{IndexMap, IndexSet};
+use url::Url;
 
 use crate::{
-    core::downloader::{download, DownloadStatus},
+    core::{
+        downloader::{download, DownloadStatus},
+        http,
+    },
     plugins::{FetchResult, PluginManager},
     schemas::config,
     GLOBAL_CONFIG,
@@ -49,6 +53,14 @@ pub struct TermSequence {
     /// A sequence of terms
     #[arg(required = true)]
     pub terms: Vec<String>,
+    #[command(flatten)]
+    pub flags: SharedFetchOption,
+}
+
+#[derive(Parser, Debug)]
+pub struct UrlTerm {
+    /// Request url
+    pub url: String,
     #[command(flatten)]
     pub flags: SharedFetchOption,
 }
@@ -145,6 +157,20 @@ impl FileSequence {
             let status = download(&fetched_books).await;
             display_download_status(&fetched_books, &status);
         }
+        Ok(())
+    }
+}
+
+impl UrlTerm {
+    pub async fn fetch(&self) -> anyhow::Result<()> {
+        {
+            let mut config = GLOBAL_CONFIG.lock().unwrap();
+            config.adapt_override(self.flags.clone())?;
+        }
+        // TODO: add --text (default), --download flags
+        let url = Url::from_str(&self.url)?;
+        let response = http::fetch(url).await?;
+        println!("{}", response.text().await?);
         Ok(())
     }
 }

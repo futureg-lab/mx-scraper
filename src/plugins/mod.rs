@@ -3,10 +3,7 @@ use std::path::Path;
 use python::PythonPlugin;
 use std::fs::canonicalize;
 
-use crate::schemas::{
-    book::{Book, PluginOption, SearchOption},
-    config::Config,
-};
+use crate::schemas::book::{Book, PluginOption, SearchOption};
 pub mod python;
 
 pub trait MXPlugin {

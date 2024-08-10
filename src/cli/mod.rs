@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use fetch::{FileSequence, TermSequence};
+use fetch::{FileSequence, TermSequence, UrlTerm};
 use infos::Infos;
 
 use crate::plugins::PluginManager;
@@ -20,6 +20,8 @@ pub enum Commands {
     Fetch(TermSequence),
     /// Fetch a sequence of files
     FetchFiles(FileSequence),
+    /// Request a url
+    Request(UrlTerm),
     /// Display various informations
     Infos(Infos),
 }
@@ -29,6 +31,7 @@ impl Commands {
         match self {
             Commands::Fetch(terms) => terms.fetch(manager).await,
             Commands::FetchFiles(files) => files.fetch(manager).await,
+            Commands::Request(url_term) => url_term.fetch().await,
             Commands::Infos(infos) => infos.display(manager).await,
         }
     }

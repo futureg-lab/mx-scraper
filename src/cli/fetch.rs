@@ -6,19 +6,21 @@ use indexmap::{IndexMap, IndexSet};
 use crate::{
     core::downloader::{download, DownloadStatus},
     plugins::{FetchResult, PluginManager},
+    schemas::config,
+    GLOBAL_CONFIG,
 };
 
 #[derive(Args, Clone, Debug)]
 pub struct Auth {
-    /// Username
+    /// Username (Basic)
     #[arg(long)]
     user: Option<String>,
-    /// Password
+    /// Password (Basic)
     #[arg(long)]
     password: Option<String>,
-    /// Basic auth
+    /// Bearer string
     #[arg(long)]
-    basic_auth: Option<String>,
+    bearer: Option<String>,
 }
 
 #[derive(Args, Clone, Debug)]
@@ -67,9 +69,18 @@ enum Resolution {
 
 impl TermSequence {
     pub async fn fetch(&self, manager: &mut PluginManager) -> anyhow::Result<()> {
-        manager.config.adapt_override(self.flags.clone())?;
+        {
+            let mut config = GLOBAL_CONFIG.lock().unwrap();
+            config.adapt_override(self.flags.clone())?;
+        }
 
-        let results = fetch_terms(&self.terms, manager).await;
+        let results = match self.flags.plugin.clone() {
+            Some(name) => {
+                manager.assert_exists(name.clone())?;
+                fetch_terms(&self.terms, manager, Some(name)).await
+            }
+            None => fetch_terms(&self.terms, manager, None).await,
+        };
         let fetched_books = results
             .iter()
             .filter_map(|(_, res)| match res {
@@ -91,7 +102,10 @@ impl TermSequence {
 
 impl FileSequence {
     pub async fn fetch(&self, manager: &mut PluginManager) -> anyhow::Result<()> {
-        manager.config.adapt_override(self.flags.clone())?;
+        {
+            let mut config = GLOBAL_CONFIG.lock().unwrap();
+            config.adapt_override(self.flags.clone())?;
+        }
 
         let mut file_issues = IndexMap::new();
         let mut terms = vec![];
@@ -107,7 +121,14 @@ impl FileSequence {
             }
         }
 
-        let mut results = fetch_terms(&terms, manager).await;
+        let mut results = match self.flags.plugin.clone() {
+            Some(name) => {
+                manager.assert_exists(name.clone())?;
+                fetch_terms(&terms, manager, Some(name)).await
+            }
+            None => fetch_terms(&terms, manager, None).await,
+        };
+
         results.extend(file_issues); // merge!
 
         display_fetch_status(&results, self.flags.verbose);
@@ -128,9 +149,31 @@ impl FileSequence {
     }
 }
 
+impl Auth {
+    pub fn gen_basic_auth(&self) -> anyhow::Result<config::AuthKind> {
+        if self.user.is_some() {
+            Ok(config::AuthKind::Basic {
+                user: self.user.clone().unwrap(),
+                password: self.password.clone(),
+            })
+        } else if let Some(bearer) = self.bearer.clone() {
+            let prefix = "Bearer ";
+            Ok(config::AuthKind::Bearer {
+                token: match bearer.starts_with(prefix) {
+                    true => bearer.strip_prefix(prefix).unwrap_or(&bearer).to_owned(),
+                    false => bearer,
+                },
+            })
+        } else {
+            anyhow::bail!("At least user must be provided, or use --bearer")
+        }
+    }
+}
+
 async fn fetch_terms(
     terms: &[String],
     manager: &mut PluginManager,
+    plugin: Option<String>,
 ) -> IndexMap<String, Resolution> {
     let terms: IndexSet<&String> = IndexSet::from_iter(terms.iter());
     println!(
@@ -141,9 +184,13 @@ async fn fetch_terms(
     let mut results = IndexMap::new();
     for term in terms {
         // TODO: parallel fetch (actual scraping), +abuse disclaimer
+        let res = match plugin {
+            Some(ref name) => manager.fetch(term.to_owned(), name.to_owned()).await,
+            None => manager.auto_fetch(term.to_owned()).await,
+        };
         results.insert(
             term.clone(),
-            match manager.auto_fetch(term.to_owned()).await {
+            match res {
                 Ok(fetched) => Resolution::Success(fetched),
                 Err(e) => Resolution::Fail(e),
             },

@@ -29,7 +29,6 @@ pub enum PluginImpl {
 
 pub struct PluginManager {
     plugins: Vec<PluginImpl>,
-    pub config: Config,
 }
 
 #[derive(Debug, Clone)]
@@ -39,11 +38,8 @@ pub struct FetchResult {
 }
 
 impl PluginManager {
-    pub fn new(config: Config) -> Self {
-        Self {
-            plugins: vec![],
-            config,
-        }
+    pub fn new() -> Self {
+        Self { plugins: vec![] }
     }
 
     /// Fetch a term using the first plugin that supports it
@@ -93,13 +89,21 @@ impl PluginManager {
     }
 
     /// A list of all installed plugins
-    pub async fn list_plugins(&self) -> Vec<String> {
+    pub fn list_plugins(&self) -> Vec<String> {
         self.plugins
             .iter()
             .map(|plugin| match plugin {
                 PluginImpl::Python(py) => py.name.clone(),
             })
             .collect()
+    }
+
+    /// A list of all installed plugins
+    pub fn assert_exists(&self, plugin_name: String) -> anyhow::Result<()> {
+        if !self.list_plugins().contains(&plugin_name) {
+            anyhow::bail!("Plugin named {plugin_name:?} does not exist")
+        }
+        Ok(())
     }
 
     /// Initialize all plugins

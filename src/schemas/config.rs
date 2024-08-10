@@ -1,11 +1,17 @@
 use std::collections::HashMap;
 
 use anyhow::Context;
-use indexmap::IndexMap;
+use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-use crate::{cli::fetch::SharedFetchOption, schemas::cookies::NetscapeCookie};
+use crate::{
+    cli::fetch::SharedFetchOption, core::http::FetchContext, schemas::cookies::NetscapeCookie,
+};
+
+lazy_static! {
+    static ref ALL: String = String::from("_all");
+}
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Config {
@@ -15,7 +21,27 @@ pub struct Config {
     pub delay: Delay,
     pub max_size_batch: u32,
     pub verbose: bool,
-    pub request: Request,
+    pub request: HashMap<String, Request>,
+    #[serde(skip)]
+    pub __options: AdditionalOptions,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum AuthKind {
+    Basic {
+        user: String,
+        password: Option<String>,
+    },
+    Bearer {
+        token: String,
+    },
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+pub struct AdditionalOptions {
+    focused_plugin: Option<String>,
+    verbose: bool,
+    auth_kind: Option<AuthKind>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
@@ -39,14 +65,19 @@ pub struct Delay {
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Request {
     pub headers: HashMap<String, String>,
-    pub cookies: HashMap<String, HashMap<String, String>>,
-    pub active_on: Vec<String>,
+    pub cookies: HashMap<String, String>,
 }
 
 impl Config {
     pub fn new() -> Self {
-        let mut cookies: HashMap<String, HashMap<String, String>> = HashMap::new();
-        cookies.entry("_".to_string()).or_default();
+        let mut request = HashMap::new();
+        request.insert(
+            ALL.clone(),
+            Request {
+                ..Default::default()
+            },
+        );
+
         Self {
             version: "0.0.1".to_string(),
             download_folder: DownloadFolder {
@@ -63,10 +94,9 @@ impl Config {
             },
             max_size_batch: 10,
             verbose: false,
-            request: Request {
-                headers: HashMap::new(),
-                cookies,
-                active_on: vec![],
+            request,
+            __options: AdditionalOptions {
+                ..Default::default()
             },
         }
     }
@@ -102,13 +132,46 @@ impl Config {
         }
 
         if let Some(file) = fetch_option.cookies {
-            let content: String = std::fs::read_to_string(file)?;
+            let content = std::fs::read_to_string(file)?;
             let cookies = NetscapeCookie::from_json(&content)?;
-            let cookies_m: HashMap<String, String> = NetscapeCookie::to_map(cookies);
+            let cookies_m: HashMap<String, String> = NetscapeCookie::to_map(&cookies);
 
-            self.request.cookies.insert("_".to_string(), cookies_m);
+            self.request
+                .entry(ALL.clone())
+                .and_modify(|m| m.cookies = cookies_m);
         }
 
+        // Prepare __options
+        if let Some(focused_plugin) = fetch_option.plugin {
+            self.__options.focused_plugin = Some(focused_plugin);
+        }
+        if let Some(auth) = fetch_option.auth {
+            self.__options.auth_kind = Some(auth.gen_basic_auth()?);
+        }
+        self.__options.verbose = fetch_option.verbose;
+
         Ok(self)
+    }
+
+    /// Collect headers, auth and other relevant options for http queries
+    pub fn gen_fetch_context(&self) -> FetchContext {
+        let AdditionalOptions {
+            focused_plugin,
+            verbose: _,
+            auth_kind,
+        } = &self.__options;
+        let req_key = focused_plugin.clone().unwrap_or(ALL.to_string());
+
+        match self.request.get(&req_key) {
+            Some(req) => FetchContext {
+                auth: auth_kind.clone(),
+                cookies: NetscapeCookie::from_hashmap(&req.cookies),
+                headers: req.headers.clone(),
+            },
+            None => FetchContext {
+                auth: auth_kind.clone(),
+                ..Default::default()
+            },
+        }
     }
 }

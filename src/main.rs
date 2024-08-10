@@ -6,19 +6,23 @@ mod tests;
 
 use clap::Parser;
 use cli::MainCommand;
+use std::sync::Mutex;
 
+use lazy_static::lazy_static;
 use plugins::PluginManager;
 use schemas::config::Config;
 
+lazy_static! {
+    // maybe Arc<Mutex<Config>>?
+    static ref GLOBAL_CONFIG: Mutex<Config> = Mutex::new(Config::load().unwrap());
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let config = Config::load()?;
-
-    let mut manager = PluginManager::new(config);
+    let mut manager = PluginManager::new();
     manager.init().await?;
 
     if let Err(e) = MainCommand::parse().command.run(&mut manager).await {
-        eprintln!("Failed..");
         eprintln!("{e}")
     }
 

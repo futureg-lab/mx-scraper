@@ -16,7 +16,7 @@ impl Infos {
     pub async fn display(&self, manager: &mut PluginManager) -> anyhow::Result<()> {
         match (self.plugins, self.config) {
             (true, _) => {
-                let list = manager.list_plugins().await;
+                let list = manager.list_plugins();
                 let plugins = list
                     .iter()
                     .map(|item| format!("  - {}", item))

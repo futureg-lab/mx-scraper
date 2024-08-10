@@ -1,7 +1,11 @@
 #[cfg(test)]
 mod test {
     use std::path::PathBuf;
+    use std::str::FromStr;
 
+    use url::Url;
+
+    use crate::core::http;
     use crate::plugins::python::PythonPlugin;
     use crate::plugins::MXPlugin;
     use crate::schemas::book::Book;
@@ -35,6 +39,13 @@ mod test {
         if let Err(e) = plugin.get_book(term).await {
             panic!("{e}");
         }
+    }
+
+    #[tokio::test]
+    async fn perform_fetch_using_config_as_context() {
+        let example = Url::from_str("http://example.com").unwrap();
+        let response = http::fetch(example).await.unwrap();
+        let _ = response.text().await.unwrap();
     }
 
     #[test]

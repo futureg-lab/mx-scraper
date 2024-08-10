@@ -2,6 +2,10 @@
 
 Download image galleries or metadata accross the web
 
+> This is still a work in progress.
+> This rewrite is expected to support previous implementations metadata format.
+> The main idea was to separate the core (mx-scraper) from the plugins (user defined) as it was not possible from previous implementations.
+
 ## Commands
 
 Basic overview

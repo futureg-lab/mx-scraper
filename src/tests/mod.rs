@@ -5,6 +5,7 @@ mod test {
     use crate::plugins::python::PythonPlugin;
     use crate::plugins::MXPlugin;
     use crate::schemas::book::Book;
+    use crate::schemas::cookies::NetscapeCookie;
 
     #[test]
     fn should_work_with_old_books() {
@@ -34,5 +35,19 @@ mod test {
         if let Err(e) = plugin.get_book(term).await {
             panic!("{e}");
         }
+    }
+
+    #[test]
+    fn parse_netscape_cookies_formatted_in_json() {
+        let json = std::fs::read_to_string("src/tests/cookies/netscape.json").unwrap();
+        let res = NetscapeCookie::from_json(&json).unwrap();
+        assert_eq!(res.len(), 3);
+    }
+
+    #[test]
+    fn parse_basic_kv_cookies_formatted_in_json() {
+        let json = std::fs::read_to_string("src/tests/cookies/basic_kv.json").unwrap();
+        let res = NetscapeCookie::from_json(&json).unwrap();
+        assert_eq!(res.len(), 2);
     }
 }

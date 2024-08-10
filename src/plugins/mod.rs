@@ -3,7 +3,10 @@ use std::path::Path;
 use python::PythonPlugin;
 use std::fs::canonicalize;
 
-use crate::schemas::book::{Book, PluginOption, SearchOption};
+use crate::schemas::{
+    book::{Book, PluginOption, SearchOption},
+    config::Config,
+};
 pub mod python;
 
 pub trait MXPlugin {
@@ -26,6 +29,7 @@ pub enum PluginImpl {
 
 pub struct PluginManager {
     plugins: Vec<PluginImpl>,
+    pub config: Config,
 }
 
 #[derive(Debug, Clone)]
@@ -35,8 +39,11 @@ pub struct FetchResult {
 }
 
 impl PluginManager {
-    pub fn new() -> Self {
-        Self { plugins: vec![] }
+    pub fn new(config: Config) -> Self {
+        Self {
+            plugins: vec![],
+            config,
+        }
     }
 
     /// Fetch a term using the first plugin that supports it
@@ -140,7 +147,7 @@ impl PluginManager {
     pub async fn destroy(&mut self) -> anyhow::Result<()> {
         for plugin in self.plugins.iter_mut() {
             match plugin {
-                PluginImpl::Python(py_plug) => py_plug.destroy().await?,
+                PluginImpl::Python(py) => py.destroy().await?,
             }
         }
         Ok(())

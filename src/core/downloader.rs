@@ -88,7 +88,7 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn download_page(page: &Page, base_dir: &Path) -> anyhow::Result<()> {
+async fn download_page(_page: &Page, _base_dir: &Path) -> anyhow::Result<()> {
     sleep(Duration::from_millis(60)).await;
 
     Ok(())

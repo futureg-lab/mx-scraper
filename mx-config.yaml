@@ -1,0 +1,17 @@
+version: 0.0.1
+download_folder:
+  download: ./download/download
+  temp: ./download/temp
+cache:
+  enable: true
+  folder: ./cache
+delay:
+  fetch: 100
+  download: 100
+max_size_batch: 10
+verbose: false
+request:
+  headers: {}
+  cookies:
+    _: {}
+  active_on: []

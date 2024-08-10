@@ -8,7 +8,7 @@ use crate::{
     plugins::{FetchResult, PluginManager},
 };
 
-#[derive(Args, Debug)]
+#[derive(Args, Clone, Debug)]
 pub struct Auth {
     /// Username
     #[arg(long)]
@@ -21,23 +21,23 @@ pub struct Auth {
     basic_auth: Option<String>,
 }
 
-#[derive(Args, Debug)]
+#[derive(Args, Clone, Debug)]
 pub struct SharedFetchOption {
     /// Only fetch metadata
     #[arg(required = false, long, short)]
-    meta_only: bool,
+    pub meta_only: bool,
     /// Verbose mode
     #[arg(required = false, long, short)]
-    verbose: bool,
+    pub verbose: bool,
     /// Disable cache
-    #[arg(required = false, long, short)]
-    no_cache: bool,
+    #[arg(long, short)]
+    pub no_cache: Option<bool>,
     /// Specifically use a plugin and bypass checks
     #[arg(long, short)]
-    plugin: Option<String>,
+    pub plugin: Option<String>,
     /// Load cookies from a file
     #[arg(long, short)]
-    cookies: Option<PathBuf>,
+    pub cookies: Option<PathBuf>,
     #[command(flatten)]
     pub auth: Option<Auth>,
 }
@@ -67,6 +67,8 @@ enum Resolution {
 
 impl TermSequence {
     pub async fn fetch(&self, manager: &mut PluginManager) -> anyhow::Result<()> {
+        manager.config.adapt_override(self.flags.clone())?;
+
         let results = fetch_terms(&self.terms, manager).await;
         let fetched_books = results
             .iter()
@@ -78,7 +80,6 @@ impl TermSequence {
 
         display_fetch_status(&results, self.flags.verbose);
 
-        // term => (plugin, error)
         if !self.flags.meta_only {
             let status: Vec<DownloadStatus> = download(&fetched_books).await;
             display_download_status(&fetched_books, &status);
@@ -90,6 +91,8 @@ impl TermSequence {
 
 impl FileSequence {
     pub async fn fetch(&self, manager: &mut PluginManager) -> anyhow::Result<()> {
+        manager.config.adapt_override(self.flags.clone())?;
+
         let mut file_issues = IndexMap::new();
         let mut terms = vec![];
 
@@ -115,7 +118,7 @@ impl FileSequence {
                 Resolution::Success(f) => Some(f.clone()),
                 Resolution::Fail(_) => None,
             })
-            .collect::<Vec<FetchResult>>();
+            .collect::<Vec<_>>();
 
         if !self.flags.meta_only {
             let status = download(&fetched_books).await;

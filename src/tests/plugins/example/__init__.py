@@ -5,7 +5,7 @@ from plugin import some_root_fn
 
 
 # Checked first
-def mx_is_supported(term: str) -> Dict[str, Any]:
+def mx_is_supported(term) -> Dict[str, Any]:
     return some_root_fn(term)
 
 
@@ -20,6 +20,6 @@ def mx_is_supported(term: str) -> Dict[str, Any]:
 
 
 # Checked after
-def mx_get_book(term: str) -> Dict[str, Any]:
+def mx_get_book(term, req) -> Dict[str, Any]:
     content = read_book_from_file()
     return json.loads(content)

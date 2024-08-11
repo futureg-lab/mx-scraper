@@ -162,15 +162,22 @@ impl FileSequence {
 }
 
 impl UrlTerm {
-    pub async fn fetch(&self) -> anyhow::Result<()> {
+    pub fn fetch(&self) -> anyhow::Result<()> {
         {
             let mut config = GLOBAL_CONFIG.lock().unwrap();
             config.adapt_override(self.flags.clone())?;
         }
         // TODO: add --text (default), --download flags
         let url = Url::from_str(&self.url)?;
-        let response = http::fetch(url).await?;
-        println!("{}", response.text().await?);
+
+        let text = std::thread::spawn(move || {
+            http::fetch(url).and_then(|response| response.text().map_err(|e| e.into()))
+        })
+        .join()
+        .unwrap()
+        .map_err(|e| anyhow::anyhow!("{e}"))?;
+
+        println!("{text}");
         Ok(())
     }
 }

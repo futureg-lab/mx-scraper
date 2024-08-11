@@ -31,7 +31,7 @@ impl Commands {
         match self {
             Commands::Fetch(terms) => terms.fetch(manager).await,
             Commands::FetchFiles(files) => files.fetch(manager).await,
-            Commands::Request(url_term) => url_term.fetch().await,
+            Commands::Request(url_term) => url_term.fetch(),
             Commands::Infos(infos) => infos.display(manager).await,
         }
     }

@@ -3,8 +3,9 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, str::FromStr};
 
 use reqwest::{
+    blocking::Client,
+    blocking::Response,
     header::{HeaderMap, HeaderName, HeaderValue, COOKIE},
-    Client, Response,
 };
 
 use url::Url;
@@ -22,15 +23,22 @@ pub struct FetchContext {
 }
 
 /// Perform a fetch using the global config as context
-pub async fn fetch(url: Url) -> anyhow::Result<Response> {
+pub fn fetch(url: Url) -> anyhow::Result<Response> {
+    let context = {
+        let config = GLOBAL_CONFIG.lock().unwrap();
+        config.gen_fetch_context()
+    };
+
+    fetch_with_context(url, context)
+}
+
+/// Perform a fetch using a custom context
+pub fn fetch_with_context(url: Url, context: FetchContext) -> anyhow::Result<Response> {
     let FetchContext {
         headers,
         cookies,
         auth,
-    } = {
-        let config = GLOBAL_CONFIG.lock().unwrap();
-        config.gen_fetch_context()
-    };
+    } = context;
     let client = Client::new();
 
     let mut req_headers = HeaderMap::new();
@@ -50,5 +58,5 @@ pub async fn fetch(url: Url) -> anyhow::Result<Response> {
         };
     }
 
-    Ok(builder.send().await?)
+    Ok(builder.send()?)
 }

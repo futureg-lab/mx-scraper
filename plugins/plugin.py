@@ -1,10 +1,10 @@
+from typing import Dict, Optional
+
 # TODO:
-# 1. reqwest wrapper
-# 2. afQuery wrapper
+# [x] reqwest wrapper
+# [ ] afQuery wrapper
 
-
-import random
-
-
-def roulette():
-    return random.random() > 0.5
+class MxRequest:
+    context: Dict[str, any]
+    def fetch(url: str, context: Optional[Dict[str, any]]) -> bytes:
+        pass

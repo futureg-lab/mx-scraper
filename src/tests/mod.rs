@@ -41,11 +41,11 @@ mod test {
         }
     }
 
-    #[tokio::test]
-    async fn perform_fetch_using_config_as_context() {
+    #[test]
+    fn perform_fetch_using_config_as_context() {
         let example = Url::from_str("http://example.com").unwrap();
-        let response = http::fetch(example).await.unwrap();
-        let _ = response.text().await.unwrap();
+        let response = http::fetch(example).unwrap();
+        let _ = response.text().unwrap();
     }
 
     #[test]

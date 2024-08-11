@@ -32,24 +32,31 @@ Options:
   -V, --version  Print version
 ```
 
-Each fetch strategy share the same configuration
+Each fetch strategy will share the same configuration..
 
-```
-$ mx-scraper help fetch
+# Features
 
-Usage: mx-scraper fetch [OPTIONS] <TERMS>...
+- [ ] CLI
+  - [x] Fetch a list of terms
+  - [x] Fetch a list of files: parse, combine terms
+  - [x] Generic URL Request
+    - [x] Print as text
+    - [ ] Download `--dest` flag
 
-Arguments:
-  <TERMS>...  A sequence of terms
+- [x] Cookies
+  - [x] Loading from a file (Netscape format)
+  - [x] Loading from the config (key-value)
 
-Options:
-  -m, --meta-only            Only fetch metadata
-  -v, --verbose              Verbose mode
-  -n, --no-cache <NO_CACHE>  Disable cache [possible values: true, false]
-  -p, --plugin <PLUGIN>      Specifically use a plugin and bypass checks
-  -c, --cookies <COOKIES>    Load cookies from a file
-      --user <USER>          Username (Basic)
-      --password <PASSWORD>  Password (Basic)
-      --bearer <BEARER>      Bearer string
-  -h, --help                 Print help
-```
+- [ ] Downloader
+  - [x] Support of older mx-scraper book schema
+  - [ ] Download
+  - [ ] Cache (books) support (can be disabled with `--no-cache` or from config)
+
+- [ ] - Plugins
+  - [x] Python plugin
+    - [x] `MxRequest` with runtime context (headers, cookies, auth)
+  - [ ] Subprocess (e.g., gallery-dl, imgbrd-grabber)
+
+- [ ] HtmlParser (optional feature)
+  - [ ] Implement `HtmlParser.use(source).where('attr.href = ..')`
+  - [ ] Wrap into a python class

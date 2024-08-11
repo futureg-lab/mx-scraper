@@ -4,16 +4,12 @@ use std::{
 };
 
 use crate::{
-    core::http::{self, FetchContext},
+    core::http::{self},
     schemas::book::{Book, PluginOption, SearchOption},
     GLOBAL_CONFIG,
 };
 use anyhow::{bail, Context, Ok};
-use pyo3::{
-    exceptions::{PyException, PyRuntimeError},
-    prelude::*,
-    types::PyBytes,
-};
+use pyo3::{exceptions::PyException, prelude::*, types::PyBytes};
 use serde_pyobject::{from_pyobject, to_pyobject};
 use url::Url;
 
@@ -58,18 +54,18 @@ impl MXPlugin for PythonPlugin {
             let plugin = py.import_bound(name)?;
             let mx_request = MxRequest;
 
-            println!("{:?}", mx_request);
-
             if plugin.hasattr("mx_get_urls")? {
                 let res = plugin
                     .call_method1("mx_get_urls", (term.clone(), mx_request))
-                    .with_context(|| format!("Calling mx_get_urls with term {term:?}"))?;
+                    .with_context(|| {
+                        format!("{}.mx_get_urls(term = {term:?}, ..)", self.name.clone())
+                    })?;
                 Book::from_raw_urls(from_pyobject(res)?)
             } else if plugin.hasattr("mx_get_book")? {
                 match plugin.call_method1("mx_get_book", (term.clone(), mx_request)) {
                     Err(py_err) => {
                         bail!(
-                            "{}.mx_get_book(term = {term:?}): {py_err}",
+                            "{}.mx_get_book(term = {term:?}, ..): {py_err}",
                             self.name.clone()
                         )
                     }
@@ -123,23 +119,14 @@ impl MxRequest {
         context: Option<Bound<PyAny>>,
     ) -> PyResult<Py<PyBytes>> {
         let url = can_throw_exception!(Url::from_str(&url));
-        let context: Option<FetchContext> = match context {
-            Some(context) => from_pyobject(context)?,
-            None => None,
-        };
 
-        // reqwest::blocking acting sus
-        // "Cannot drop a runtime in a context where blocking is not allowed"
-        // throwing it into another thread solves the issue
-        let bytes = can_throw_exception!(std::thread::spawn(move || {
-            let response = match context {
-                Some(context) => http::fetch_with_context(url, context),
-                None => http::fetch(url),
-            };
-            response.and_then(|response| response.bytes().map_err(|e| e.into()))
-        })
-        .join()
-        .map_err(|e| { PyErr::new::<PyRuntimeError, _>(format!("Thread error: {e:?}")) })?);
+        let bytes = can_throw_exception!(match context {
+            Some(py_context) => {
+                let context = from_pyobject(py_context)?;
+                http::fetch_with_context(url, context)
+            }
+            None => http::fetch(url),
+        });
 
         let bytes = PyBytes::new_bound(py, bytes.as_ref()).unbind();
         std::result::Result::Ok(bytes)

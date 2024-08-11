@@ -1,12 +1,18 @@
-use std::{path::Path, sync::Arc, time::Duration};
+use std::{io::Write, path::Path, str::FromStr, sync::Arc};
 
+use anyhow::Context;
 use futures::future::join_all;
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use lazy_static::lazy_static;
-use std::path::PathBuf;
-use tokio::{task, time::sleep};
+use tokio::task;
+use url::Url;
 
 use crate::{plugins::FetchResult, schemas::book::Page};
+
+use super::{
+    http::{self},
+    utils,
+};
 
 lazy_static! {
     static ref MULTI_PROGRESS: Arc<MultiProgress> = Arc::new(MultiProgress::new());
@@ -70,6 +76,8 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
             .progress_chars("=>-"),
     );
 
+    let folders = book.get_download_folders(&plugin_name);
+
     for (c, chapter) in book.chapters.iter().enumerate() {
         pb.set_message(format!(
             "[ch. {}/{}] :: {} :: {}",
@@ -80,16 +88,51 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
         ));
 
         for page in &chapter.pages {
-            download_page(page, &PathBuf::from(".")).await?;
+            let down_dir = folders
+                .download
+                .join(utils::sanitize_string_as_path(&chapter.title));
+            let temp_dir = folders
+                .temp
+                .join(utils::sanitize_string_as_path(&chapter.title));
+            download_page(page, &temp_dir, &down_dir).await?;
             pb.inc(1);
+        }
+    }
+
+    // move book
+    if !folders.download.exists() {
+        std::fs::create_dir_all(&folders.download.parent().unwrap())?;
+        if folders.temp.exists() {
+            std::fs::rename(&folders.temp, &folders.download).with_context(|| {
+                format!(
+                    "Moving {:?} ==> {:?}",
+                    folders.temp.display(),
+                    folders.download.display()
+                )
+            })?;
         }
     }
 
     Ok(())
 }
 
-async fn download_page(_page: &Page, _base_dir: &Path) -> anyhow::Result<()> {
-    sleep(Duration::from_millis(60)).await;
+async fn download_page(page: &Page, tmp_dir: &Path, down_dir: &Path) -> anyhow::Result<()> {
+    // let filename = utils::sanitize_string_as_path(&page.filename);
+    let filename = &page.filename;
+    let tmp_filepath = tmp_dir.join(&filename);
+    let down_filepath = down_dir.join(&filename);
 
+    if tmp_filepath.exists() || down_filepath.exists() {
+        return Ok(());
+    }
+
+    let url = Url::from_str(&page.url)?;
+    let bytes = http::fetch(url)?;
+
+    std::fs::create_dir_all(&tmp_dir).with_context(|| format!("Creating {}", tmp_dir.display()))?;
+
+    let mut file = std::fs::File::create(&tmp_filepath)
+        .with_context(|| format!("Creating {}", tmp_filepath.display()))?;
+    file.write(&bytes).with_context(|| "Downloading {url}")?;
     Ok(())
 }

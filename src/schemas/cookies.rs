@@ -51,6 +51,7 @@ impl NetscapeCookie {
     }
 
     /// Convert into any map, ignore domain constraint and may override common keys
+    /// as this will naively collect the entries.
     pub fn to_map<M>(cookies: &[NetscapeCookie]) -> M
     where
         M: FromIterator<(String, String)>,

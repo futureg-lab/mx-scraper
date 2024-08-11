@@ -4,7 +4,6 @@ use std::{collections::HashMap, str::FromStr};
 
 use reqwest::{
     blocking::Client,
-    blocking::Response,
     header::{HeaderMap, HeaderName, HeaderValue, COOKIE},
 };
 
@@ -23,7 +22,7 @@ pub struct FetchContext {
 }
 
 /// Perform a fetch using the global config as context
-pub fn fetch(url: Url) -> anyhow::Result<Response> {
+pub fn fetch(url: Url) -> anyhow::Result<Vec<u8>> {
     let context = {
         let config = GLOBAL_CONFIG.lock().unwrap();
         config.gen_fetch_context()
@@ -33,13 +32,12 @@ pub fn fetch(url: Url) -> anyhow::Result<Response> {
 }
 
 /// Perform a fetch using a custom context
-pub fn fetch_with_context(url: Url, context: FetchContext) -> anyhow::Result<Response> {
+pub fn fetch_with_context(url: Url, context: FetchContext) -> anyhow::Result<Vec<u8>> {
     let FetchContext {
         headers,
         cookies,
         auth,
     } = context;
-    let client = Client::new();
 
     let mut req_headers = HeaderMap::new();
     for (k, v) in headers {
@@ -50,13 +48,28 @@ pub fn fetch_with_context(url: Url, context: FetchContext) -> anyhow::Result<Res
         HeaderValue::from_str(&NetscapeCookie::to_raw_string(&cookies))?,
     );
 
-    let mut builder = client.get(url).headers(req_headers);
-    if let Some(auth) = auth {
-        builder = match auth {
-            AuthKind::Basic { user, password } => builder.basic_auth(user, password),
-            AuthKind::Bearer { token } => builder.bearer_auth(token),
-        };
-    }
+    // FIXME:
+    // reqwest::blocking acting sus
+    // "Cannot drop a runtime in a context where blocking is not allowed"
+    // throwing it into another thread solves the issue
+    let bytes = std::thread::spawn(move || {
+        let client = Client::new();
+        let mut builder = client.get(url.clone()).headers(req_headers);
+        if let Some(auth) = auth {
+            builder = match auth {
+                AuthKind::Basic { user, password } => builder.basic_auth(user, password),
+                AuthKind::Bearer { token } => builder.bearer_auth(token),
+            };
+        }
+        let response = builder.send()?;
+        if !response.status().is_success() {
+            anyhow::bail!(format!("{}: {url}", response.status()));
+        } else {
+            Ok(response.bytes()?)
+        }
+    })
+    .join()
+    .unwrap()?;
 
-    Ok(builder.send()?)
+    Ok(bytes.to_vec())
 }

@@ -9,13 +9,18 @@ Download image galleries or metadata accross the web
 > The main idea was to separate the core (mx-scraper) from the plugins (user
 > defined) as it was not possible from previous implementations.
 
+# Usage
+
+```bash
+# the `images` plugin uses bs4
+pip install beautifulsoup4
+# This will for example download all images from this url using the `images` plugin.
+mx-scraper fetch https://uncyclopedia.com/wiki/Main_Page --plugin images -v
+```
+
 ## Commands
 
-Basic overview
-
-```
-$ mx-scraper help
-
+```bash
 mx-scraper engine
 
 Usage: mx-scraper <COMMAND>
@@ -42,6 +47,7 @@ Each fetch strategy will share the same configuration..
   - [x] Generic URL Request
     - [x] Print as text
     - [ ] Download `--dest` flag
+  - [x] Authentications (Basic, Bearer token)
 
 - [x] Cookies
   - [x] Loading from a file (Netscape format)
@@ -49,10 +55,10 @@ Each fetch strategy will share the same configuration..
 
 - [ ] Downloader
   - [x] Support of older mx-scraper book schema
-  - [ ] Download
+  - [x] Download
   - [ ] Cache (books) support (can be disabled with `--no-cache` or from config)
 
-- [ ] - Plugins
+- [ ] Plugins
   - [x] Python plugin
     - [x] `MxRequest` with runtime context (headers, cookies, auth)
   - [ ] Subprocess (e.g., gallery-dl, imgbrd-grabber)

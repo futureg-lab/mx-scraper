@@ -167,16 +167,10 @@ impl UrlTerm {
             let mut config = GLOBAL_CONFIG.lock().unwrap();
             config.adapt_override(self.flags.clone())?;
         }
-        // TODO: add --text (default), --download flags
+        // TODO: download --dest flags
         let url = Url::from_str(&self.url)?;
-
-        let text = std::thread::spawn(move || {
-            http::fetch(url).and_then(|response| response.text().map_err(|e| e.into()))
-        })
-        .join()
-        .unwrap()
-        .map_err(|e| anyhow::anyhow!("{e}"))?;
-
+        let bytes = http::fetch(url)?;
+        let text = String::from_utf8(bytes)?;
         println!("{text}");
         Ok(())
     }

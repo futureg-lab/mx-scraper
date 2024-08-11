@@ -14,3 +14,5 @@ request:
   _all:
     headers: {}
     cookies: {}
+  example:
+    headers: {}

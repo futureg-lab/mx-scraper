@@ -4,6 +4,10 @@ use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+use crate::{core::utils, GLOBAL_CONFIG};
+
+use super::config::DownloadFolder;
+
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Book {
     pub title: String,
@@ -108,13 +112,8 @@ impl Chapter {
                 .map(|(p, url)| {
                     let url =
                         Url::parse(url).with_context(|| format!("Failed Parsing: {url:?}"))?;
-                    let filename = url
-                        .path_segments()
-                        .unwrap()
-                        .last()
-                        .map(|s| s.to_string())
+                    let filename = utils::extract_filename(&url)
                         .unwrap_or_else(|| format!("{}_{}", title.clone(), p + 1));
-
                     Ok(Page {
                         filename,
                         title: format!("{} page #{}", title.clone(), p + 1),
@@ -153,5 +152,24 @@ impl Book {
             .collect();
 
         Ok(book)
+    }
+
+    pub fn get_sanitized_title(&self) -> String {
+        utils::sanitize_string(&self.title)
+    }
+
+    pub fn get_download_folders(&self, plugin_name: &str) -> DownloadFolder {
+        let (download, temp) = {
+            let config = GLOBAL_CONFIG.lock().unwrap();
+            (
+                config.download_folder.download.clone(),
+                config.download_folder.temp.clone(),
+            )
+        };
+
+        DownloadFolder {
+            download: download.join(plugin_name).join(self.get_sanitized_title()),
+            temp: temp.join(plugin_name).join(self.get_sanitized_title()),
+        }
     }
 }

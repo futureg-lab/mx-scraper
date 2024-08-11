@@ -4,6 +4,7 @@ mod plugins;
 mod schemas;
 mod tests;
 
+use anyhow::Context;
 use clap::Parser;
 use cli::MainCommand;
 use std::sync::Mutex;
@@ -14,7 +15,7 @@ use schemas::config::Config;
 
 lazy_static! {
     // maybe Arc<Mutex<Config>>?
-    static ref GLOBAL_CONFIG: Mutex<Config> = Mutex::new(Config::load().unwrap());
+    static ref GLOBAL_CONFIG: Mutex<Config> = Mutex::new(Config::load().with_context(|| "Loading config").unwrap());
 }
 
 #[tokio::main]

@@ -65,7 +65,7 @@ pub struct Delay {
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Request {
     pub headers: HashMap<String, String>,
-    pub cookies: HashMap<String, String>,
+    pub cookies: Option<HashMap<String, String>>,
 }
 
 impl Config {
@@ -79,7 +79,7 @@ impl Config {
         );
 
         Self {
-            version: "0.0.1".to_string(),
+            version: env!("CARGO_PKG_VERSION").to_owned(),
             download_folder: DownloadFolder {
                 download: PathBuf::from("./download/download"),
                 temp: PathBuf::from("./download/temp"),
@@ -138,7 +138,7 @@ impl Config {
 
             self.request
                 .entry(ALL.clone())
-                .and_modify(|m| m.cookies = cookies_m);
+                .and_modify(|m| m.cookies = Some(cookies_m));
         }
 
         // Prepare __options
@@ -165,7 +165,7 @@ impl Config {
         match self.request.get(&req_key) {
             Some(req) => FetchContext {
                 auth: auth_kind.clone(),
-                cookies: NetscapeCookie::from_hashmap(&req.cookies),
+                cookies: NetscapeCookie::from_hashmap(&req.cookies.clone().unwrap_or_default()),
                 headers: req.headers.clone(),
             },
             None => FetchContext {

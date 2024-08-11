@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
@@ -96,6 +96,13 @@ pub struct RawUrls {
     pub tags: Vec<String>,
 }
 
+#[derive(Serialize, Clone, Deserialize, Debug)]
+pub struct CacheFile {
+    pub engine: String,
+    pub date: String,
+    pub book: Book,
+}
+
 impl Chapter {
     pub fn from_raw_urls(raw: RawUrls) -> anyhow::Result<Chapter> {
         let RawUrls {
@@ -141,6 +148,7 @@ impl Book {
             ..Default::default()
         };
         book.title = title.clone();
+        book.source_id = title.clone();
         book.url = url_source;
         book.chapters.push(Chapter::from_raw_urls(raw)?);
         book.tags = tags
@@ -171,5 +179,16 @@ impl Book {
             download: download.join(plugin_name).join(self.get_sanitized_title()),
             temp: temp.join(plugin_name).join(self.get_sanitized_title()),
         }
+    }
+
+    pub fn get_metadata_path(&self, plugin_name: &str) -> PathBuf {
+        let temp = {
+            let config = GLOBAL_CONFIG.lock().unwrap();
+            config.download_folder.temp.clone()
+        };
+
+        temp.join(plugin_name)
+            .join(self.get_sanitized_title())
+            .join(format!("{}.json", utils::sanitize_string(&self.source_id)))
     }
 }

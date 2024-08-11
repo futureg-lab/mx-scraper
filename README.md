@@ -41,22 +41,22 @@ Each fetch strategy will share the same configuration..
 
 # Features
 
-- [ ] CLI
+- [x] CLI
   - [x] Fetch a list of terms
   - [x] Fetch a list of files: parse, combine terms
   - [x] Generic URL Request
     - [x] Print as text
-    - [ ] Download `--dest` flag
+    - [x] Download `--dest` flag
   - [x] Authentications (Basic, Bearer token)
 
 - [x] Cookies
   - [x] Loading from a file (Netscape format)
   - [x] Loading from the config (key-value)
 
-- [ ] Downloader
+- [x] Downloader
   - [x] Support of older mx-scraper book schema
   - [x] Download
-  - [ ] Cache (books) support (can be disabled with `--no-cache` or from config)
+  - [x] Cache support (can be disabled with `--no-cache` or from config)
 
 - [ ] Plugins
   - [x] Python plugin

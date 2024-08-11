@@ -1,9 +1,13 @@
 use std::path::Path;
 
+use anyhow::Context;
 use python::PythonPlugin;
 use std::fs::canonicalize;
 
-use crate::schemas::book::{Book, PluginOption, SearchOption};
+use crate::{
+    schemas::book::{Book, PluginOption, SearchOption},
+    GLOBAL_CONFIG,
+};
 pub mod python;
 
 pub trait MXPlugin {
@@ -46,13 +50,8 @@ impl PluginManager {
             match plugin {
                 PluginImpl::Python(py) => {
                     if py.is_supported(term.clone()).await? {
-                        match py.get_book(term.clone()).await {
-                            Ok(book) => {
-                                return Ok(FetchResult {
-                                    book,
-                                    plugin_name: py.name.clone(),
-                                })
-                            }
+                        match self.fetch(term.clone(), py.name.clone()).await {
+                            Ok(f) => return Ok(f),
                             Err(e) => {
                                 issues.push(format!("  - Plugin {}: {e}", py.name));
                             }
@@ -75,7 +74,28 @@ impl PluginManager {
             match plugin {
                 PluginImpl::Python(py) => {
                     if py.name.eq(&plugin_name) {
-                        let book = py.get_book(term.clone()).await?;
+                        let (enable_cache, cache_file_path) = {
+                            let config = GLOBAL_CONFIG.lock().unwrap();
+
+                            (
+                                config.cache.enable,
+                                config.get_cache_file_path(&term, &plugin_name),
+                            )
+                        };
+
+                        let book = if enable_cache && cache_file_path.exists() {
+                            println!("[Cached :: {plugin_name}] {term}");
+                            let content = std::fs::read_to_string(&cache_file_path)?;
+                            serde_json::from_str(&content)?
+                        } else {
+                            let book = py.get_book(term.clone()).await?;
+                            let content = serde_json::to_string_pretty(&book)?;
+                            std::fs::write(&cache_file_path, content).with_context(|| {
+                                format!("Writing cache {:?}", cache_file_path.display())
+                            })?;
+                            book
+                        };
+
                         return Ok(FetchResult { book, plugin_name });
                     }
                 }
@@ -105,6 +125,8 @@ impl PluginManager {
 
     /// Initialize all plugins
     pub async fn init(&mut self) -> anyhow::Result<()> {
+        self.prepare_folders();
+
         // Add static plugins then collect dynamic ones
         // For now, we have dynamic ones (python)
         // static plugins can be added directly in the Vec below
@@ -142,6 +164,29 @@ impl PluginManager {
 
         self.plugins = plugins;
         Ok(())
+    }
+
+    fn prepare_folders(&self) {
+        let (cache_folder, download, temp) = {
+            let config = GLOBAL_CONFIG.lock().unwrap();
+            (
+                config.cache.folder.clone(),
+                config.download_folder.download.clone(),
+                config.download_folder.temp.clone(),
+            )
+        };
+
+        std::fs::create_dir_all(&cache_folder)
+            .with_context(|| format!("Cache folder {:?}", cache_folder.display()))
+            .unwrap();
+
+        std::fs::create_dir_all(&temp)
+            .with_context(|| format!("Temp folder {:?}", cache_folder.display()))
+            .unwrap();
+
+        std::fs::create_dir_all(&download)
+            .with_context(|| format!("Download folder {:?}", cache_folder.display()))
+            .unwrap();
     }
 
     /// Destroy all plugins and free-up ressources

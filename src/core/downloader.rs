@@ -1,13 +1,17 @@
 use std::{io::Write, path::Path, str::FromStr, sync::Arc};
 
 use anyhow::Context;
+use chrono::Local;
 use futures::future::join_all;
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use lazy_static::lazy_static;
 use tokio::task;
 use url::Url;
 
-use crate::{plugins::FetchResult, schemas::book::Page};
+use crate::{
+    plugins::FetchResult,
+    schemas::book::{Book, CacheFile, Page},
+};
 
 use super::{
     http::{self},
@@ -29,6 +33,20 @@ pub enum Failure {
 pub enum DownloadStatus {
     Success,
     Fail(Failure),
+}
+
+pub async fn batch_download(
+    fetched_book: &[FetchResult],
+    batch_size: usize,
+) -> Vec<DownloadStatus> {
+    let mut status = vec![];
+    let batches = utils::batch_a_list_of(fetched_book, batch_size);
+    for (p, batch) in batches.iter().enumerate() {
+        println!("Batch {}/{}", p + 1, batches.len());
+        let local_status = download(&batch).await;
+        status.extend(local_status);
+    }
+    status
 }
 
 pub async fn download(fetched_book: &[FetchResult]) -> Vec<DownloadStatus> {
@@ -77,6 +95,8 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
     );
 
     let folders = book.get_download_folders(&plugin_name);
+    let metadata_file = book.get_metadata_path(&plugin_name);
+    create_metadata_file(&metadata_file, &book)?;
 
     for (c, chapter) in book.chapters.iter().enumerate() {
         pb.set_message(format!(
@@ -134,5 +154,25 @@ async fn download_page(page: &Page, tmp_dir: &Path, down_dir: &Path) -> anyhow::
     let mut file = std::fs::File::create(&tmp_filepath)
         .with_context(|| format!("Creating {}", tmp_filepath.display()))?;
     file.write(&bytes).with_context(|| "Downloading {url}")?;
+    Ok(())
+}
+
+fn create_metadata_file(file: &Path, book: &Book) -> anyhow::Result<()> {
+    let version = env!("CARGO_PKG_VERSION").to_owned();
+    let time = Local::now().to_string();
+
+    let cache_file = CacheFile {
+        engine: format!("mx-scraper {version}"),
+        date: time,
+        book: book.clone(),
+    };
+
+    let parent = file.parent().unwrap();
+    if !parent.exists() {
+        std::fs::create_dir_all(parent)?;
+    }
+
+    let text = serde_json::to_string_pretty(&cache_file).unwrap();
+    std::fs::write(&file, text)?;
     Ok(())
 }

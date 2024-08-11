@@ -5,7 +5,7 @@ mod test {
 
     use url::Url;
 
-    use crate::core::http;
+    use crate::core::{http, utils};
     use crate::plugins::python::PythonPlugin;
     use crate::plugins::MXPlugin;
     use crate::schemas::book::Book;
@@ -36,9 +36,7 @@ mod test {
             panic!("Sauce {term:?} not supported?");
         }
 
-        if let Err(e) = plugin.get_book(term).await {
-            panic!("{e}");
-        }
+        plugin.get_book(term).await.unwrap();
     }
 
     #[test]
@@ -59,5 +57,15 @@ mod test {
         let json = std::fs::read_to_string("src/tests/cookies/basic_kv.json").unwrap();
         let res = NetscapeCookie::from_json(&json).unwrap();
         assert_eq!(res.len(), 2);
+    }
+
+    #[test]
+    fn utils_batch_a_list() {
+        let items = (0..10).collect::<Vec<_>>();
+        let sub_sizes = utils::batch_a_list_of(&items, 3)
+            .iter()
+            .map(|v| v.len())
+            .collect::<Vec<_>>();
+        assert_eq!(sub_sizes, vec![3, 3, 3, 1]);
     }
 }

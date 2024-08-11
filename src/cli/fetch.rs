@@ -1,13 +1,14 @@
-use std::{path::PathBuf, str::FromStr};
+use std::{io::Write, path::PathBuf, str::FromStr};
 
+use anyhow::Context;
 use clap::{Args, Parser};
 use indexmap::{IndexMap, IndexSet};
 use url::Url;
 
 use crate::{
     core::{
-        downloader::{download, DownloadStatus},
-        http,
+        downloader::{batch_download, DownloadStatus},
+        http, utils,
     },
     plugins::{FetchResult, PluginManager},
     schemas::config,
@@ -32,12 +33,15 @@ pub struct SharedFetchOption {
     /// Only fetch metadata
     #[arg(required = false, long, short)]
     pub meta_only: bool,
+    /// Override the download batch amount
+    #[arg(long, short)]
+    pub batch_size: Option<usize>,
     /// Verbose mode
     #[arg(required = false, long, short)]
     pub verbose: bool,
-    /// Disable cache
-    #[arg(long, short)]
-    pub no_cache: Option<bool>,
+    /// Override cache status
+    #[arg(required = false, long, short)]
+    pub no_cache: bool,
     /// Specifically use a plugin and bypass checks
     #[arg(long, short)]
     pub plugin: Option<String>,
@@ -61,6 +65,12 @@ pub struct TermSequence {
 pub struct UrlTerm {
     /// Request url
     pub url: String,
+    /// Print as text to stdout
+    #[arg(required = false, long, short = 't')]
+    pub print: bool,
+    /// File destination
+    #[arg(required = false, long, short)]
+    pub dest: Option<PathBuf>,
     #[command(flatten)]
     pub flags: SharedFetchOption,
 }
@@ -81,10 +91,11 @@ enum Resolution {
 
 impl TermSequence {
     pub async fn fetch(&self, manager: &mut PluginManager) -> anyhow::Result<()> {
-        {
+        let batch_size = {
             let mut config = GLOBAL_CONFIG.lock().unwrap();
             config.adapt_override(self.flags.clone())?;
-        }
+            config.max_size_batch.clone()
+        };
 
         let results = match self.flags.plugin.clone() {
             Some(name) => {
@@ -104,7 +115,7 @@ impl TermSequence {
         display_fetch_status(&results, self.flags.verbose);
 
         if !self.flags.meta_only {
-            let status: Vec<DownloadStatus> = download(&fetched_books).await;
+            let status: Vec<DownloadStatus> = batch_download(&fetched_books, batch_size).await;
             display_download_status(&fetched_books, &status);
         }
 
@@ -114,10 +125,11 @@ impl TermSequence {
 
 impl FileSequence {
     pub async fn fetch(&self, manager: &mut PluginManager) -> anyhow::Result<()> {
-        {
+        let batch_size = {
             let mut config = GLOBAL_CONFIG.lock().unwrap();
             config.adapt_override(self.flags.clone())?;
-        }
+            config.max_size_batch.clone()
+        };
 
         let mut file_issues = IndexMap::new();
         let mut terms = vec![];
@@ -154,7 +166,7 @@ impl FileSequence {
             .collect::<Vec<_>>();
 
         if !self.flags.meta_only {
-            let status = download(&fetched_books).await;
+            let status = batch_download(&fetched_books, batch_size).await;
             display_download_status(&fetched_books, &status);
         }
         Ok(())
@@ -169,9 +181,23 @@ impl UrlTerm {
         }
         // TODO: download --dest flags
         let url = Url::from_str(&self.url)?;
-        let bytes = http::fetch(url)?;
-        let text = String::from_utf8(bytes)?;
-        println!("{text}");
+        let bytes = http::fetch(url.clone())?;
+        if self.print {
+            let text = String::from_utf8(bytes)?;
+            println!("{text}");
+        } else {
+            let dest = match self.dest.clone() {
+                Some(dest) => dest,
+                None => {
+                    let filename =
+                        utils::extract_filename(&url).unwrap_or("download.bin".to_string());
+                    PathBuf::from(filename)
+                }
+            };
+            let mut file = std::fs::File::create(&dest)
+                .with_context(|| format!("Creating {}", dest.display()))?;
+            file.write(&bytes).with_context(|| "Downloading {url}")?;
+        }
         Ok(())
     }
 }

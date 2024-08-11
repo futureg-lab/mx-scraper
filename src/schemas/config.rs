@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 
-use anyhow::Context;
-use lazy_static::lazy_static;
-use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
-
 use crate::{
     cli::fetch::SharedFetchOption, core::http::FetchContext, schemas::cookies::NetscapeCookie,
 };
+use anyhow::Context;
+use lazy_static::lazy_static;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use std::path::PathBuf;
 
 lazy_static! {
     static ref ALL: String = String::from("_all");
@@ -19,7 +19,7 @@ pub struct Config {
     pub download_folder: DownloadFolder,
     pub cache: Cache,
     pub delay: Delay,
-    pub max_size_batch: u32,
+    pub max_size_batch: usize,
     pub verbose: bool,
     pub request: HashMap<String, Request>,
     #[serde(skip)]
@@ -86,7 +86,7 @@ impl Config {
             },
             cache: Cache {
                 enable: true,
-                folder: PathBuf::from("./cache"),
+                folder: PathBuf::from("./query_cache"),
             },
             delay: Delay {
                 fetch: 100,
@@ -127,8 +127,8 @@ impl Config {
     }
 
     pub fn adapt_override(&mut self, fetch_option: SharedFetchOption) -> anyhow::Result<&mut Self> {
-        if let Some(no_cache) = fetch_option.no_cache {
-            self.cache.enable = !no_cache;
+        if fetch_option.no_cache {
+            self.cache.enable = false;
         }
 
         if let Some(file) = fetch_option.cookies {
@@ -139,6 +139,10 @@ impl Config {
             self.request
                 .entry(ALL.clone())
                 .and_modify(|m| m.cookies = Some(cookies_m));
+        }
+
+        if let Some(batch_size) = fetch_option.batch_size {
+            self.max_size_batch = batch_size;
         }
 
         // Prepare __options
@@ -173,5 +177,12 @@ impl Config {
                 ..Default::default()
             },
         }
+    }
+
+    pub fn get_cache_file_path(&self, term: &str, plugin_name: &str) -> PathBuf {
+        let data = format!("{term}{plugin_name}");
+        let digest = hex::encode(Sha256::digest(data));
+
+        self.cache.folder.join(format!("mx_{digest}.json"))
     }
 }

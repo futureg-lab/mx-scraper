@@ -8,7 +8,7 @@ pub mod fetch;
 pub mod infos;
 
 #[derive(Parser, Debug)]
-#[command(author = "futureg-lab", version = "0.0.1", about = "mx-scraper engine")]
+#[command(author = "futureg-lab", about = "mx-scraper engine")]
 pub struct MainCommand {
     #[command(subcommand)]
     pub command: Commands,
@@ -18,7 +18,7 @@ pub struct MainCommand {
 pub enum Commands {
     /// Fetch a sequence of terms
     Fetch(TermSequence),
-    /// Fetch a sequence of files
+    /// Fetch a sequence of terms from a collection of files
     FetchFiles(FileSequence),
     /// Request a url
     Request(UrlTerm),
@@ -31,7 +31,7 @@ impl Commands {
         match self {
             Commands::Fetch(terms) => terms.fetch(manager).await,
             Commands::FetchFiles(files) => files.fetch(manager).await,
-            Commands::Request(url_term) => url_term.fetch(),
+            Commands::Request(url_term) => url_term.fetch().await,
             Commands::Infos(infos) => infos.display(manager).await,
         }
     }

@@ -1,8 +1,7 @@
-use std::path::Path;
+use std::time::Duration;
 
 use anyhow::Context;
 use python::PythonPlugin;
-use std::fs::canonicalize;
 
 use crate::{
     schemas::book::{Book, PluginOption, SearchOption},
@@ -34,8 +33,10 @@ pub struct PluginManager {
 
 #[derive(Debug, Clone)]
 pub struct FetchResult {
+    pub query_term: String,
     pub book: Book,
     pub plugin_name: String,
+    pub cached: bool,
 }
 
 impl PluginManager {
@@ -64,7 +65,7 @@ impl PluginManager {
         if issues.len() > 0 {
             anyhow::bail!("\n{}", issues.join("\n"))
         } else {
-            anyhow::bail!("No plugin supports the term {term:?}")
+            anyhow::bail!("Cannot auto-detect plugin that supports the term {term:?}\nYou can try with --plugin <PLUGIN_NAME>")
         }
     }
 
@@ -74,19 +75,27 @@ impl PluginManager {
             match plugin {
                 PluginImpl::Python(py) => {
                     if py.name.eq(&plugin_name) {
-                        let (enable_cache, cache_file_path) = {
+                        let (enable_cache, cache_file_path, delay) = {
                             let config = GLOBAL_CONFIG.lock().unwrap();
 
                             (
                                 config.cache.enable,
                                 config.get_cache_file_path(&term, &plugin_name),
+                                config.delay.clone(),
                             )
                         };
 
+                        let mut cached = false;
+
                         let book = if enable_cache && cache_file_path.exists() {
-                            println!("[Cached :: {plugin_name}] {term}");
+                            cached = true;
                             let content = std::fs::read_to_string(&cache_file_path)?;
-                            serde_json::from_str(&content)?
+                            serde_json::from_str(&content).with_context(|| {
+                                format!(
+                                    "Deserializing cache file for term {term} located at {:?}",
+                                    cache_file_path.display()
+                                )
+                            })?
                         } else {
                             let book = py.get_book(term.clone()).await?;
                             let content = serde_json::to_string_pretty(&book)?;
@@ -95,8 +104,14 @@ impl PluginManager {
                             })?;
                             book
                         };
+                        tokio::time::sleep(Duration::from_millis(delay.fetch as u64)).await;
 
-                        return Ok(FetchResult { book, plugin_name });
+                        return Ok(FetchResult {
+                            query_term: term.clone(),
+                            book,
+                            plugin_name,
+                            cached,
+                        });
                     }
                 }
             }
@@ -125,6 +140,7 @@ impl PluginManager {
 
     /// Initialize all plugins
     pub async fn init(&mut self) -> anyhow::Result<()> {
+        let location = { GLOBAL_CONFIG.lock().unwrap().plugins.clone().location };
         self.prepare_folders();
 
         // Add static plugins then collect dynamic ones
@@ -132,9 +148,9 @@ impl PluginManager {
         // static plugins can be added directly in the Vec below
 
         let mut plugins = vec![];
-        let plug_dir = canonicalize(Path::new("plugins"))?;
+        let plug_dir = location.canonicalize()?;
 
-        // +-- plugins
+        // +-- plugin_location
         //   +- foo
         //      + __init__.py
         //   +- bar
@@ -167,25 +183,35 @@ impl PluginManager {
     }
 
     fn prepare_folders(&self) {
-        let (cache_folder, download, temp) = {
+        let (cache_folder, download, temp, metadata, plugins) = {
             let config = GLOBAL_CONFIG.lock().unwrap();
             (
                 config.cache.folder.clone(),
                 config.download_folder.download.clone(),
                 config.download_folder.temp.clone(),
+                config.download_folder.metadata.clone(),
+                config.plugins.location.clone(),
             )
         };
 
         std::fs::create_dir_all(&cache_folder)
-            .with_context(|| format!("Cache folder {:?}", cache_folder.display()))
+            .with_context(|| format!("Create cache folder {:?}", cache_folder.display()))
             .unwrap();
 
         std::fs::create_dir_all(&temp)
-            .with_context(|| format!("Temp folder {:?}", cache_folder.display()))
+            .with_context(|| format!("Create temp folder {:?}", temp.display()))
             .unwrap();
 
         std::fs::create_dir_all(&download)
-            .with_context(|| format!("Download folder {:?}", cache_folder.display()))
+            .with_context(|| format!("Create download folder {:?}", download.display()))
+            .unwrap();
+
+        std::fs::create_dir_all(&metadata)
+            .with_context(|| format!("Create metadata folder {:?}", metadata.display()))
+            .unwrap();
+
+        std::fs::create_dir_all(&plugins)
+            .with_context(|| format!("Create plugin folder {:?}", plugins.display()))
             .unwrap();
     }
 

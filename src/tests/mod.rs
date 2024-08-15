@@ -45,6 +45,14 @@ mod test {
         let _bytes = http::fetch(example).unwrap();
     }
 
+    #[tokio::test]
+    async fn fetch_async_and_sync_have_the_same_output() {
+        let example = Url::from_str("http://example.com").unwrap();
+        let bytes_a = http::fetch(example.clone()).unwrap();
+        let bytes_b = http::fetch_async(example.clone()).await.unwrap();
+        assert_eq!(bytes_a, bytes_b)
+    }
+
     #[test]
     fn parse_netscape_cookies_formatted_in_json() {
         let json = std::fs::read_to_string("src/tests/cookies/netscape.json").unwrap();

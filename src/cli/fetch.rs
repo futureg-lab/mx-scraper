@@ -3,6 +3,7 @@ use std::{io::Write, path::PathBuf, str::FromStr};
 use anyhow::Context;
 use clap::{Args, Parser};
 use indexmap::{IndexMap, IndexSet};
+use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use url::Url;
 
 use crate::{
@@ -114,10 +115,8 @@ impl TermSequence {
 
         display_fetch_status(&results, self.flags.verbose);
 
-        if !self.flags.meta_only {
-            let status: Vec<DownloadStatus> = batch_download(&fetched_books, batch_size).await;
-            display_download_status(&fetched_books, &status);
-        }
+        let status: Vec<DownloadStatus> = batch_download(&fetched_books, batch_size).await;
+        display_download_status(&fetched_books, &status);
 
         Ok(())
     }
@@ -165,26 +164,23 @@ impl FileSequence {
             })
             .collect::<Vec<_>>();
 
-        if !self.flags.meta_only {
-            let status = batch_download(&fetched_books, batch_size).await;
-            display_download_status(&fetched_books, &status);
-        }
+        let status = batch_download(&fetched_books, batch_size).await;
+        display_download_status(&fetched_books, &status);
         Ok(())
     }
 }
 
 impl UrlTerm {
-    pub fn fetch(&self) -> anyhow::Result<()> {
+    pub async fn fetch(&self) -> anyhow::Result<()> {
         {
             let mut config = GLOBAL_CONFIG.lock().unwrap();
             config.adapt_override(self.flags.clone())?;
         }
-        // TODO: download --dest flags
+
         let url = Url::from_str(&self.url)?;
-        let bytes = http::fetch(url.clone())?;
-        if self.print {
-            let text = String::from_utf8(bytes)?;
-            println!("{text}");
+        let bytes = http::fetch_async(url.clone()).await?;
+        if self.print || self.dest.is_none() {
+            std::io::stdout().write(&bytes)?;
         } else {
             let dest = match self.dest.clone() {
                 Some(dest) => dest,
@@ -229,22 +225,52 @@ async fn fetch_terms(
     plugin: Option<String>,
 ) -> IndexMap<String, Resolution> {
     let terms: IndexSet<&String> = IndexSet::from_iter(terms.iter());
-    println!(
-        "Found {} entr{}..",
+
+    let m = MultiProgress::new();
+    let spinner = ProgressStyle::with_template("{prefix:.bold.dim} {spinner} {wide_msg}")
+        .unwrap()
+        .tick_chars("⠁⠂⠄⡀⢀⠠⠐⠈ ");
+    let status_pb = m.add(ProgressBar::new(1));
+    status_pb.set_style(spinner.clone());
+    status_pb.set_prefix(format!(
+        "[Found {} entr{}]",
         terms.len(),
         if terms.len() == 1 { "y" } else { "ies" }
-    );
+    ));
+    status_pb.finish_with_message("Done");
+
+    let local_pb = m.add(ProgressBar::new(1));
+    local_pb.set_style(spinner.clone());
+
     let mut results = IndexMap::new();
-    for term in terms {
+    let mut cached_count = 0;
+    for (p, term) in terms.iter().enumerate() {
+        local_pb.set_prefix(format!("[{}/{}]", p + 1, terms.len()));
+        local_pb.set_message(format!("{}", term.to_string().trim()));
+
         // TODO: parallel fetch (actual scraping), +abuse disclaimer
         let res = match plugin {
-            Some(ref name) => manager.fetch(term.to_owned(), name.to_owned()).await,
-            None => manager.auto_fetch(term.to_owned()).await,
+            Some(ref name) => manager.fetch(term.to_string(), name.to_owned()).await,
+            None => manager.auto_fetch(term.to_string()).await,
         };
         results.insert(
-            term.clone(),
+            term.to_string(),
             match res {
-                Ok(fetched) => Resolution::Success(fetched),
+                Ok(fetched) => {
+                    cached_count += if fetched.cached {
+                        local_pb.set_message(format!("{} [cached]", term.to_string().trim()));
+                        1
+                    } else {
+                        0
+                    };
+                    status_pb.set_message(format!(
+                        "{} fetched, {cached_count} cached",
+                        terms.len() - cached_count
+                    ));
+                    local_pb.inc(1);
+
+                    Resolution::Success(fetched)
+                }
                 Err(e) => Resolution::Fail(e),
             },
         );

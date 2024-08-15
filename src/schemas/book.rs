@@ -17,7 +17,9 @@ pub struct Book {
     pub authors: Vec<Author>,
     pub chapters: Vec<Chapter>,
     pub tags: Vec<Tag>,
-    pub metadatas: Vec<Metadata>,
+    // Account for typo
+    #[serde(alias = "metadata", alias = "metadatas")]
+    pub metadata: Vec<Metadata>,
     pub url: String,
 }
 
@@ -48,7 +50,9 @@ pub struct Page {
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Tag {
     pub name: String,
-    pub metadatas: Vec<Metadata>,
+    // Account for typo
+    #[serde(alias = "metadata", alias = "metadatas")]
+    pub metadata: Vec<Metadata>,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -155,7 +159,7 @@ impl Book {
             .iter()
             .map(|tag| Tag {
                 name: tag.to_owned(),
-                metadatas: vec![],
+                metadata: vec![],
             })
             .collect();
 
@@ -167,20 +171,23 @@ impl Book {
     }
 
     pub fn get_download_folders(&self, plugin_name: &str) -> DownloadFolder {
-        let (download, temp) = {
+        let (download, temp, metadata) = {
             let config = GLOBAL_CONFIG.lock().unwrap();
             (
                 config.download_folder.download.clone(),
                 config.download_folder.temp.clone(),
+                config.download_folder.metadata.clone(),
             )
         };
 
         DownloadFolder {
             download: download.join(plugin_name).join(self.get_sanitized_title()),
             temp: temp.join(plugin_name).join(self.get_sanitized_title()),
+            metadata: metadata.join(plugin_name),
         }
     }
 
+    /// Metadata temporary path
     pub fn get_metadata_path(&self, plugin_name: &str) -> PathBuf {
         let temp = {
             let config = GLOBAL_CONFIG.lock().unwrap();
@@ -188,6 +195,19 @@ impl Book {
         };
 
         temp.join(plugin_name)
+            .join(self.get_sanitized_title())
+            .join(format!("{}.json", utils::sanitize_string(&self.source_id)))
+    }
+
+    /// Metadata download full path
+    pub fn get_metadata_dest_path(&self, plugin_name: &str) -> PathBuf {
+        let metadata = {
+            let config = GLOBAL_CONFIG.lock().unwrap();
+            config.download_folder.metadata.clone()
+        };
+
+        metadata
+            .join(plugin_name)
             .join(self.get_sanitized_title())
             .join(format!("{}.json", utils::sanitize_string(&self.source_id)))
     }

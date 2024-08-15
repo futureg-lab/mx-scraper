@@ -13,9 +13,10 @@ lazy_static! {
     static ref ALL: String = String::from("_all");
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Config {
     pub version: String,
+    pub plugins: PluginOptions,
     pub download_folder: DownloadFolder,
     pub cache: Cache,
     pub delay: Delay,
@@ -37,35 +38,42 @@ pub enum AuthKind {
     },
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct AdditionalOptions {
     focused_plugin: Option<String>,
     verbose: bool,
     auth_kind: Option<AuthKind>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct DownloadFolder {
     pub download: PathBuf,
     pub temp: PathBuf,
+    pub metadata: PathBuf,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Cache {
     pub enable: bool,
     pub folder: PathBuf,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Delay {
     pub fetch: u32,
     pub download: u32,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Request {
     pub headers: HashMap<String, String>,
     pub cookies: Option<HashMap<String, String>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub struct PluginOptions {
+    pub location: PathBuf,
+    pub meta_only: bool,
 }
 
 impl Config {
@@ -80,17 +88,22 @@ impl Config {
 
         Self {
             version: env!("CARGO_PKG_VERSION").to_owned(),
+            plugins: PluginOptions {
+                location: PathBuf::from("./plugins"),
+                meta_only: false,
+            },
             download_folder: DownloadFolder {
                 download: PathBuf::from("./download/download"),
                 temp: PathBuf::from("./download/temp"),
+                metadata: PathBuf::from("./download/metadata"),
             },
             cache: Cache {
                 enable: true,
                 folder: PathBuf::from("./query_cache"),
             },
             delay: Delay {
-                fetch: 100,
-                download: 100,
+                fetch: 25,
+                download: 25,
             },
             max_size_batch: 10,
             verbose: false,
@@ -131,10 +144,14 @@ impl Config {
             self.cache.enable = false;
         }
 
+        if fetch_option.meta_only {
+            self.plugins.meta_only = true;
+        }
+
         if let Some(file) = fetch_option.cookies {
             let content = std::fs::read_to_string(file)?;
             let cookies = NetscapeCookie::from_json(&content)?;
-            let cookies_m: HashMap<String, String> = NetscapeCookie::to_map(&cookies);
+            let cookies_m = NetscapeCookie::to_map::<HashMap<_, _>>(&cookies);
 
             self.request
                 .entry(ALL.clone())

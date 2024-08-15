@@ -76,7 +76,7 @@ impl MXPlugin for PythonPlugin {
                     }
                 }
             } else {
-                bail!("Invalid could not find mx_get_urls(term) or mx_get_book(term)",)
+                bail!("Invalid could not find mx_get_urls(term, req) or mx_get_book(term, req)",)
             }
         })
     }

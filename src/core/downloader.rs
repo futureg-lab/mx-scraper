@@ -1,4 +1,4 @@
-use std::{io::Write, path::Path, str::FromStr, sync::Arc};
+use std::{io::Write, path::Path, str::FromStr, sync::Arc, time::Duration};
 
 use anyhow::Context;
 use chrono::Local;
@@ -11,6 +11,7 @@ use url::Url;
 use crate::{
     plugins::FetchResult,
     schemas::book::{Book, CacheFile, Page},
+    GLOBAL_CONFIG,
 };
 
 use super::{
@@ -41,9 +42,11 @@ pub async fn batch_download(
 ) -> Vec<DownloadStatus> {
     let mut status = vec![];
     let batches = utils::batch_a_list_of(fetched_book, batch_size);
-    for (p, batch) in batches.iter().enumerate() {
-        println!("Batch {}/{}", p + 1, batches.len());
-        let local_status = download(&batch).await;
+    for (p, current_batch) in batches.iter().enumerate() {
+        if batches.len() > 1 {
+            println!("Batch {}/{}", p + 1, batches.len());
+        }
+        let local_status = download(&current_batch).await;
         status.extend(local_status);
     }
     status
@@ -80,7 +83,28 @@ pub async fn download(fetched_book: &[FetchResult]) -> Vec<DownloadStatus> {
 }
 
 pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
-    let FetchResult { book, plugin_name } = fetch_result;
+    let FetchResult {
+        query_term,
+        book,
+        plugin_name,
+        cached,
+    } = fetch_result;
+    let (meta_only, delay) = {
+        let config = GLOBAL_CONFIG.lock().unwrap();
+        (config.plugins.meta_only.clone(), config.delay.clone())
+    };
+
+    let folders = book.get_download_folders(&plugin_name);
+
+    if meta_only {
+        let down_meta_path = book.get_metadata_dest_path(&plugin_name);
+        create_metadata_file(&down_meta_path, &book)?;
+        return Ok(());
+    } else {
+        let meta_path = book.get_metadata_path(&plugin_name);
+        create_metadata_file(&meta_path, &book)?;
+    }
+
     let total_pages = book
         .chapters
         .iter()
@@ -89,22 +113,19 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
     let pb = MULTI_PROGRESS.add(ProgressBar::new(total_pages as u64));
     pb.set_style(
         ProgressStyle::default_bar()
-            .template("[{elapsed_precise}] [{bar:40.green}] {pos:>7}/{len:7} {eta} | {msg}")
+            .template("[{elapsed_precise}] [{bar:40.green}] {pos:>5}/{len:6} {eta} | {msg}")
             .unwrap()
-            .progress_chars("=>-"),
+            .progress_chars("#>-"),
     );
-
-    let folders = book.get_download_folders(&plugin_name);
-    let metadata_file = book.get_metadata_path(&plugin_name);
-    create_metadata_file(&metadata_file, &book)?;
 
     for (c, chapter) in book.chapters.iter().enumerate() {
         pb.set_message(format!(
-            "[ch. {}/{}] :: {} :: {}",
+            "{} | [ch. {}/{}] :: {} | {}",
+            if cached { "cached" } else { &plugin_name },
             c + 1,
             book.chapters.len(),
-            book.title,
-            plugin_name
+            utils::resume_text(&query_term, Some(10)),
+            utils::resume_text(&book.title, Some(50)),
         ));
 
         for page in &chapter.pages {
@@ -115,6 +136,7 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
                 .temp
                 .join(utils::sanitize_string_as_path(&chapter.title));
             download_page(page, &temp_dir, &down_dir).await?;
+            tokio::time::sleep(Duration::from_millis(delay.download as u64)).await;
             pb.inc(1);
         }
     }
@@ -123,12 +145,10 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
     if !folders.download.exists() {
         std::fs::create_dir_all(&folders.download.parent().unwrap())?;
         if folders.temp.exists() {
-            std::fs::rename(&folders.temp, &folders.download).with_context(|| {
-                format!(
-                    "Moving {:?} ==> {:?}",
-                    folders.temp.display(),
-                    folders.download.display()
-                )
+            let origin = &folders.temp;
+            let dest = &folders.download;
+            std::fs::rename(origin, dest).with_context(|| {
+                format!("Moving {:?} ==> {:?}", origin.display(), dest.display())
             })?;
         }
     }
@@ -147,7 +167,7 @@ async fn download_page(page: &Page, tmp_dir: &Path, down_dir: &Path) -> anyhow::
     }
 
     let url = Url::from_str(&page.url)?;
-    let bytes = http::fetch(url)?;
+    let bytes = http::fetch_async(url).await?;
 
     std::fs::create_dir_all(&tmp_dir).with_context(|| format!("Creating {}", tmp_dir.display()))?;
 

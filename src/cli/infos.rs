@@ -1,6 +1,6 @@
 use clap::Parser;
 
-use crate::plugins::PluginManager;
+use crate::{plugins::PluginManager, GLOBAL_CONFIG};
 
 #[derive(Parser, Debug)]
 pub struct Infos {
@@ -22,9 +22,16 @@ impl Infos {
                     .map(|item| format!("  - {}", item))
                     .collect::<Vec<String>>()
                     .join("\n");
-                println!("Installed Plugins:\n{plugins}");
+                let total = list.len();
+                println!("Installed Plugins ({total}):\n{plugins}");
             }
-            (_, true) => unimplemented!("🙏"),
+            (_, true) => {
+                let config = {
+                    let config = GLOBAL_CONFIG.lock().unwrap().clone();
+                    serde_yaml::to_string(&config).unwrap()
+                };
+                println!("{config}");
+            }
             _ => eprintln!("Bad command, please check infos subcommand help"),
         }
         Ok(())

@@ -7,15 +7,16 @@ mod tests;
 use anyhow::Context;
 use clap::Parser;
 use cli::MainCommand;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use lazy_static::lazy_static;
 use plugins::PluginManager;
 use schemas::config::Config;
 
 lazy_static! {
-    // maybe Arc<Mutex<Config>>?
-    static ref GLOBAL_CONFIG: Mutex<Config> = Mutex::new(Config::load().with_context(|| "Loading config").unwrap());
+    static ref GLOBAL_CONFIG: Arc<Mutex<Config>> = Arc::new(Mutex::new(
+        Config::load().with_context(|| "Loading config").unwrap()
+    ));
 }
 
 #[tokio::main]
@@ -23,10 +24,15 @@ async fn main() -> anyhow::Result<()> {
     let mut manager = PluginManager::new();
     manager.init().await?;
 
-    if let Err(e) = MainCommand::parse().command.run(&mut manager).await {
-        eprintln!("{e}")
+    let parser = MainCommand::parse();
+    match parser.command.run(&mut manager).await {
+        Ok(_) => {
+            manager.destroy().await?;
+            Ok(())
+        }
+        Err(e) => {
+            manager.destroy().await?;
+            Err(e)
+        }
     }
-
-    manager.destroy().await?;
-    Ok(())
 }

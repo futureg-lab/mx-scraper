@@ -26,6 +26,12 @@ impl NetscapeCookie {
         NetscapeCookie::from_netscape_json(json)
     }
 
+    // TODO:
+    // Refer to https://github.com/kairi003/Get-cookies.txt-LOCALLY.git
+    // pub fn from_text(text: &str) -> anyhow::Result<Vec<NetscapeCookie>> {
+    //     unimplemented!("cannot parse from raw cookies for now")
+    // }
+
     pub fn from_netscape_json(json: &str) -> anyhow::Result<Vec<NetscapeCookie>> {
         if let Ok(value) = serde_json::from_str::<Vec<NetscapeCookie>>(json) {
             return Ok(value);

@@ -18,11 +18,31 @@ pub fn sanitize_string(s: &str) -> String {
 pub fn sanitize_string_as_path(s: &str, id: Option<String>) -> PathBuf {
     if let Some(id) = id {
         let sanitized = sanitize_string(&s).trim().to_string();
-        let hi = sanitized.len().min(70);
-        PathBuf::from(format!("{} ({id})", sanitized[..hi].to_string()))
+        let shortened = unicode_safe_shorten(&sanitized, sanitized.len().min(70));
+        PathBuf::from(format!("{shortened} ({id})"))
     } else {
         PathBuf::from(sanitize_string(&s).trim())
     }
+}
+
+pub fn unicode_safe_shorten(text: &str, max_length: usize) -> String {
+    let mut shortened = String::new();
+    let mut length = 0;
+
+    for ch in text.chars() {
+        let char_length = ch.len_utf8();
+        if length + char_length > max_length {
+            break;
+        }
+        shortened.push(ch);
+        length += char_length;
+    }
+
+    if length < text.len() {
+        shortened.push_str("..");
+    }
+
+    shortened
 }
 
 pub fn extract_filename(url: &Url) -> Option<String> {

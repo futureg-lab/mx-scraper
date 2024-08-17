@@ -5,6 +5,7 @@ use chrono::Local;
 use futures::future::join_all;
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use lazy_static::lazy_static;
+use scraper::{Html, Selector};
 use tokio::task;
 use url::Url;
 
@@ -94,14 +95,14 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
         (config.plugins.meta_only.clone(), config.delay.clone())
     };
 
-    let folders = book.get_download_folders(&plugin_name);
+    let folders = book.get_download_folders(&query_term, &plugin_name);
 
     if meta_only {
-        let down_meta_path = book.get_metadata_dest_path(&plugin_name);
+        let down_meta_path = book.get_metadata_dest_path(&query_term, &plugin_name);
         create_metadata_file(&down_meta_path, &book)?;
         return Ok(());
     } else {
-        let meta_path = book.get_metadata_path(&plugin_name);
+        let meta_path = book.get_metadata_path(&query_term, &plugin_name);
         create_metadata_file(&meta_path, &book)?;
     }
 
@@ -129,12 +130,9 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
         ));
 
         for page in &chapter.pages {
-            let down_dir = folders
-                .download
-                .join(utils::sanitize_string_as_path(&chapter.title));
-            let temp_dir = folders
-                .temp
-                .join(utils::sanitize_string_as_path(&chapter.title));
+            let chunk_title_path = utils::sanitize_string_as_path(&chapter.title, None);
+            let down_dir = folders.download.join(&chunk_title_path);
+            let temp_dir = folders.temp.join(&chunk_title_path);
             download_page(page, &temp_dir, &down_dir).await?;
             tokio::time::sleep(Duration::from_millis(delay.download as u64)).await;
             pb.inc(1);
@@ -157,6 +155,8 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
 }
 
 async fn download_page(page: &Page, tmp_dir: &Path, down_dir: &Path) -> anyhow::Result<()> {
+    let page = evaluate_lazy_ops(page.clone()).await?;
+
     // let filename = utils::sanitize_string_as_path(&page.filename);
     let filename = &page.filename;
     let tmp_filepath = tmp_dir.join(&filename);
@@ -167,14 +167,47 @@ async fn download_page(page: &Page, tmp_dir: &Path, down_dir: &Path) -> anyhow::
     }
 
     let url = Url::from_str(&page.url)?;
-    let bytes = http::fetch_async(url).await?;
+    let bytes = http::fetch_async(url.clone()).await?;
 
     std::fs::create_dir_all(&tmp_dir).with_context(|| format!("Creating {}", tmp_dir.display()))?;
 
     let mut file = std::fs::File::create(&tmp_filepath)
         .with_context(|| format!("Creating {}", tmp_filepath.display()))?;
-    file.write(&bytes).with_context(|| "Downloading {url}")?;
+    file.write(&bytes)
+        .with_context(|| format!("Downloading {url}"))?;
     Ok(())
+}
+
+async fn evaluate_lazy_ops(page: Page) -> anyhow::Result<Page> {
+    if let Some(hint) = &page.intermediate_link_hint {
+        let bytes = http::fetch_async(Url::from_str(&page.url)?).await?;
+        let html = String::from_utf8(bytes)?;
+        let document = Html::parse_document(&html);
+        let selector =
+            Selector::parse(&hint.selector).map_err(|e| anyhow::anyhow!("Bad selector: {e}"))?;
+
+        let evaluated_url = match document.select(&selector).next() {
+            Some(value) => value.attr(&hint.attribute).with_context(|| {
+                format!(
+                    "Retrieving attribute {:?} of {:?}",
+                    hint.attribute,
+                    value.text()
+                )
+            })?,
+            None => anyhow::bail!("Could not find evaluate {:?} at {}", hint, page.url),
+        };
+
+        let url = Url::from_str(&evaluated_url)?;
+
+        return Ok(Page {
+            url: url.to_string(),
+            filename: utils::extract_filename(&url).unwrap_or(page.filename),
+            intermediate_link_hint: None,
+            ..Default::default()
+        });
+    }
+
+    Ok(page)
 }
 
 fn create_metadata_file(file: &Path, book: &Book) -> anyhow::Result<()> {

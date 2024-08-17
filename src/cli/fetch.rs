@@ -237,7 +237,7 @@ async fn fetch_terms(
         terms.len(),
         if terms.len() == 1 { "y" } else { "ies" }
     ));
-    status_pb.finish_with_message("Done");
+    status_pb.finish_with_message("..");
 
     let local_pb = m.add(ProgressBar::new(1));
     local_pb.set_style(spinner.clone());

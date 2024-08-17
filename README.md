@@ -11,9 +11,14 @@ Download image galleries or metadata accross the web
 
 ```bash
 # the `images` plugin uses bs4
-pip install beautifulsoup4
 # This will for example download all image links using the `images` plugin.
+pip install beautifulsoup4
 mx-scraper fetch https://uncyclopedia.com/wiki/Main_Page --plugin images -v
+
+# Alternatively, for a sequence of non-uniform terms, prefixing is often required
+# Generally speaking, it is unnecessary but it is definitely required for generic ones (like ids or names)
+# The behavior of how each term is parsed depends on the plugin implementation
+mx-scraper fetch --meta-only -v img:https://uncyclopedia.com/wiki/Main_Page to:https://mto.to/series/68737
 ```
 
 ## Commands

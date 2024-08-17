@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 
 use crate::{
-    cli::fetch::SharedFetchOption, core::http::FetchContext, schemas::cookies::NetscapeCookie,
+    cli::fetch::SharedFetchOption,
+    core::{http::FetchContext, utils},
+    schemas::cookies::NetscapeCookie,
 };
 use anyhow::Context;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 use std::path::PathBuf;
 
 lazy_static! {
@@ -66,6 +67,7 @@ pub struct Delay {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Request {
+    pub user_agent: Option<String>,
     pub headers: HashMap<String, String>,
     pub cookies: Option<HashMap<String, String>>,
 }
@@ -78,16 +80,22 @@ pub struct PluginOptions {
 
 impl Config {
     pub fn new() -> Self {
+        let version = env!("CARGO_PKG_VERSION").to_owned();
         let mut request = HashMap::new();
         request.insert(
             ALL.clone(),
             Request {
+                user_agent: Some(format!(
+                    "mx-scraper/{version} ({}; {})",
+                    std::env::consts::OS,
+                    std::env::consts::ARCH,
+                )),
                 ..Default::default()
             },
         );
 
         Self {
-            version: env!("CARGO_PKG_VERSION").to_owned(),
+            version,
             plugins: PluginOptions {
                 location: PathBuf::from("./plugins"),
                 meta_only: false,
@@ -185,6 +193,7 @@ impl Config {
 
         match self.request.get(&req_key) {
             Some(req) => FetchContext {
+                user_agent: req.user_agent.clone(),
                 auth: auth_kind.clone(),
                 cookies: NetscapeCookie::from_hashmap(&req.cookies.clone().unwrap_or_default()),
                 headers: req.headers.clone(),
@@ -197,9 +206,7 @@ impl Config {
     }
 
     pub fn get_cache_file_path(&self, term: &str, plugin_name: &str) -> PathBuf {
-        let data = format!("{term}{plugin_name}");
-        let digest = hex::encode(Sha256::digest(data));
-
-        self.cache.folder.join(format!("mx_{digest}.json"))
+        let signature = utils::compute_query_signature(term, plugin_name);
+        self.cache.folder.join(format!("{signature}.json"))
     }
 }

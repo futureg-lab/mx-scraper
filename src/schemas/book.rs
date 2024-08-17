@@ -170,7 +170,7 @@ impl Book {
         utils::sanitize_string(&self.title)
     }
 
-    pub fn get_download_folders(&self, plugin_name: &str) -> DownloadFolder {
+    pub fn get_download_folders(&self, term: &str, plugin_name: &str) -> DownloadFolder {
         let (download, temp, metadata) = {
             let config = GLOBAL_CONFIG.lock().unwrap();
             (
@@ -179,36 +179,47 @@ impl Book {
                 config.download_folder.metadata.clone(),
             )
         };
+        let id = utils::compute_query_signature(term, plugin_name)[..10].to_string();
+        let chunk_title_path =
+            utils::sanitize_string_as_path(&self.get_sanitized_title(), Some(id));
 
         DownloadFolder {
-            download: download.join(plugin_name).join(self.get_sanitized_title()),
-            temp: temp.join(plugin_name).join(self.get_sanitized_title()),
+            download: download.join(plugin_name).join(&chunk_title_path),
+            temp: temp.join(plugin_name).join(&chunk_title_path),
             metadata: metadata.join(plugin_name),
         }
     }
 
     /// Metadata temporary path
-    pub fn get_metadata_path(&self, plugin_name: &str) -> PathBuf {
+    pub fn get_metadata_path(&self, term: &str, plugin_name: &str) -> PathBuf {
         let temp = {
             let config = GLOBAL_CONFIG.lock().unwrap();
             config.download_folder.temp.clone()
         };
 
+        let id = utils::compute_query_signature(term, plugin_name)[..10].to_string();
+        let chunk_title_path =
+            utils::sanitize_string_as_path(&self.get_sanitized_title(), Some(id));
+
         temp.join(plugin_name)
-            .join(self.get_sanitized_title())
+            .join(chunk_title_path)
             .join(format!("{}.json", utils::sanitize_string(&self.source_id)))
     }
 
     /// Metadata download full path
-    pub fn get_metadata_dest_path(&self, plugin_name: &str) -> PathBuf {
+    pub fn get_metadata_dest_path(&self, term: &str, plugin_name: &str) -> PathBuf {
         let metadata = {
             let config = GLOBAL_CONFIG.lock().unwrap();
             config.download_folder.metadata.clone()
         };
 
+        let id = utils::compute_query_signature(term, plugin_name)[..10].to_string();
+        let chunk_title_path =
+            utils::sanitize_string_as_path(&self.get_sanitized_title(), Some(id));
+
         metadata
             .join(plugin_name)
-            .join(self.get_sanitized_title())
+            .join(chunk_title_path)
             .join(format!("{}.json", utils::sanitize_string(&self.source_id)))
     }
 }

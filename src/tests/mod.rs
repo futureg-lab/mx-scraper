@@ -76,4 +76,40 @@ mod test {
             .collect::<Vec<_>>();
         assert_eq!(sub_sizes, vec![3, 3, 3, 1]);
     }
+
+    #[test]
+    fn utils_resume_text() {
+        let abc = "aaaaaaaaaa^^^^^^^bbbbbbbbb";
+        assert_eq!(
+            "aaaaaaaaaa^ .. ^bbbbbbbbb",
+            utils::resume_text(abc, Some(21))
+        );
+        assert_eq!("aa .. b", utils::resume_text(abc, Some(3)));
+        assert_eq!("a .. ", utils::resume_text(abc, Some(1)));
+        assert_eq!("a .. ", utils::resume_text(abc, Some(0)));
+        assert_eq!("aaaaaaaaaa^^^^^^^bbbbbbbbb", utils::resume_text(abc, None));
+        assert_eq!(
+            "aaaaaaaaaa^^^^^^^bbbbbbbbb",
+            utils::resume_text(abc, Some(100000))
+        );
+    }
+
+    #[test]
+    fn utils_decode_escaped_unicode_properly() {
+        let title = "\\u30d1\\u30f3%tsu";
+        let decoded = utils::decode_escaped_unicode_characters(&title);
+        assert_eq!(decoded, "パン%tsu");
+    }
+
+    #[test]
+    fn utils_sanitize_folder_name() {
+        let cleaned = utils::sanitize_string_as_path(
+            "  folder:\"*?*.name~/ \\u3084\\u3070\\u3044\\u30BF\\u30A4\\u30C8\\u30EB '' ",
+            Some("mx_1234".to_string()),
+        );
+        assert_eq!(
+            cleaned.display().to_string(),
+            "folder_name_ やばいタイトル _ (mx_1234)"
+        );
+    }
 }

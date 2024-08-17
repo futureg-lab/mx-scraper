@@ -4,7 +4,8 @@ use std::{collections::HashMap, str::FromStr};
 
 use reqwest::{
     blocking::{self},
-    header::{HeaderMap, HeaderName, HeaderValue, COOKIE},
+    header::{HeaderMap, HeaderName, HeaderValue, COOKIE, USER_AGENT},
+    redirect::Policy,
     Client,
 };
 
@@ -18,7 +19,9 @@ use crate::{
 macro_rules! build_client_then_fetch {
     // TODO: refactor
     (false, $url: expr, $headers: expr, $auth: expr) => {{
-        let client = blocking::Client::new();
+        let client = blocking::Client::builder()
+            .redirect(Policy::limited(5))
+            .build()?;
         let mut builder = client.get($url.clone()).headers($headers);
         if let Some(auth) = $auth {
             builder = match auth {
@@ -35,7 +38,7 @@ macro_rules! build_client_then_fetch {
     }};
     (true, $url: expr, $headers: expr, $auth: expr) => {
         async {
-            let client = Client::new();
+            let client = Client::builder().redirect(Policy::limited(5)).build()?;
             let mut builder = client.get($url.clone()).headers($headers);
             if let Some(auth) = $auth {
                 builder = match auth {
@@ -55,6 +58,7 @@ macro_rules! build_client_then_fetch {
 
 #[derive(Default, Serialize, Deserialize, Clone)]
 pub struct FetchContext {
+    pub user_agent: Option<String>,
     pub headers: HashMap<String, String>,
     pub cookies: Vec<NetscapeCookie>,
     pub auth: Option<AuthKind>,
@@ -73,12 +77,17 @@ pub fn fetch(url: Url) -> anyhow::Result<Vec<u8>> {
 /// Perform a fetch using a custom context
 pub fn fetch_with_context(url: Url, context: FetchContext) -> anyhow::Result<Vec<u8>> {
     let FetchContext {
+        user_agent,
         headers,
         cookies,
         auth,
     } = context;
 
     let mut req_headers = HeaderMap::new();
+    if let Some(ua) = user_agent {
+        req_headers.insert(USER_AGENT, HeaderValue::from_str(&ua)?);
+    }
+
     for (k, v) in headers {
         req_headers.insert(HeaderName::from_str(&k)?, HeaderValue::from_str(&v)?);
     }
@@ -113,12 +122,17 @@ pub async fn fetch_async(url: Url) -> anyhow::Result<Vec<u8>> {
 /// Perform a fetch using a custom context
 pub async fn fetch_with_context_async(url: Url, context: FetchContext) -> anyhow::Result<Vec<u8>> {
     let FetchContext {
+        user_agent,
         headers,
         cookies,
         auth,
     } = context;
 
     let mut req_headers = HeaderMap::new();
+    if let Some(ua) = user_agent {
+        req_headers.insert(USER_AGENT, HeaderValue::from_str(&ua)?);
+    }
+
     for (k, v) in headers {
         req_headers.insert(HeaderName::from_str(&k)?, HeaderValue::from_str(&v)?);
     }

@@ -92,6 +92,10 @@ mod test {
             "aaaaaaaaaa^^^^^^^bbbbbbbbb",
             utils::resume_text(abc, Some(100000))
         );
+        assert_eq!(
+            "サイン .. こす",
+            utils::resume_text("サインこす aaaaaaaa草aabbbこす", Some(5))
+        );
     }
 
     #[test]
@@ -107,6 +111,7 @@ mod test {
             "  folder:\"*?*.name~/ \\u3084\\u3070\\u3044\\u30BF\\u30A4\\u30C8\\u30EB '' ",
             Some("mx_1234".to_string()),
         );
+
         assert_eq!(
             cleaned.display().to_string(),
             "folder_name_ やばいタイトル _ (mx_1234)"

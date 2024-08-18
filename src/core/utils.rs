@@ -99,12 +99,17 @@ pub fn batch_a_list_of<T: Clone>(list: &[T], batch_size: usize) -> Vec<Vec<T>> {
 
 pub fn resume_text(s: &str, max: Option<usize>) -> String {
     let max = max.map(|v| v.max(1)).unwrap_or(50);
-    if s.len() < max {
+    let char_count = s.chars().count();
+
+    if char_count <= max {
         return s.to_string();
     }
 
-    let delta = s.len() - max;
-    let chunk_end = s.len() / 2 - delta / 2;
+    let delta = char_count - max;
+    let chunk_end = char_count / 2 - delta / 2;
 
-    format!("{} .. {}", &s[..chunk_end], &s[chunk_end + delta..])
+    let start_chunk = s.chars().take(chunk_end).collect::<String>();
+    let end_chunk = s.chars().skip(chunk_end + delta).collect::<String>();
+
+    format!("{} .. {}", start_chunk, end_chunk)
 }

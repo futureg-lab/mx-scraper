@@ -65,7 +65,7 @@ pub async fn download(fetched_book: &[FetchResult]) -> Vec<DownloadStatus> {
             Ok(result) => match result {
                 Ok(()) => DownloadStatus::Success,
                 Err(e) => {
-                    let error = anyhow::anyhow!(format!(": {e}"));
+                    let error = anyhow::anyhow!(format!("{e}"));
                     DownloadStatus::Fail(Failure::Some(error))
                 }
             },
@@ -90,9 +90,13 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
         plugin_name,
         cached,
     } = fetch_result;
-    let (meta_only, delay) = {
+    let (meta_only, delay, verbose) = {
         let config = GLOBAL_CONFIG.read().unwrap();
-        (config.plugins.meta_only, config.delay.clone())
+        (
+            config.plugins.meta_only,
+            config.delay.clone(),
+            config.verbose,
+        )
     };
 
     let folders = book.get_download_folders(&query_term, &plugin_name);
@@ -120,14 +124,23 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
     );
 
     for (c, chapter) in book.chapters.iter().enumerate() {
-        pb.set_message(format!(
-            "{} | [ch. {}/{}] :: {} | {}",
-            if cached { "cached" } else { &plugin_name },
-            c + 1,
-            book.chapters.len(),
-            utils::resume_text(&query_term, Some(10)),
-            utils::resume_text(&book.title, Some(50)),
-        ));
+        if verbose {
+            pb.set_message(format!(
+                "{} | [ch. {}/{}] :: {} | {}",
+                if cached { "cached" } else { &plugin_name },
+                c + 1,
+                book.chapters.len(),
+                utils::resume_text(&query_term, Some(20)),
+                utils::resume_text(&book.title, Some(40)),
+            ));
+        } else {
+            pb.set_message(format!(
+                "[ch. {}/{}] :: {}",
+                c + 1,
+                book.chapters.len(),
+                utils::resume_text(&query_term, Some(20)),
+            ));
+        }
 
         let chunk_title_path = utils::sanitize_string_as_path(&chapter.title, None);
         let down_dir = folders.download.join(&chunk_title_path);
@@ -160,9 +173,13 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn download_page(page: &Page, tmp_dir: &Path, down_dir: &Path) -> anyhow::Result<()> {
+async fn download_page(
+    original_page: &Page,
+    tmp_dir: &Path,
+    down_dir: &Path,
+) -> anyhow::Result<()> {
     // let filename = utils::sanitize_string_as_path(&page.filename);
-    let filename = &page.filename;
+    let filename = &original_page.filename;
     let tmp_filepath = tmp_dir.join(filename);
     let down_filepath = down_dir.join(filename);
 
@@ -170,9 +187,11 @@ async fn download_page(page: &Page, tmp_dir: &Path, down_dir: &Path) -> anyhow::
         return Ok(());
     }
 
-    let page = evaluate_lazy_ops(page.clone()).await?;
+    let page = evaluate_lazy_ops(original_page.clone()).await?;
     let url = Url::from_str(&page.url)?;
-    let bytes = http::fetch_async(url.clone()).await?;
+    let bytes = http::fetch_async(url.clone())
+        .await
+        .map_err(|e| anyhow::anyhow!("{e}: {original_page:?}"))?;
 
     let mut file = std::fs::File::create(&tmp_filepath)
         .with_context(|| format!("Creating {}", tmp_filepath.display()))?;
@@ -192,7 +211,7 @@ async fn evaluate_lazy_ops(page: Page) -> anyhow::Result<Page> {
         let evaluated_url = match document.select(&selector).next() {
             Some(value) => value.attr(&hint.attribute).with_context(|| {
                 format!(
-                    "Retrieving attribute {:?} of {:?}",
+                    "Retrieving attribute {:?} of {:?} using {page:?}",
                     hint.attribute,
                     value.text()
                 )
@@ -204,9 +223,9 @@ async fn evaluate_lazy_ops(page: Page) -> anyhow::Result<Page> {
 
         return Ok(Page {
             url: url.to_string(),
-            filename: utils::extract_filename(&url).unwrap_or(page.filename),
+            // filename: utils::extract_filename(&url).unwrap_or(page.filename),
             intermediate_link_hint: None,
-            ..Default::default()
+            ..page
         });
     }
 

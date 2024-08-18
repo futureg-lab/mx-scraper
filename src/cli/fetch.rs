@@ -243,6 +243,7 @@ async fn fetch_terms(
     local_pb.set_style(spinner.clone());
 
     let mut results = IndexMap::new();
+    let mut fetched_count = 0;
     let mut cached_count = 0;
     for (p, term) in terms.iter().enumerate() {
         local_pb.set_prefix(format!("[{}/{}]", p + 1, terms.len()));
@@ -257,15 +258,16 @@ async fn fetch_terms(
             term.to_string(),
             match res {
                 Ok(fetched) => {
-                    cached_count += if fetched.cached {
+                    if fetched.cached {
                         local_pb.set_message(format!("{} [cached]", term.to_string().trim()));
-                        1
+                        cached_count += 1;
                     } else {
-                        0
-                    };
+                        fetched_count += 1
+                    }
+
                     status_pb.set_message(format!(
-                        "{} fetched, {cached_count} cached",
-                        terms.len() - cached_count
+                        "{fetched_count} fetched, {cached_count} cached, {} left",
+                        terms.len() - (fetched_count + cached_count)
                     ));
                     local_pb.inc(1);
 
@@ -310,7 +312,13 @@ fn display_download_status(fetched_books: &[FetchResult], results: &[DownloadSta
     let mut fail_messages = vec![];
     for (p, fetched) in fetched_books.iter().enumerate() {
         if let DownloadStatus::Fail(e) = &results[p] {
-            fail_messages.push(format!(" #{}. {:?}:\n{:?}", p + 1, fetched.book.title, e));
+            fail_messages.push(format!(
+                "#{}. Query term {:?}:\n  - {}\n  - {:?}",
+                p + 1,
+                fetched.query_term,
+                fetched.book.title,
+                e
+            ));
         }
     }
 
@@ -319,7 +327,7 @@ fn display_download_status(fetched_books: &[FetchResult], results: &[DownloadSta
             "Failed downloads {}/{}:\n{}",
             fail_messages.len(),
             fetched_books.len(),
-            fail_messages.join("\n")
+            fail_messages.join("\n\n")
         );
     }
 }

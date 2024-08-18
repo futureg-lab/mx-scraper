@@ -189,19 +189,40 @@ impl Config {
             verbose: _,
             auth_kind,
         } = &self.__options;
-        let req_key = focused_plugin.clone().unwrap_or(ALL.to_string());
 
-        match self.request.get(&req_key) {
-            Some(req) => FetchContext {
-                user_agent: req.user_agent.clone(),
-                auth: auth_kind.clone(),
-                cookies: NetscapeCookie::from_hashmap(&req.cookies.clone().unwrap_or_default()),
-                headers: req.headers.clone(),
-            },
-            None => FetchContext {
-                auth: auth_kind.clone(),
-                ..Default::default()
-            },
+        let shared = self.request.get(&ALL.to_string()).unwrap();
+        let shared_ctx = FetchContext {
+            user_agent: shared.user_agent.clone(),
+            auth: auth_kind.clone(),
+            cookies: NetscapeCookie::from_hashmap(&shared.cookies.clone().unwrap_or_default()),
+            headers: shared.headers.clone(),
+        };
+
+        match focused_plugin {
+            Some(plugin_name) => {
+                if let Some(req) = self.request.get(plugin_name) {
+                    return FetchContext {
+                        user_agent: { req.user_agent.clone().map_or(shared_ctx.user_agent, Some) },
+                        headers: {
+                            let mut inherited = shared_ctx.headers.clone();
+                            inherited.extend(req.headers.clone());
+                            inherited
+                        },
+                        cookies: {
+                            let mut inherited = shared_ctx.cookies.clone();
+                            let this = NetscapeCookie::from_hashmap(
+                                &req.cookies.clone().unwrap_or_default(),
+                            );
+                            inherited.extend(this);
+                            inherited
+                        },
+                        auth: auth_kind.clone(),
+                    };
+                }
+
+                shared_ctx
+            }
+            None => shared_ctx,
         }
     }
 

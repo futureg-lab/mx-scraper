@@ -56,7 +56,7 @@ macro_rules! build_client_then_fetch {
     };
 }
 
-#[derive(Default, Serialize, Deserialize, Clone)]
+#[derive(Default, Debug, Serialize, Deserialize, Clone)]
 pub struct FetchContext {
     pub user_agent: Option<String>,
     pub headers: HashMap<String, String>,

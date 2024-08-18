@@ -47,7 +47,7 @@ pub async fn batch_download(
         if batches.len() > 1 {
             println!("Batch {}/{}", p + 1, batches.len());
         }
-        let local_status = download(&current_batch).await;
+        let local_status = download(current_batch).await;
         status.extend(local_status);
     }
     status
@@ -55,7 +55,7 @@ pub async fn batch_download(
 
 pub async fn download(fetched_book: &[FetchResult]) -> Vec<DownloadStatus> {
     let handles = fetched_book
-        .into_iter()
+        .iter()
         .map(|f| task::spawn(download_book(f.clone())));
 
     join_all(handles)
@@ -91,8 +91,8 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
         cached,
     } = fetch_result;
     let (meta_only, delay) = {
-        let config = GLOBAL_CONFIG.lock().unwrap();
-        (config.plugins.meta_only.clone(), config.delay.clone())
+        let config = GLOBAL_CONFIG.read().unwrap();
+        (config.plugins.meta_only, config.delay.clone())
     };
 
     let folders = book.get_download_folders(&query_term, &plugin_name);
@@ -129,10 +129,16 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
             utils::resume_text(&book.title, Some(50)),
         ));
 
+        let chunk_title_path = utils::sanitize_string_as_path(&chapter.title, None);
+        let down_dir = folders.download.join(&chunk_title_path);
+        let temp_dir = folders.temp.join(&chunk_title_path);
+
+        if !temp_dir.exists() {
+            std::fs::create_dir_all(&temp_dir)
+                .with_context(|| format!("Creating {}", temp_dir.display()))?;
+        }
+
         for page in &chapter.pages {
-            let chunk_title_path = utils::sanitize_string_as_path(&chapter.title, None);
-            let down_dir = folders.download.join(&chunk_title_path);
-            let temp_dir = folders.temp.join(&chunk_title_path);
             download_page(page, &temp_dir, &down_dir).await?;
             tokio::time::sleep(Duration::from_millis(delay.download as u64)).await;
             pb.inc(1);
@@ -141,7 +147,7 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
 
     // move book
     if !folders.download.exists() {
-        std::fs::create_dir_all(&folders.download.parent().unwrap())?;
+        std::fs::create_dir_all(folders.download.parent().unwrap())?;
         if folders.temp.exists() {
             let origin = &folders.temp;
             let dest = &folders.download;
@@ -155,21 +161,18 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
 }
 
 async fn download_page(page: &Page, tmp_dir: &Path, down_dir: &Path) -> anyhow::Result<()> {
-    let page = evaluate_lazy_ops(page.clone()).await?;
-
     // let filename = utils::sanitize_string_as_path(&page.filename);
     let filename = &page.filename;
-    let tmp_filepath = tmp_dir.join(&filename);
-    let down_filepath = down_dir.join(&filename);
+    let tmp_filepath = tmp_dir.join(filename);
+    let down_filepath = down_dir.join(filename);
 
     if tmp_filepath.exists() || down_filepath.exists() {
         return Ok(());
     }
 
+    let page = evaluate_lazy_ops(page.clone()).await?;
     let url = Url::from_str(&page.url)?;
     let bytes = http::fetch_async(url.clone()).await?;
-
-    std::fs::create_dir_all(&tmp_dir).with_context(|| format!("Creating {}", tmp_dir.display()))?;
 
     let mut file = std::fs::File::create(&tmp_filepath)
         .with_context(|| format!("Creating {}", tmp_filepath.display()))?;
@@ -197,7 +200,7 @@ async fn evaluate_lazy_ops(page: Page) -> anyhow::Result<Page> {
             None => anyhow::bail!("Could not find evaluate {:?} at {}", hint, page.url),
         };
 
-        let url = Url::from_str(&evaluated_url)?;
+        let url = Url::from_str(evaluated_url)?;
 
         return Ok(Page {
             url: url.to_string(),
@@ -226,6 +229,6 @@ fn create_metadata_file(file: &Path, book: &Book) -> anyhow::Result<()> {
     }
 
     let text = serde_json::to_string_pretty(&cache_file).unwrap();
-    std::fs::write(&file, text)?;
+    std::fs::write(file, text)?;
     Ok(())
 }

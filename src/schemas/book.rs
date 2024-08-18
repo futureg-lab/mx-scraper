@@ -172,7 +172,7 @@ impl Book {
 
     pub fn get_download_folders(&self, term: &str, plugin_name: &str) -> DownloadFolder {
         let (download, temp, metadata) = {
-            let config = GLOBAL_CONFIG.lock().unwrap();
+            let config = GLOBAL_CONFIG.read().unwrap();
             (
                 config.download_folder.download.clone(),
                 config.download_folder.temp.clone(),
@@ -193,7 +193,7 @@ impl Book {
     /// Metadata temporary path
     pub fn get_metadata_path(&self, term: &str, plugin_name: &str) -> PathBuf {
         let temp = {
-            let config = GLOBAL_CONFIG.lock().unwrap();
+            let config = GLOBAL_CONFIG.read().unwrap();
             config.download_folder.temp.clone()
         };
 
@@ -209,7 +209,7 @@ impl Book {
     /// Metadata download full path
     pub fn get_metadata_dest_path(&self, term: &str, plugin_name: &str) -> PathBuf {
         let metadata = {
-            let config = GLOBAL_CONFIG.lock().unwrap();
+            let config = GLOBAL_CONFIG.read().unwrap();
             config.download_folder.metadata.clone()
         };
 

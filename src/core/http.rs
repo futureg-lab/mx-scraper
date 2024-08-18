@@ -67,7 +67,7 @@ pub struct FetchContext {
 /// Perform a fetch using the global config as context
 pub fn fetch(url: Url) -> anyhow::Result<Vec<u8>> {
     let context = {
-        let config = GLOBAL_CONFIG.lock().unwrap();
+        let config = GLOBAL_CONFIG.read().unwrap();
         config.gen_fetch_context()
     };
 
@@ -112,7 +112,7 @@ pub fn fetch_with_context(url: Url, context: FetchContext) -> anyhow::Result<Vec
 /// Perform a fetch using the global config as context
 pub async fn fetch_async(url: Url) -> anyhow::Result<Vec<u8>> {
     let context = {
-        let config = GLOBAL_CONFIG.lock().unwrap();
+        let config = GLOBAL_CONFIG.read().unwrap();
         config.gen_fetch_context()
     };
 

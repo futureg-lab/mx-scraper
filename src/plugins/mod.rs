@@ -62,7 +62,7 @@ impl PluginManager {
             }
         }
 
-        if issues.len() > 0 {
+        if !issues.is_empty() {
             anyhow::bail!("\n{}", issues.join("\n"))
         } else {
             anyhow::bail!("Cannot auto-detect plugin that supports the term {term:?}\nYou can try with --plugin <PLUGIN_NAME>")
@@ -76,8 +76,7 @@ impl PluginManager {
                 PluginImpl::Python(py) => {
                     if py.name.eq(&plugin_name) {
                         let (enable_cache, cache_file_path, delay) = {
-                            let config = GLOBAL_CONFIG.lock().unwrap();
-
+                            let config = GLOBAL_CONFIG.read().unwrap();
                             (
                                 config.cache.enable,
                                 config.get_cache_file_path(&term, &plugin_name),
@@ -140,7 +139,7 @@ impl PluginManager {
 
     /// Initialize all plugins
     pub async fn init(&mut self) -> anyhow::Result<()> {
-        let location = { GLOBAL_CONFIG.lock().unwrap().plugins.clone().location };
+        let location = { GLOBAL_CONFIG.read().unwrap().plugins.clone().location };
         self.prepare_folders();
 
         // Add static plugins then collect dynamic ones
@@ -184,7 +183,7 @@ impl PluginManager {
 
     fn prepare_folders(&self) {
         let (cache_folder, download, temp, metadata, plugins) = {
-            let config = GLOBAL_CONFIG.lock().unwrap();
+            let config = GLOBAL_CONFIG.read().unwrap();
             (
                 config.cache.folder.clone(),
                 config.download_folder.download.clone(),

@@ -27,7 +27,7 @@ impl Infos {
             }
             (_, true) => {
                 let config = {
-                    let config = GLOBAL_CONFIG.lock().unwrap().clone();
+                    let config = GLOBAL_CONFIG.read().unwrap().clone();
                     serde_yaml::to_string(&config).unwrap()
                 };
                 println!("{config}");

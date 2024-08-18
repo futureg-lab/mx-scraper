@@ -93,9 +93,9 @@ enum Resolution {
 impl TermSequence {
     pub async fn fetch(&self, manager: &mut PluginManager) -> anyhow::Result<()> {
         let batch_size = {
-            let mut config = GLOBAL_CONFIG.lock().unwrap();
+            let mut config = GLOBAL_CONFIG.write().unwrap();
             config.adapt_override(self.flags.clone())?;
-            config.max_size_batch.clone()
+            config.max_size_batch
         };
 
         let results = match self.flags.plugin.clone() {
@@ -125,9 +125,9 @@ impl TermSequence {
 impl FileSequence {
     pub async fn fetch(&self, manager: &mut PluginManager) -> anyhow::Result<()> {
         let batch_size = {
-            let mut config = GLOBAL_CONFIG.lock().unwrap();
+            let mut config = GLOBAL_CONFIG.write().unwrap();
             config.adapt_override(self.flags.clone())?;
-            config.max_size_batch.clone()
+            config.max_size_batch
         };
 
         let mut file_issues = IndexMap::new();
@@ -173,14 +173,14 @@ impl FileSequence {
 impl UrlTerm {
     pub async fn fetch(&self) -> anyhow::Result<()> {
         {
-            let mut config = GLOBAL_CONFIG.lock().unwrap();
+            let mut config = GLOBAL_CONFIG.write().unwrap();
             config.adapt_override(self.flags.clone())?;
         }
 
         let url = Url::from_str(&self.url)?;
         let bytes = http::fetch_async(url.clone()).await?;
         if self.print || self.dest.is_none() {
-            std::io::stdout().write(&bytes)?;
+            std::io::stdout().write_all(&bytes)?;
         } else {
             let dest = match self.dest.clone() {
                 Some(dest) => dest,
@@ -246,7 +246,7 @@ async fn fetch_terms(
     let mut cached_count = 0;
     for (p, term) in terms.iter().enumerate() {
         local_pb.set_prefix(format!("[{}/{}]", p + 1, terms.len()));
-        local_pb.set_message(format!("{}", term.to_string().trim()));
+        local_pb.set_message(format!("{}", term.trim()));
 
         // TODO: parallel fetch (actual scraping), +abuse disclaimer
         let res = match plugin {
@@ -290,7 +290,7 @@ fn display_fetch_status(results: &IndexMap<String, Resolution>, verbose: bool) {
         .map(|(p, (term, e))| format!("#{}. {:?}\n{:?}", p + 1, term, e))
         .collect::<Vec<_>>();
 
-    if fail_messages.len() > 0 {
+    if !fail_messages.is_empty() {
         let messages = if verbose {
             format!(":\n{}", fail_messages.join("\n"))
         } else {
@@ -314,7 +314,7 @@ fn display_download_status(fetched_books: &[FetchResult], results: &[DownloadSta
         }
     }
 
-    if fail_messages.len() > 0 {
+    if !fail_messages.is_empty() {
         eprintln!(
             "Failed downloads {}/{}:\n{}",
             fail_messages.len(),

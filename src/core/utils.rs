@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use url::Url;
 
 pub fn sanitize_string(s: &str) -> String {
-    let s = decode_escaped_unicode_characters(&s);
+    let s = decode_escaped_unicode_characters(s);
     let re = Regex::new(r#"[\\/:"'*?<>.\{\}|~+\n\t\r]+"#).unwrap();
     let parts = re.split(&s).collect::<Vec<&str>>();
     parts.join("_")
@@ -17,11 +17,11 @@ pub fn sanitize_string(s: &str) -> String {
 ///   since manga titles can easily reach `255` in length alone.\
 pub fn sanitize_string_as_path(s: &str, id: Option<String>) -> PathBuf {
     if let Some(id) = id {
-        let sanitized = sanitize_string(&s).trim().to_string();
+        let sanitized = sanitize_string(s).trim().to_string();
         let shortened = unicode_safe_shorten(&sanitized, sanitized.len().min(70));
         PathBuf::from(format!("{shortened} ({id})"))
     } else {
-        PathBuf::from(sanitize_string(&s).trim())
+        PathBuf::from(sanitize_string(s).trim())
     }
 }
 

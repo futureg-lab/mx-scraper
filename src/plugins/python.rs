@@ -135,7 +135,7 @@ impl MxRequest {
     #[getter]
     pub fn context(&self, py: Python) -> Py<PyAny> {
         let context = {
-            let config = GLOBAL_CONFIG.lock().unwrap();
+            let config = GLOBAL_CONFIG.read().unwrap();
             config.gen_fetch_context()
         };
         to_pyobject(py, &context).unwrap().unbind()

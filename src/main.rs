@@ -7,14 +7,14 @@ mod tests;
 use anyhow::Context;
 use clap::Parser;
 use cli::MainCommand;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock};
 
 use lazy_static::lazy_static;
 use plugins::PluginManager;
 use schemas::config::Config;
 
 lazy_static! {
-    static ref GLOBAL_CONFIG: Arc<Mutex<Config>> = Arc::new(Mutex::new(
+    static ref GLOBAL_CONFIG: Arc<RwLock<Config>> = Arc::new(RwLock::new(
         Config::load().with_context(|| "Loading config").unwrap()
     ));
 }

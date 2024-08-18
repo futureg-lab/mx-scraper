@@ -10,11 +10,13 @@ pub struct NetscapeCookie {
     pub secure: Option<bool>,
     pub session: Option<bool>,
     pub store_id: Option<String>,
-    // normally required
+    /// * required
     pub path: Option<String>,
+    /// * required
     pub domain: Option<String>,
-    // headers only
+    /// * required, part of the header
     pub name: String,
+    /// * required, part of the header
     pub value: String,
 }
 

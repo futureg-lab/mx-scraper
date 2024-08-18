@@ -42,7 +42,6 @@ pub enum AuthKind {
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct AdditionalOptions {
     focused_plugin: Option<String>,
-    verbose: bool,
     auth_kind: Option<AuthKind>,
 }
 
@@ -156,6 +155,10 @@ impl Config {
             self.plugins.meta_only = true;
         }
 
+        if fetch_option.verbose {
+            self.verbose = fetch_option.verbose;
+        }
+
         if let Some(file) = fetch_option.cookies {
             let content = std::fs::read_to_string(file)?;
             let cookies = NetscapeCookie::from_json(&content)?;
@@ -177,7 +180,6 @@ impl Config {
         if let Some(auth) = fetch_option.auth {
             self.__options.auth_kind = Some(auth.gen_basic_auth()?);
         }
-        self.__options.verbose = fetch_option.verbose;
 
         Ok(self)
     }
@@ -186,7 +188,6 @@ impl Config {
     pub fn gen_fetch_context(&self) -> FetchContext {
         let AdditionalOptions {
             focused_plugin,
-            verbose: _,
             auth_kind,
         } = &self.__options;
 

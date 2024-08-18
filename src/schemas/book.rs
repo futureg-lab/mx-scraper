@@ -222,4 +222,37 @@ impl Book {
             .join(chunk_title_path)
             .join(format!("{}.json", utils::sanitize_string(&self.source_id)))
     }
+
+    pub fn resume(&self) -> String {
+        format!(
+            r#"
+- Title: {}
+- Source: {}
+- Author(s): {}
+- Tag(s): {}
+- Chapter(s) ({}):
+{}
+    "#,
+            self.title,
+            self.url,
+            self.authors
+                .iter()
+                .map(|t| t.name.clone())
+                .collect::<Vec<_>>()
+                .join(", "),
+            self.tags
+                .iter()
+                .map(|t| t.name.clone())
+                .collect::<Vec<_>>()
+                .join(", "),
+            self.chapters.len(),
+            self.chapters
+                .iter()
+                .map(|chapter| format!("   - {} ({} pages)", chapter.title, chapter.pages.len()))
+                .collect::<Vec<_>>()
+                .join("\n")
+        )
+        .trim()
+        .to_string()
+    }
 }

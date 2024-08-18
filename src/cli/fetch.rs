@@ -111,7 +111,11 @@ impl TermSequence {
                 Resolution::Success(f) => Some(f.clone()),
                 Resolution::Fail(_) => None,
             })
-            .collect::<Vec<FetchResult>>();
+            .collect::<Vec<_>>();
+
+        if self.flags.meta_only && self.flags.verbose {
+            display_main_metadata_attributes(&fetched_books);
+        }
 
         display_fetch_status(&results, self.flags.verbose);
 
@@ -163,6 +167,10 @@ impl FileSequence {
                 Resolution::Fail(_) => None,
             })
             .collect::<Vec<_>>();
+
+        if self.flags.meta_only && self.flags.verbose {
+            display_main_metadata_attributes(&fetched_books);
+        }
 
         let status = batch_download(&fetched_books, batch_size).await;
         display_download_status(&fetched_books, &status);
@@ -329,5 +337,11 @@ fn display_download_status(fetched_books: &[FetchResult], results: &[DownloadSta
             fetched_books.len(),
             fail_messages.join("\n\n")
         );
+    }
+}
+
+fn display_main_metadata_attributes(results: &[FetchResult]) {
+    for (p, item) in results.iter().enumerate() {
+        println!("\n{}. ==============\n{}", p + 1, item.book.resume());
     }
 }

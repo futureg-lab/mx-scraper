@@ -1,4 +1,4 @@
-use std::{io::Write, path::Path, str::FromStr, sync::Arc, time::Duration};
+use std::{error::Error, io::Write, path::Path, str::FromStr, sync::Arc, time::Duration};
 
 use anyhow::Context;
 use chrono::Local;
@@ -26,9 +26,8 @@ lazy_static! {
 
 #[derive(Debug)]
 pub enum Failure {
-    Panic,
-    Cancelled,
-    Unknown,
+    Cancelled(anyhow::Error),
+    Unknown(anyhow::Error),
     Some(anyhow::Error),
 }
 
@@ -60,7 +59,7 @@ pub async fn download(fetched_book: &[FetchResult]) -> Vec<DownloadStatus> {
 
     join_all(handles)
         .await
-        .iter()
+        .into_iter()
         .map(|task| match task {
             Ok(result) => match result {
                 Ok(()) => DownloadStatus::Success,
@@ -71,12 +70,16 @@ pub async fn download(fetched_book: &[FetchResult]) -> Vec<DownloadStatus> {
             },
             Err(e) => {
                 if e.is_cancelled() {
-                    DownloadStatus::Fail(Failure::Cancelled)
+                    e.source();
+                    DownloadStatus::Fail(Failure::Cancelled(anyhow::anyhow!(
+                        "{e}: {:?}",
+                        e.source()
+                    )))
                 } else if e.is_panic() {
-                    DownloadStatus::Fail(Failure::Panic)
+                    std::panic::resume_unwind(e.into_panic());
                 } else {
                     // unreachable!() ?
-                    DownloadStatus::Fail(Failure::Unknown)
+                    DownloadStatus::Fail(Failure::Unknown(anyhow::anyhow!("{e}")))
                 }
             }
         })
@@ -113,7 +116,7 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
     let total_pages = book
         .chapters
         .iter()
-        .fold(0, |acc, chaoter| acc + chaoter.pages.len());
+        .fold(0, |acc, chapter| acc + chapter.pages.len());
 
     let pb = MULTI_PROGRESS.add(ProgressBar::new(total_pages as u64));
     pb.set_style(

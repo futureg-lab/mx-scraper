@@ -1,4 +1,7 @@
 #[cfg(test)]
+mod gallery_dl;
+
+#[cfg(test)]
 mod test {
     use std::path::PathBuf;
     use std::str::FromStr;
@@ -13,13 +16,8 @@ mod test {
 
     #[test]
     fn should_work_with_old_books() {
-        match std::fs::read_to_string("./src/tests/old_book.json") {
-            Ok(content) => {
-                let book = serde_json::from_str::<Book>(&content);
-                assert!(book.is_ok());
-            }
-            Err(e) => panic!("File not found: {e}"),
-        }
+        let content = std::fs::read_to_string("./src/tests/old_book.json").unwrap();
+        serde_json::from_str::<Book>(&content).unwrap();
     }
 
     #[tokio::test]
@@ -94,7 +92,7 @@ mod test {
         );
         assert_eq!(
             "サイン .. こす",
-            utils::resume_text("サインこす aaaaaaaa草aabbbこす", Some(5))
+            utils::resume_text("サインこす aaaaaaa草🗿aabbbこす", Some(5))
         );
     }
 

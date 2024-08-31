@@ -17,6 +17,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build
-      run: cargo build --verbose
+      run: |
+        python3 -m pip install -U gallery-dl
+        cargo build --verbose
     - name: Run tests
-      run: cargo test --verbose
+      run: |
+        cargo install cargo-insta --version 1.15.0 --locked
+        cargo test --verbose
+

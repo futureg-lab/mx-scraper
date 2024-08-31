@@ -1,0 +1,29 @@
+{
+    "artist": [
+      "mashu"
+    ],
+    "category": "some category",
+    "characters": [],
+    "count": 98,
+    "date": 1644434652,
+    "gallery_id": 391370,
+    "group": [
+      "some group"
+    ],
+    "lang": "en",
+    "language": "English",
+    "media_id": 2136814,
+    "parody": [
+      "original"
+    ],
+    "scanlator": "",
+    "subcategory": "gallery",
+    "tags": [
+      "group",
+      "ponytail"
+    ],
+    "title": "DEFAULT TITLE",
+    "title_en": "TITLE EN",
+    "title_ja": "TITLE JP",
+    "type": "whatever"
+  }

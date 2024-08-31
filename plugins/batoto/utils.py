@@ -23,15 +23,15 @@ def fetch_pages(
         re.search(r"const\s*imgHttps\s*=(.+?);", script_code).group(1)
     )
 
-    pages = [
-        {
-            "filename": f"{index + 1}.{re.search(r'\.([A-Za-z0-9]+)$', url).group(1) or 'jpg'}",
+    pages = []
+    for index, url in enumerate(raw_pages):
+        ext = re.search(r'\.([A-Za-z0-9]+)$', url).group(1) or 'jpg'
+        pages.append({
+            "filename": f"{index + 1}.{ext}",
             "number": index + 1,
             "title": str(index + 1),
             "url": url,
-        }
-        for index, url in enumerate(raw_pages)
-    ]
+        })
 
     return chapter_url, pages
 

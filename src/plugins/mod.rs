@@ -1,12 +1,15 @@
 use std::time::Duration;
 
 use anyhow::Context;
+use gallery_dl::GalleryDLPlugin;
 use python::PythonPlugin;
 
 use crate::{
     schemas::book::{Book, PluginOption, SearchOption},
     GLOBAL_CONFIG,
 };
+
+pub mod gallery_dl;
 pub mod python;
 
 pub trait MXPlugin {
@@ -21,10 +24,10 @@ pub trait MXPlugin {
 #[derive(Debug)]
 pub enum PluginImpl {
     Python(PythonPlugin),
+    GalleryDL(GalleryDLPlugin),
     // TODO:
     // Lua(LuaPlugin)
     // OldNXScraper(OldNXScraperPlugin) // full rust
-    // GalleryDL(GalleryDLPlugin) // full rust
 }
 
 pub struct PluginManager {
@@ -50,11 +53,29 @@ impl PluginManager {
         for plugin in &self.plugins {
             match plugin {
                 PluginImpl::Python(py) => {
-                    if py.is_supported(term.clone()).await? {
+                    if py
+                        .is_supported(term.clone())
+                        .await
+                        .map_err(|e| anyhow::anyhow!("  - Plugin {}: {e}", py.name))?
+                    {
                         match self.fetch(term.clone(), py.name.clone()).await {
                             Ok(f) => return Ok(f),
                             Err(e) => {
                                 issues.push(format!("  - Plugin {}: {e}", py.name));
+                            }
+                        }
+                    }
+                }
+                PluginImpl::GalleryDL(dl) => {
+                    if dl
+                        .is_supported(term.clone())
+                        .await
+                        .map_err(|e| anyhow::anyhow!("  - Plugin {}: {e}", dl.name))?
+                    {
+                        match self.fetch(term.clone(), dl.name.clone()).await {
+                            Ok(f) => return Ok(f),
+                            Err(e) => {
+                                issues.push(format!("  - Plugin {}: {e}", dl.name));
                             }
                         }
                     }
@@ -69,48 +90,60 @@ impl PluginManager {
         }
     }
 
+    async fn fetch_by_plugin<P: MXPlugin>(
+        term: String,
+        plugin_name: String,
+        plugin: &P,
+    ) -> anyhow::Result<FetchResult> {
+        let (enable_cache, cache_file_path, delay) = {
+            let config = GLOBAL_CONFIG.read().unwrap();
+            (
+                config.cache.enable,
+                config.get_cache_file_path(&term, &plugin_name),
+                config.delay.clone(),
+            )
+        };
+
+        let mut cached = false;
+
+        let book = if enable_cache && cache_file_path.exists() {
+            cached = true;
+            let content = std::fs::read_to_string(&cache_file_path)?;
+            serde_json::from_str(&content).with_context(|| {
+                format!(
+                    "Deserializing cache file for term {term} located at {:?}",
+                    cache_file_path.display()
+                )
+            })?
+        } else {
+            let book = plugin.get_book(term.clone()).await?;
+            let content = serde_json::to_string_pretty(&book)?;
+            std::fs::write(&cache_file_path, content)
+                .with_context(|| format!("Writing cache {:?}", cache_file_path.display()))?;
+            book
+        };
+        tokio::time::sleep(Duration::from_millis(delay.fetch as u64)).await;
+
+        Ok(FetchResult {
+            query_term: term.clone(),
+            book,
+            plugin_name,
+            cached,
+        })
+    }
+
     /// Fetch and bypass term validation
     pub async fn fetch(&self, term: String, plugin_name: String) -> anyhow::Result<FetchResult> {
         for plugin in &self.plugins {
             match plugin {
-                PluginImpl::Python(py) => {
-                    if py.name.eq(&plugin_name) {
-                        let (enable_cache, cache_file_path, delay) = {
-                            let config = GLOBAL_CONFIG.read().unwrap();
-                            (
-                                config.cache.enable,
-                                config.get_cache_file_path(&term, &plugin_name),
-                                config.delay.clone(),
-                            )
-                        };
-
-                        let mut cached = false;
-
-                        let book = if enable_cache && cache_file_path.exists() {
-                            cached = true;
-                            let content = std::fs::read_to_string(&cache_file_path)?;
-                            serde_json::from_str(&content).with_context(|| {
-                                format!(
-                                    "Deserializing cache file for term {term} located at {:?}",
-                                    cache_file_path.display()
-                                )
-                            })?
-                        } else {
-                            let book = py.get_book(term.clone()).await?;
-                            let content = serde_json::to_string_pretty(&book)?;
-                            std::fs::write(&cache_file_path, content).with_context(|| {
-                                format!("Writing cache {:?}", cache_file_path.display())
-                            })?;
-                            book
-                        };
-                        tokio::time::sleep(Duration::from_millis(delay.fetch as u64)).await;
-
-                        return Ok(FetchResult {
-                            query_term: term.clone(),
-                            book,
-                            plugin_name,
-                            cached,
-                        });
+                PluginImpl::Python(plugin) => {
+                    if plugin.name.eq(&plugin_name) {
+                        return Self::fetch_by_plugin(term, plugin_name, plugin).await;
+                    }
+                }
+                PluginImpl::GalleryDL(plugin) => {
+                    if plugin.name.eq(&plugin_name) {
+                        return Self::fetch_by_plugin(term, plugin_name, plugin).await;
                     }
                 }
             }
@@ -124,7 +157,8 @@ impl PluginManager {
         self.plugins
             .iter()
             .map(|plugin| match plugin {
-                PluginImpl::Python(py) => py.name.clone(),
+                PluginImpl::Python(plugin) => plugin.name.clone(),
+                PluginImpl::GalleryDL(plugin) => plugin.name.clone(),
             })
             .collect()
     }
@@ -142,13 +176,10 @@ impl PluginManager {
         let location = { GLOBAL_CONFIG.read().unwrap().plugins.clone().location };
         self.prepare_folders();
 
-        // Add static plugins then collect dynamic ones
-        // For now, we have dynamic ones (python)
-        // static plugins can be added directly in the Vec below
+        let mut dyn_plugins = vec![];
+        let static_plugins = vec![PluginImpl::GalleryDL(GalleryDLPlugin::new())];
 
-        let mut plugins = vec![];
         let plug_dir = location.canonicalize()?;
-
         // +-- plugin_location
         //   +- foo
         //      + __init__.py
@@ -166,14 +197,20 @@ impl PluginManager {
                     name: plugin_name.clone(),
                     workdir: None,
                 };
-                plugins.push(PluginImpl::Python(python));
+                dyn_plugins.push(PluginImpl::Python(python));
             }
         }
 
         // init all
+        let mut plugins = dyn_plugins
+            .into_iter()
+            .chain(static_plugins.into_iter())
+            .collect::<Vec<PluginImpl>>();
+
         for plugin in plugins.iter_mut() {
             match plugin {
                 PluginImpl::Python(py) => py.init().await?,
+                PluginImpl::GalleryDL(dl) => dl.init().await?,
             }
         }
 
@@ -219,6 +256,7 @@ impl PluginManager {
         for plugin in self.plugins.iter_mut() {
             match plugin {
                 PluginImpl::Python(py) => py.destroy().await?,
+                PluginImpl::GalleryDL(dl) => dl.destroy().await?,
             }
         }
         Ok(())

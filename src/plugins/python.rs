@@ -35,7 +35,6 @@ impl MXPlugin for PythonPlugin {
         }
 
         std::env::set_var("PYTHONPATH", self.workdir.clone().unwrap());
-
         Ok(())
     }
 

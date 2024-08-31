@@ -19,6 +19,8 @@ mx-scraper fetch https://uncyclopedia.com/wiki/Main_Page --plugin images -v
 # Generally speaking, it is unnecessary but it is definitely required for generic ones (like ids or names)
 # The behavior of how each term is parsed depends on the plugin implementation
 mx-scraper fetch --meta-only -v img:https://uncyclopedia.com/wiki/Main_Page to:https://mto.to/series/68737
+
+mx-scraper fetch --meta-only -v https://twitter.com/imigimuru/status/1829913427373953259
 ```
 
 ## Commands
@@ -63,7 +65,8 @@ Each fetch strategy will share the same configuration..
 - [ ] Plugins
   - [x] Python plugin
     - [x] `MxRequest` with runtime context (headers, cookies, auth)
-  - [ ] Subprocess (e.g. gallery-dl, imgbrd-grabber)
+  - [x] gallery-dl extractors
+  - [ ] Subprocess (e.g. imgbrd-grabber)
 
 - [ ] HtmlParser (optional feature)
   - [ ] Implement `HtmlParser.use(source).where('attr.href = ..')`

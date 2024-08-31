@@ -6,9 +6,9 @@ PREFIX = "to:"
 DOMAINS = ["https://mto.to", "https://xbato.com"]
 
 
-def pick_base(term: str):
+def pick_base(url: str):
     for base in DOMAINS:
-        if term.startswith(base):
+        if url.startswith(base):
             return base
     return None
 

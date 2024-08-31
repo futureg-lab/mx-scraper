@@ -17,7 +17,9 @@ verbose: false
 request:
   _all:
     user_agent: mx-scraper/0.0.1 (windows; x86_64)
-    headers: {}
+    headers: {
+      "Accept": "*/*"
+    }
   images:
     # headers and cookies inherit _all
     headers: {}

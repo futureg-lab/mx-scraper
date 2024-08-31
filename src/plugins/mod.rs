@@ -30,6 +30,22 @@ pub enum PluginImpl {
     // OldNXScraper(OldNXScraperPlugin) // full rust
 }
 
+// FIXME: refactor wrapper type ops with generic apply
+// "cycle used when checking that `plugins::<impl at src\plugins\mod.rs:33:1: 33:16>::apply` is well-formed"
+// issue partly due to async traits (Sized Requirement for dyn Trait)
+
+// impl PluginImpl {
+//     pub fn apply<F, R>(&self, func: F) -> R
+//     where
+//         F: Fn(Box<dyn MXPlugin>) -> R,
+//     {
+//         match self {
+//             PluginImpl::Python(plugin) => func(plugin),
+//             PluginImpl::GalleryDL(plugin) => func(plugin),
+//         }
+//     }
+// }
+
 pub struct PluginManager {
     plugins: Vec<PluginImpl>,
 }
@@ -53,11 +69,15 @@ impl PluginManager {
         for plugin in &self.plugins {
             match plugin {
                 PluginImpl::Python(py) => {
-                    if py
-                        .is_supported(term.clone())
-                        .await
-                        .map_err(|e| anyhow::anyhow!("  - Plugin {}: {e}", py.name))?
-                    {
+                    let supported = match py.is_supported(term.clone()).await {
+                        Ok(verdict) => verdict,
+                        Err(e) => {
+                            issues.push(format!("  - Plugin {}: {e}", py.name));
+                            false
+                        }
+                    };
+
+                    if supported {
                         match self.fetch(term.clone(), py.name.clone()).await {
                             Ok(f) => return Ok(f),
                             Err(e) => {
@@ -67,11 +87,15 @@ impl PluginManager {
                     }
                 }
                 PluginImpl::GalleryDL(dl) => {
-                    if dl
-                        .is_supported(term.clone())
-                        .await
-                        .map_err(|e| anyhow::anyhow!("  - Plugin {}: {e}", dl.name))?
-                    {
+                    let supported = match dl.is_supported(term.clone()).await {
+                        Ok(verdict) => verdict,
+                        Err(e) => {
+                            issues.push(format!("  - Plugin {}: {e}", dl.name));
+                            false
+                        }
+                    };
+
+                    if supported {
                         match self.fetch(term.clone(), dl.name.clone()).await {
                             Ok(f) => return Ok(f),
                             Err(e) => {

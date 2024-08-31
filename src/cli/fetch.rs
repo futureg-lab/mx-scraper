@@ -255,7 +255,7 @@ async fn fetch_terms(
     let mut cached_count = 0;
     for (p, term) in terms.iter().enumerate() {
         local_pb.set_prefix(format!("[{}/{}]", p + 1, terms.len()));
-        local_pb.set_message(format!("{}", term.trim()));
+        local_pb.set_message(term.trim().to_string());
 
         // TODO: parallel fetch (actual scraping), +abuse disclaimer
         let res = match plugin {

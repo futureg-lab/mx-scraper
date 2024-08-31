@@ -11,11 +11,10 @@ where
     O: DeserializeOwned,
 {
     let value = Value::deserialize(deserializer)?;
-    let oify =
-        |value: Value| serde_json::from_value(value).map_err(|e| serde::de::Error::custom(e));
+    let oify = |value: Value| serde_json::from_value(value).map_err(serde::de::Error::custom);
 
     match value {
-        Value::Array(arr) => arr.into_iter().map(|v| oify(v)).collect::<Result<_, _>>(),
+        Value::Array(arr) => arr.into_iter().map(oify).collect::<Result<_, _>>(),
         single => Ok(vec![oify(single)?]),
     }
 }
@@ -46,5 +45,5 @@ where
         return Ok(Default::default());
     }
 
-    serde_json::from_value(value).map_err(|e| serde::de::Error::custom(e))
+    serde_json::from_value(value).map_err(serde::de::Error::custom)
 }

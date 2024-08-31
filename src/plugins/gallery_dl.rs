@@ -134,7 +134,6 @@ impl MXPlugin for GalleryDLPlugin {
         let items: Vec<GalleryItem> = serde_json::from_slice(&output.stdout)
             .with_context(|| format!("Parse result of '{}'", print_command_invocation(&command)))?;
 
-        std::fs::write("out0.json", output.stdout).unwrap();
         generate_book(term, items)
     }
 
@@ -150,7 +149,7 @@ impl MXPlugin for GalleryDLPlugin {
 }
 
 pub fn generate_book(term: String, items: Vec<GalleryItem>) -> anyhow::Result<Book> {
-    let placeholder_title = format!("{}", utils::resume_text(&term, Some(20)));
+    let placeholder_title = utils::resume_text(&term, Some(20)).to_string();
     let mut title = placeholder_title.trim().to_owned();
     let mut title_aliases = IndexSet::new();
     let mut gallery_id = title.clone();
@@ -175,7 +174,7 @@ pub fn generate_book(term: String, items: Vec<GalleryItem>) -> anyhow::Result<Bo
                 authors.extend(
                     gl.artists
                         .iter()
-                        .map(|v| get_if_not_str_rec("name", &v))
+                        .map(|v| get_if_not_str_rec("name", v))
                         .collect::<anyhow::Result<Vec<_>>>()?,
                 );
                 authors.extend(gl.group);
@@ -198,9 +197,7 @@ pub fn generate_book(term: String, items: Vec<GalleryItem>) -> anyhow::Result<Bo
                 });
 
                 let filename = canon_filename.unwrap_or_else(|| {
-                    let infered_filename = extract_filename(&Url::from_str(&url).unwrap())
-                        .unwrap_or_else(|| p.to_string());
-                    infered_filename
+                    extract_filename(&Url::from_str(&url).unwrap()).unwrap_or_else(|| p.to_string())
                 });
 
                 pages.push(Page {
@@ -269,8 +266,6 @@ pub fn generate_book(term: String, items: Vec<GalleryItem>) -> anyhow::Result<Bo
         metadata,
     };
 
-    std::fs::write("out.json", serde_json::to_string(&book).unwrap()).unwrap();
-
     Ok(book)
 }
 
@@ -288,7 +283,7 @@ fn print_command_invocation(command: &Command) -> String {
 fn get_if_not_str_rec(field: &str, value: &serde_json::Value) -> anyhow::Result<String> {
     match value {
         serde_json::Value::Object(m) => {
-            if let Some(v) = m.get("name") {
+            if let Some(v) = m.get(field) {
                 return get_if_not_str_rec(field, v);
             }
             anyhow::bail!("Field 'name' not found in {m:?}")

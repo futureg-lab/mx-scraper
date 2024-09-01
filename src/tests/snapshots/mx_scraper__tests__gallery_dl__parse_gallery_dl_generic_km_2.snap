@@ -1,0 +1,101 @@
+---
+source: src/tests/gallery_dl.rs
+expression: "materialize_book(\"km_2.json\")"
+---
+Ok(
+    Book {
+        title: "Tifa Example - 4K",
+        title_aliases: [],
+        source_id: "http://some.website/a/b/c",
+        description: "",
+        authors: [
+            Author {
+                name: "18156693",
+                description: "",
+            },
+        ],
+        chapters: [
+            Chapter {
+                title: "Tifa Example - 4K",
+                description: "",
+                url: "http://some.website/a/b/c",
+                number: 1,
+                pages: [
+                    Page {
+                        title: "Tifa Example - 4K",
+                        url: "https://example.su/data/e4/dc/e4dc77961fd16c74e8988355f4e070c9a58d8ec4657dbd6bbe441acfdec6c43f.mp4",
+                        intermediate_link_hint: None,
+                        number: 1,
+                        filename: "FOO_4k.mp4",
+                        metadata: [
+                            Metadata {
+                                label: "FOO_4k.mp4",
+                                content: Object {
+                                    "added": String("2024-04-06T03:22:37.193876"),
+                                    "attachments": Array [
+                                        Object {
+                                            "hash": String("e4dc77961fd16c74e8988355f4e070c9a58d8ec4657dbd6bbe441acfdec6c43f"),
+                                            "name": String("FOO_4k.mp4"),
+                                            "path": String("/e4/dc/e4dc77961fd16c74e8988355f4e070c9a58d8ec4657dbd6bbe441acfdec6c43f.mp4"),
+                                            "type": String("attachment"),
+                                        },
+                                        Object {
+                                            "hash": String("160d3ded076eac4cc269dcde818d9face147b5e0d81a588896eb91799a502bdf"),
+                                            "name": String("FOO_GIF.gif"),
+                                            "path": String("/16/0d/160d3ded076eac4cc269dcde818d9face147b5e0d81a588896eb91799a502bdf.gif"),
+                                            "type": String("attachment"),
+                                        },
+                                    ],
+                                    "captions": Null,
+                                    "category": String("exampleparty"),
+                                    "content": String("<p>VA: <a href=\"example\" rel=\"nofollow noopener\" target=\"_blank\">foo.com/Example123456789787987</a></p><p>Sound: <a href=\"https://foo.com/lerico213\" rel=\"nofollow noopener\" target=\"_blank\">foo.com/lerico213</a></p><p>I tried following some of <a href=\"https://foo.com/kenzsoft\" rel=\"nofollow noopener\" target=\"_blank\">KENZsoft</a> camera/animation style. They have lots of great stuff there. \u{a0}Highly recommended checking that out.</p>"),
+                                    "count": Number(2),
+                                    "date": String("2024-03-18 23:59:29"),
+                                    "edited": String("2024-03-18T23:59:29"),
+                                    "embed": Object {},
+                                    "extension": String("mp4"),
+                                    "file": Object {
+                                        "hash": String("160d3ded076eac4cc269dcde818d9face147b5e0d81a588896eb91799a502bdf"),
+                                        "name": String("FOO_GIF.gif"),
+                                        "path": String("/16/0d/160d3ded076eac4cc269dcde818d9face147b5e0d81a588896eb91799a502bdf.gif"),
+                                        "type": String("file"),
+                                    },
+                                    "filename": String("FOO_4k"),
+                                    "hash": String("e4dc77961fd16c74e8988355f4e070c9a58d8ec4657dbd6bbe441acfdec6c43f"),
+                                    "id": String("100629755"),
+                                    "num": Number(1),
+                                    "poll": Null,
+                                    "published": String("2024-03-18T23:59:29"),
+                                    "service": String("patreon"),
+                                    "shared_file": Bool(false),
+                                    "subcategory": String("patreon"),
+                                    "tags": String("{Tifa-4K}"),
+                                    "title": String("Tifa Example - 4K"),
+                                    "type": String("attachment"),
+                                    "user": String("18156693"),
+                                },
+                            },
+                        ],
+                    },
+                ],
+                metadata: [],
+            },
+        ],
+        tags: [
+            Tag {
+                name: "{Tifa-4K}",
+                metadata: [],
+            },
+            Tag {
+                name: "exampleparty",
+                metadata: [],
+            },
+            Tag {
+                name: "patreon",
+                metadata: [],
+            },
+        ],
+        metadata: [],
+        url: "http://some.website/a/b/c",
+    },
+)

@@ -111,5 +111,38 @@ pub fn resume_text(s: &str, max: Option<usize>) -> String {
     let start_chunk = s.chars().take(chunk_end).collect::<String>();
     let end_chunk = s.chars().skip(chunk_end + delta).collect::<String>();
 
-    format!("{} .. {}", start_chunk, end_chunk)
+    format!("{start_chunk} .. {end_chunk}")
+}
+
+pub trait IsEmpty {
+    fn is_empty(&self) -> bool;
+}
+
+pub fn set_if_empty<T>(value: T, placeholder: T) -> T
+where
+    T: IsEmpty,
+{
+    if value.is_empty() {
+        placeholder
+    } else {
+        value
+    }
+}
+
+impl IsEmpty for String {
+    fn is_empty(&self) -> bool {
+        String::is_empty(self)
+    }
+}
+
+impl IsEmpty for serde_json::Value {
+    fn is_empty(&self) -> bool {
+        match self {
+            serde_json::Value::Null => true,
+            serde_json::Value::Array(a) => a.is_empty(),
+            serde_json::Value::String(s) => s.is_empty(),
+            serde_json::Value::Object(o) => o.is_empty(),
+            _ => false,
+        }
+    }
 }

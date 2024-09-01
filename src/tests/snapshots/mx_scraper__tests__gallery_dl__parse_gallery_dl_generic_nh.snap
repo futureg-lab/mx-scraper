@@ -1,0 +1,80 @@
+---
+source: src/tests/gallery_dl.rs
+expression: "materialize_book(\"nh.json\")"
+---
+Ok(
+    Book {
+        title: "DEFAULT TITLE",
+        title_aliases: [],
+        source_id: "391370",
+        description: "",
+        authors: [
+            Author {
+                name: "mashu",
+                description: "",
+            },
+            Author {
+                name: "some group",
+                description: "",
+            },
+        ],
+        chapters: [
+            Chapter {
+                title: "DEFAULT TITLE",
+                description: "",
+                url: "http://some.website/a/b/c",
+                number: 1,
+                pages: [
+                    Page {
+                        title: "",
+                        url: "https://link.to.page/1.jpg",
+                        intermediate_link_hint: None,
+                        number: 1,
+                        filename: "1.jpg",
+                        metadata: [
+                            Metadata {
+                                label: "1.jpg",
+                                content: Object {
+                                    "artist": Array [
+                                        String("mashu"),
+                                    ],
+                                    "characters": Array [],
+                                    "count": Number(98),
+                                },
+                            },
+                        ],
+                    },
+                ],
+                metadata: [],
+            },
+        ],
+        tags: [
+            Tag {
+                name: "group",
+                metadata: [],
+            },
+            Tag {
+                name: "ponytail",
+                metadata: [],
+            },
+            Tag {
+                name: "original",
+                metadata: [],
+            },
+            Tag {
+                name: "some category",
+                metadata: [],
+            },
+            Tag {
+                name: "gallery",
+                metadata: [],
+            },
+            Tag {
+                name: "English",
+                metadata: [],
+            },
+        ],
+        metadata: [],
+        url: "http://some.website/a/b/c",
+    },
+)

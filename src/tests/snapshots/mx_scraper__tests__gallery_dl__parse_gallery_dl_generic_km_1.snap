@@ -1,0 +1,84 @@
+---
+source: src/tests/gallery_dl.rs
+expression: "materialize_book(\"km_1.json\")"
+---
+Ok(
+    Book {
+        title: "応援プランの内容について",
+        title_aliases: [],
+        source_id: "http://some.website/a/b/c",
+        description: "",
+        authors: [
+            Author {
+                name: "885512",
+                description: "",
+            },
+        ],
+        chapters: [
+            Chapter {
+                title: "応援プランの内容について",
+                description: "",
+                url: "http://some.website/a/b/c",
+                number: 1,
+                pages: [
+                    Page {
+                        title: "近況報告",
+                        url: "https://kemono.su/data/61/4a/614a37b6a25eb67ec5f72894f65129ec5383a817f86b955987f07c0e734eb9bb.jpg",
+                        intermediate_link_hint: None,
+                        number: 1,
+                        filename: "d325fa4a-557c-482b-8d23-f406249ebc7f.jpg",
+                        metadata: [
+                            Metadata {
+                                label: "d325fa4a-557c-482b-8d23-f406249ebc7f.jpg",
+                                content: Object {
+                                    "added": String("2022-06-16T11:52:10.251420"),
+                                    "attachments": Array [],
+                                    "captions": Null,
+                                    "category": String("kemonoparty"),
+                                    "content": String("<p>皆さんこんにちは。そしてお久しぶりです。signoAAAです。</p><p><br/></p><p>すっかり冬も過ぎ春の季節がやってきましたがいかがお過ごしでしょうか。</p><p>今月上旬に散歩がてら観光地に桜を見に行ったんですが、</p><p>ご時世的にまだ少し観光客の数は少なめでしたね。</p><p>それでも去年よりは増えてましたけど。</p><p><br/></p><p>インドア派な自分でも流石にそろそろ収束してほしいな～と思う今日この頃です。</p><p><br/></p><p>さて近況報告なのですが、先月もそうだったのですが今月も新規絵載せられそうにありません！申し訳ない！</p><p><br/></p><p>裏でいろいろやってるってのもあるんですが、今個人的に力を入れてやってるのがマンガ表現でして、いくつか企画を進めさせていただいております。表に出せるかどうかは今後次第ですけどね。</p><p><br/></p><p>その煽りを受けてイラスト制作が停滞しております。「こういう表現したいなー」とか気持ちだけは積もっていってるんですが、なかなか形にする時間がなく・・・。</p><p><br/></p><p><br/></p><p>\n<a href=\"https://news.toranoana.jp/200081\" target=\"_blank\">\n<div class=\"embed-view\">\n<h3 class=\"subtitle\">(frame embed)</h3>\n</div>\n</a>\n<br/>\n</p><p>そんな中、こちらの「ツクルの日」という企画でオリジナルグッズの制作をしていただきました。</p><p>もう受け付けは終了しているのですが、ご購入いただいた方は大変ありがとうございました。</p><p><br/></p><p>これまでこういったグッズ類は作ったことがなく、買ったこともほとんどなかったのでどんな感じか気になっていたのですが、</p><p>手元に届いたものをチェックしていたら特にタペストリーが個人的にいい感じの仕上がりで自分でも作ってみたくなりました。</p><p>既存絵を使うか新規で描くかは分かりませんが、タペストリーは何かの機会に少数でも販売してみたいです。BOOTHとかで。</p><p><br/></p><p>あとこのオリジナルキャラクター、1年以上前からちょくちょく描いてるのに今までずーっと設定の説明とかしてこなかったんですけど、名前は「レイナ」と言います。</p><p>設定とかもいろいろ考えてあるので今後出していきたいですね。</p><p><br/></p><p>5月以降は合間を縫いつつ少しずつでもイラスト描いていけるといいなぁ。</p><p><br/></p><p>ではまた👏</p>"),
+                                    "count": Number(1),
+                                    "date": String("2022-04-30 08:10:20"),
+                                    "edited": String("2022-04-30T08:10:20"),
+                                    "embed": Object {},
+                                    "extension": String("jpg"),
+                                    "file": Object {
+                                        "hash": String("614a37b6a25eb67ec5f72894f65129ec5383a817f86b955987f07c0e734eb9bb"),
+                                        "name": String("d325fa4a-557c-482b-8d23-f406249ebc7f.jpg"),
+                                        "path": String("/61/4a/614a37b6a25eb67ec5f72894f65129ec5383a817f86b955987f07c0e734eb9bb.jpg"),
+                                        "type": String("file"),
+                                    },
+                                    "filename": String("d325fa4a-557c-482b-8d23-f406249ebc7f"),
+                                    "hash": String("614a37b6a25eb67ec5f72894f65129ec5383a817f86b955987f07c0e734eb9bb"),
+                                    "id": String("3745119"),
+                                    "num": Number(1),
+                                    "poll": Null,
+                                    "published": String("2022-04-30T08:10:20"),
+                                    "service": String("fanbox"),
+                                    "shared_file": Bool(false),
+                                    "subcategory": String("fanbox"),
+                                    "tags": Null,
+                                    "title": String("近況報告"),
+                                    "type": String("file"),
+                                    "user": String("885512"),
+                                },
+                            },
+                        ],
+                    },
+                ],
+                metadata: [],
+            },
+        ],
+        tags: [
+            Tag {
+                name: "kemonoparty",
+                metadata: [],
+            },
+            Tag {
+                name: "fanbox",
+                metadata: [],
+            },
+        ],
+        metadata: [],
+        url: "http://some.website/a/b/c",
+    },
+)

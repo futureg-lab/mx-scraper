@@ -8,6 +8,7 @@ use crate::{
 use anyhow::Context;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::path::PathBuf;
 
 lazy_static! {
@@ -81,6 +82,12 @@ impl Config {
     pub fn new() -> Self {
         let version = env!("CARGO_PKG_VERSION").to_owned();
         let mut request = HashMap::new();
+        let default_headers = json!({
+            "Accept"         : "*/*",
+            "Accept-Language": "en-US,en;q=0.5",
+            "Accept-Encoding": "gzip, deflate"
+        });
+
         request.insert(
             ALL.clone(),
             Request {
@@ -89,6 +96,7 @@ impl Config {
                     std::env::consts::OS,
                     std::env::consts::ARCH,
                 )),
+                headers: serde_json::from_value(default_headers).unwrap(),
                 ..Default::default()
             },
         );

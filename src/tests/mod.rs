@@ -2,6 +2,9 @@
 mod gallery_dl;
 
 #[cfg(test)]
+mod parser;
+
+#[cfg(test)]
 mod test {
     use std::path::PathBuf;
     use std::str::FromStr;

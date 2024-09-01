@@ -7,6 +7,7 @@ use url::Url;
 use crate::{core::utils, GLOBAL_CONFIG};
 
 use super::config::DownloadFolder;
+use super::default_on_null;
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Book {
@@ -30,6 +31,8 @@ pub struct Chapter {
     pub url: String,
     pub number: u32,
     pub pages: Vec<Page>,
+    #[serde(default, deserialize_with = "default_on_null")]
+    pub metadata: Vec<Metadata>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -45,6 +48,8 @@ pub struct Page {
     pub intermediate_link_hint: Option<ParseLinkHint>,
     pub number: u32,
     pub filename: String,
+    #[serde(default, deserialize_with = "default_on_null")]
+    pub metadata: Vec<Metadata>,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -206,7 +211,7 @@ impl Book {
             .join(format!("{}.json", utils::sanitize_string(&self.source_id)))
     }
 
-    /// Metadata download full path
+    /// Metadata download path
     pub fn get_metadata_dest_path(&self, term: &str, plugin_name: &str) -> PathBuf {
         let metadata = {
             let config = GLOBAL_CONFIG.read().unwrap();

@@ -5,23 +5,42 @@ pub mod book;
 pub mod config;
 pub mod cookies;
 
-pub fn deserialize_singleton<'de, D, O>(deserializer: D) -> Result<Vec<O>, D::Error>
+/// * `value => Vec<O>`
+/// * `Array[.. values] => Vec<O>`
+/// * Null => vec![] (Vec<O>)`
+fn liftvec_singleton<'de, O>(value: serde_json::Value) -> anyhow::Result<Vec<O>>
+where
+    O: DeserializeOwned,
+{
+    match value {
+        Value::Array(arr) => arr
+            .into_iter()
+            .map(serde_json::from_value)
+            .collect::<Result<_, _>>(),
+        Value::Null => Ok(vec![]),
+        single => Ok(vec![serde_json::from_value(single)?]),
+    }
+    .map_err(|e| e.into())
+}
+
+/// * `null => vec![]`
+/// * `0 => vec![0]`
+/// * `"one" => vec!["one"]`
+/// * `vec!["one"] => vec!["one"]`
+pub fn liftvec_on_singleton<'de, D, O>(deserializer: D) -> Result<Vec<O>, D::Error>
 where
     D: Deserializer<'de>,
     O: DeserializeOwned,
 {
     let value = Value::deserialize(deserializer)?;
-    let oify = |value: Value| serde_json::from_value(value).map_err(serde::de::Error::custom);
 
-    match value {
-        Value::Array(arr) => arr.into_iter().map(oify).collect::<Result<_, _>>(),
-        single => Ok(vec![oify(single)?]),
-    }
+    liftvec_singleton::<O>(value.clone())
+        .map_err(|e| serde::de::Error::custom(format!("Lifting on singleton {:?}: {e}", value)))
 }
 
-pub fn deserialize_coerce_num_as_opt_string<'de, D>(
-    deserializer: D,
-) -> Result<Option<String>, D::Error>
+/// * `1 => Option("1")`
+/// * `"two" => Option("two")`
+pub fn coerce_as_opt_string_on_number<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -35,6 +54,14 @@ where
     }
 }
 
+/// Alternative to `#[serde(default)]`
+/// (only supports missing field but not explicit nulls)
+///
+/// Useful for loosening required fields requirements
+/// * null => ""
+/// * null => None
+/// * null => 0
+/// ..
 pub fn default_on_null<'de, D, O>(deserializer: D) -> Result<O, D::Error>
 where
     D: Deserializer<'de>,
@@ -44,6 +71,5 @@ where
     if value.is_null() {
         return Ok(Default::default());
     }
-
     serde_json::from_value(value).map_err(serde::de::Error::custom)
 }

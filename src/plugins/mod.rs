@@ -63,7 +63,7 @@ impl PluginManager {
         Self { plugins: vec![] }
     }
 
-    /// Fetch a term using the first plugin that supports it
+    /// Fetch a term using the first plugin that can handle it
     pub async fn auto_fetch(&self, term: String) -> anyhow::Result<FetchResult> {
         let mut issues = vec![];
         for plugin in &self.plugins {
@@ -187,7 +187,7 @@ impl PluginManager {
             .collect()
     }
 
-    /// A list of all installed plugins
+    /// Fail if name is missing
     pub fn assert_exists(&self, plugin_name: String) -> anyhow::Result<()> {
         if !self.list_plugins().contains(&plugin_name) {
             anyhow::bail!("Plugin named {plugin_name:?} does not exist")
@@ -216,7 +216,6 @@ impl PluginManager {
             let workdir = plug_dir.join(plugin_name.clone()).to_path_buf();
             let actual_plugin = workdir.join("__init__.py");
             if actual_plugin.exists() {
-                // println!(" + Discovered {plugin_name}");
                 let python = PythonPlugin {
                     name: plugin_name.clone(),
                     workdir: None,
@@ -225,7 +224,6 @@ impl PluginManager {
             }
         }
 
-        // init all
         let mut plugins = dyn_plugins
             .into_iter()
             .chain(static_plugins.into_iter())

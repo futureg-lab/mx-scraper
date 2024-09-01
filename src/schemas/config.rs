@@ -82,11 +82,6 @@ impl Config {
     pub fn new() -> Self {
         let version = env!("CARGO_PKG_VERSION").to_owned();
         let mut request = HashMap::new();
-        let default_headers = json!({
-            "Accept"         : "*/*",
-            "Accept-Language": "en-US,en;q=0.5",
-            "Accept-Encoding": "gzip, deflate"
-        });
 
         request.insert(
             ALL.clone(),
@@ -96,7 +91,10 @@ impl Config {
                     std::env::consts::OS,
                     std::env::consts::ARCH,
                 )),
-                headers: serde_json::from_value(default_headers).unwrap(),
+                headers: serde_json::from_value(json!({
+                    "Accept": "*/*",
+                }))
+                .unwrap(),
                 ..Default::default()
             },
         );

@@ -1,4 +1,5 @@
 use std::{
+    fmt::Debug,
     path::{Path, PathBuf},
     str::FromStr,
 };
@@ -48,32 +49,17 @@ impl MXPlugin for PythonPlugin {
 
     async fn get_book(&self, term: String) -> anyhow::Result<Book> {
         pyo3::prepare_freethreaded_python();
+        let verbose = { GLOBAL_CONFIG.read().unwrap().verbose };
+
         Python::with_gil(|py| {
             let name: &str = self.name.as_ref();
             let plugin = py.import_bound(name)?;
             let mx_request = MxRequest;
 
             if plugin.hasattr("mx_get_urls")? {
-                let res = plugin
-                    .call_method1("mx_get_urls", (term.clone(), mx_request))
-                    .with_context(|| {
-                        format!("{}.mx_get_urls(term = {term:?}, ..)", self.name.clone())
-                    })?;
-                Book::from_raw_urls(from_pyobject(res)?)
+                self.mx_get_urls(py, plugin, term, mx_request, verbose)
             } else if plugin.hasattr("mx_get_book")? {
-                match plugin.call_method1("mx_get_book", (term.clone(), mx_request)) {
-                    Err(py_err) => {
-                        bail!(
-                            "{}.mx_get_book(term = {term:?}, ..): {py_err}",
-                            self.name.clone()
-                        )
-                    }
-                    other => {
-                        let other = other?;
-                        from_pyobject(other.clone())
-                            .with_context(|| format!("Deserializing {:?}", other))
-                    }
-                }
+                self.mx_get_book(py, plugin, term, mx_request, verbose)
             } else {
                 bail!("Invalid could not find mx_get_urls(term, req) or mx_get_book(term, req)",)
             }
@@ -91,10 +77,61 @@ impl MXPlugin for PythonPlugin {
             let plugin = py.import_bound(name)?;
             let res = plugin
                 .call_method1("mx_is_supported", (term.clone(),))
-                .with_context(|| format!("Calling mx_is_supported with term {term:?}"))?;
-            res.extract()
-                .with_context(|| format!("mx_is_supported returned {res:?} but bool was expected",))
+                .map_err(|e| anyhow::anyhow!("Calling mx_is_supported with term {term:?}: {e}"))?;
+            res.extract().map_err(|e| {
+                anyhow::anyhow!("mx_is_supported returned {res:?} but bool was expected: {e}",)
+            })
         })
+    }
+}
+
+impl PythonPlugin {
+    fn mx_get_book(
+        &self,
+        py: Python<'_>,
+        plugin: Bound<'_, PyModule>,
+        term: String,
+        mx_request: MxRequest,
+        verbose: bool,
+    ) -> anyhow::Result<Book> {
+        match plugin.call_method1("mx_get_book", (term.clone(), mx_request)) {
+            Err(e) => {
+                if verbose {
+                    e.print(py)
+                }
+                bail!(
+                    "{}.mx_get_book(term = {term:?}, ..): {e}",
+                    self.name.clone(),
+                )
+            }
+            other => {
+                let other = other?;
+                from_pyobject(other.clone()).with_context(|| format!("Deserializing {:?}", other))
+            }
+        }
+    }
+
+    fn mx_get_urls(
+        &self,
+        py: Python<'_>,
+        plugin: Bound<'_, PyModule>,
+        term: String,
+        mx_request: MxRequest,
+        verbose: bool,
+    ) -> anyhow::Result<Book> {
+        let res = plugin
+            .call_method1("mx_get_urls", (term.clone(), mx_request))
+            .map_err(|e| {
+                if verbose {
+                    e.print(py)
+                }
+                anyhow::anyhow!(
+                    "{}.mx_get_urls(term = {term:?}, ..): {e}",
+                    self.name.clone(),
+                )
+            })?;
+
+        Book::from_raw_urls(from_pyobject(res)?)
     }
 }
 

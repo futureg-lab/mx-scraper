@@ -25,13 +25,15 @@ def fetch_pages(
 
     pages = []
     for index, url in enumerate(raw_pages):
-        ext = re.search(r'\.([A-Za-z0-9]+)$', url).group(1) or 'jpg'
-        pages.append({
-            "filename": f"{index + 1}.{ext}",
-            "number": index + 1,
-            "title": str(index + 1),
-            "url": url,
-        })
+        ext = re.search(r"\.([A-Za-z0-9]+)$", url).group(1) or "jpg"
+        pages.append(
+            {
+                "filename": f"{index + 1}.{ext}",
+                "number": index + 1,
+                "title": str(index + 1),
+                "url": url,
+            }
+        )
 
     return chapter_url, pages
 

@@ -12,7 +12,7 @@ use url::Url;
 use crate::{
     plugins::FetchResult,
     schemas::book::{Book, CacheFile, Page},
-    GLOBAL_CONFIG,
+    GLOBAL_CONFIG, PLUGIN_MANAGER,
 };
 
 use super::{
@@ -93,12 +93,13 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
         plugin_name,
         cached,
     } = fetch_result;
-    let (meta_only, delay, verbose) = {
+    let (meta_only, delay, verbose, custom_downloader) = {
         let config = GLOBAL_CONFIG.read().unwrap();
         (
             config.plugins.meta_only,
             config.delay.clone(),
             config.verbose,
+            config.custom_downloader,
         )
     };
 
@@ -155,7 +156,7 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
         }
 
         for page in &chapter.pages {
-            download_page(page, &temp_dir, &down_dir).await?;
+            download_page(custom_downloader, &plugin_name, page, &temp_dir, &down_dir).await?;
             tokio::time::sleep(Duration::from_millis(delay.download as u64)).await;
             pb.inc(1);
         }
@@ -177,6 +178,8 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
 }
 
 async fn download_page(
+    use_custom_downloader: bool,
+    plugin_name: &str,
     original_page: &Page,
     tmp_dir: &Path,
     down_dir: &Path,
@@ -192,14 +195,25 @@ async fn download_page(
 
     let page = evaluate_lazy_ops(original_page.clone()).await?;
     let url = Url::from_str(&page.url)?;
-    let bytes = http::fetch_async(url.clone())
-        .await
-        .map_err(|e| anyhow::anyhow!("{e}: {original_page:?}"))?;
 
-    let mut file = std::fs::File::create(&tmp_filepath)
-        .with_context(|| format!("Creating {}", tmp_filepath.display()))?;
-    file.write(&bytes)
-        .with_context(|| format!("Downloading {url}"))?;
+    if use_custom_downloader {
+        let res = PLUGIN_MANAGER
+            .read()
+            .unwrap()
+            .download_url(plugin_name, &tmp_filepath, &url);
+        if res.is_none() {
+            anyhow::bail!("No custom downloader available for {plugin_name}, please disable it.");
+        }
+    } else {
+        let bytes = http::fetch_async(url.clone())
+            .await
+            .map_err(|e| anyhow::anyhow!("{e}: {original_page:?}"))?;
+
+        let mut file = std::fs::File::create(&tmp_filepath)
+            .with_context(|| format!("Creating {}", tmp_filepath.display()))?;
+        file.write(&bytes)
+            .with_context(|| format!("Downloading {url}"))?;
+    }
     Ok(())
 }
 

@@ -1,8 +1,9 @@
-use std::time::Duration;
+use std::{path::Path, time::Duration};
 
 use anyhow::Context;
 use gallery_dl::GalleryDLPlugin;
 use python::PythonPlugin;
+use url::Url;
 
 use crate::{
     schemas::book::{Book, PluginOption, SearchOption},
@@ -19,6 +20,7 @@ pub trait MXPlugin {
     async fn get_book(&self, query: String) -> anyhow::Result<Book>;
     async fn is_supported(&self, query: String) -> anyhow::Result<bool>;
     async fn search(&self, term: String, option: SearchOption) -> anyhow::Result<Vec<Book>>;
+    fn download_url(&self, dest: &Path, url: &Url) -> Option<anyhow::Result<()>>;
 }
 
 #[derive(Debug)]
@@ -193,6 +195,30 @@ impl PluginManager {
             anyhow::bail!("Plugin named {plugin_name:?} does not exist")
         }
         Ok(())
+    }
+
+    /// Custom downloader for a plugin
+    pub fn download_url(
+        &self,
+        plugin_name: &str,
+        dest: &Path,
+        url: &Url,
+    ) -> Option<anyhow::Result<()>> {
+        for plugin in self.plugins.iter() {
+            match plugin {
+                PluginImpl::Python(plugin) => {
+                    if plugin_name.eq(&plugin.name) {
+                        return plugin.download_url(dest, url);
+                    }
+                }
+                PluginImpl::GalleryDL(plugin) => {
+                    if plugin_name.eq(&plugin.name) {
+                        return plugin.download_url(dest, url);
+                    }
+                }
+            }
+        }
+        None
     }
 
     /// Initialize all plugins

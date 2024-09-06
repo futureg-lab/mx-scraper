@@ -17,21 +17,25 @@ lazy_static! {
     static ref GLOBAL_CONFIG: Arc<RwLock<Config>> = Arc::new(RwLock::new(
         Config::load().with_context(|| "Loading config").unwrap()
     ));
+    static ref PLUGIN_MANAGER: Arc<RwLock<PluginManager>> =
+        Arc::new(RwLock::new(PluginManager::new()));
 }
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let mut manager = PluginManager::new();
-    manager.init().await?;
-
     let parser = MainCommand::parse();
-    match parser.command.run(&mut manager).await {
+
+    {
+        PLUGIN_MANAGER.write().unwrap().init().await?;
+    }
+
+    match parser.command.run().await {
         Ok(_) => {
-            manager.destroy().await?;
+            PLUGIN_MANAGER.write().unwrap().destroy().await?;
             Ok(())
         }
         Err(e) => {
-            manager.destroy().await?;
+            PLUGIN_MANAGER.write().unwrap().destroy().await?;
             Err(e)
         }
     }

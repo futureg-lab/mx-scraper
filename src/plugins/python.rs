@@ -16,7 +16,7 @@ use url::Url;
 
 use super::MXPlugin;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PythonPlugin {
     pub name: String,
     pub workdir: Option<PathBuf>,
@@ -82,6 +82,10 @@ impl MXPlugin for PythonPlugin {
                 anyhow::anyhow!("mx_is_supported returned {res:?} but bool was expected: {e}",)
             })
         })
+    }
+
+    fn download_url(&self, _dest: &Path, _url: &Url) -> Option<anyhow::Result<()>> {
+        None
     }
 }
 

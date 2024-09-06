@@ -2,8 +2,6 @@ use clap::{Parser, Subcommand};
 use fetch::{FileSequence, TermSequence, UrlTerm};
 use infos::Infos;
 
-use crate::plugins::PluginManager;
-
 pub mod fetch;
 pub mod infos;
 
@@ -27,12 +25,12 @@ pub enum Commands {
 }
 
 impl Commands {
-    pub async fn run(&self, manager: &mut PluginManager) -> anyhow::Result<()> {
+    pub async fn run(&self) -> anyhow::Result<()> {
         match self {
-            Commands::Fetch(terms) => terms.fetch(manager).await,
-            Commands::FetchFiles(files) => files.fetch(manager).await,
+            Commands::Fetch(terms) => terms.fetch().await,
+            Commands::FetchFiles(files) => files.fetch().await,
             Commands::Request(url_term) => url_term.fetch().await,
-            Commands::Infos(infos) => infos.display(manager).await,
+            Commands::Infos(infos) => infos.display().await,
         }
     }
 }

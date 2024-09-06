@@ -5,7 +5,7 @@ use url::Url;
 
 pub fn sanitize_string(s: &str) -> String {
     let s = decode_escaped_unicode_characters(s);
-    let re = Regex::new(r#"[\\/:"'*?<>.\{\}|~+\n\t\r]+"#).unwrap();
+    let re = Regex::new(r#"[\\/:"'*?<>.&%=\{\}|~+\n\t\r]+"#).unwrap();
     let parts = re.split(&s).collect::<Vec<&str>>();
     parts.join("_")
 }

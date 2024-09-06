@@ -14,6 +14,7 @@ delay:
   download: 25
 max_size_batch: 10
 verbose: false
+custom_downloader: false
 request:
   _all:
     user_agent: mx-scraper/0.0.1 (windows; x86_64)

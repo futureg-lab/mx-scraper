@@ -24,6 +24,7 @@ pub struct Config {
     pub delay: Delay,
     pub max_size_batch: usize,
     pub verbose: bool,
+    pub custom_downloader: bool,
     pub request: HashMap<String, Request>,
     #[serde(skip)]
     pub __options: AdditionalOptions,
@@ -124,6 +125,7 @@ impl Config {
             __options: AdditionalOptions {
                 ..Default::default()
             },
+            custom_downloader: false,
         }
     }
 
@@ -161,9 +163,9 @@ impl Config {
             self.plugins.meta_only = true;
         }
 
-        if fetch_option.verbose {
-            self.verbose = fetch_option.verbose;
-        }
+        self.verbose = fetch_option.verbose;
+
+        self.custom_downloader = fetch_option.custom_downloader;
 
         if let Some(file) = fetch_option.cookies {
             let content = std::fs::read_to_string(file)?;

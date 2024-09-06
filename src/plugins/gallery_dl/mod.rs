@@ -1,4 +1,8 @@
-use std::{path::PathBuf, process::Command, str::FromStr};
+use std::{
+    path::{Path, PathBuf},
+    process::Command,
+    str::FromStr,
+};
 
 use crate::{
     core::utils::{self, extract_filename},
@@ -14,7 +18,7 @@ use url::Url;
 use super::MXPlugin;
 pub mod schema;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GalleryDLPlugin {
     pub name: String,
     pub bin: PathBuf,
@@ -72,6 +76,35 @@ impl MXPlugin for GalleryDLPlugin {
         let mut command = Command::new(&self.bin);
         let output = command.arg(&term).arg("--extractor-info").output()?;
         Ok(output.status.success())
+    }
+
+    fn download_url(&self, dest: &Path, url: &Url) -> Option<anyhow::Result<()>> {
+        let body = || -> anyhow::Result<()> {
+            let mut command = Command::new(&self.bin);
+            let parent = dest.parent().unwrap();
+            let filename = dest.file_name().unwrap();
+            let tmp_dest = parent.join(format!("{}_temp", filename.to_string_lossy()));
+
+            let output = command
+                .arg("--directory")
+                .arg(&tmp_dest)
+                .arg(url.to_string())
+                .output()?;
+
+            if output.status.success() {
+                // dl expects dest to be a directory, which is not the case
+                // actual/path/page.jpg_temp/custom_name_by_dl.jpg
+                // => actual/path/page.jpg
+                for entry in std::fs::read_dir(&tmp_dest)? {
+                    std::fs::rename(&tmp_dest.join(entry?.file_name()), &dest)?;
+                    std::fs::remove_dir_all(&tmp_dest)?;
+                    break;
+                }
+            }
+
+            Ok(())
+        };
+        Some(body())
     }
 }
 

@@ -13,7 +13,7 @@ use crate::{
     },
     plugins::{FetchResult, PluginManager},
     schemas::config,
-    GLOBAL_CONFIG,
+    GLOBAL_CONFIG, PLUGIN_MANAGER,
 };
 
 #[derive(Args, Clone, Debug)]
@@ -49,6 +49,9 @@ pub struct SharedFetchOption {
     /// Load cookies from a file
     #[arg(long, short)]
     pub cookies: Option<PathBuf>,
+    /// Use the downloader associated with the plugin
+    #[arg(long, short = 'd')]
+    pub custom_downloader: bool,
     #[command(flatten)]
     pub auth: Option<Auth>,
 }
@@ -91,20 +94,24 @@ enum Resolution {
 }
 
 impl TermSequence {
-    pub async fn fetch(&self, manager: &mut PluginManager) -> anyhow::Result<()> {
+    pub async fn fetch(&self) -> anyhow::Result<()> {
         let batch_size = {
             let mut config = GLOBAL_CONFIG.write().unwrap();
             config.adapt_override(self.flags.clone())?;
             config.max_size_batch
         };
 
-        let results = match self.flags.plugin.clone() {
-            Some(name) => {
-                manager.assert_exists(name.clone())?;
-                fetch_terms(&self.terms, manager, Some(name)).await
+        let results = {
+            let mut manager = PLUGIN_MANAGER.write().unwrap();
+            match self.flags.plugin.clone() {
+                Some(name) => {
+                    manager.assert_exists(name.clone())?;
+                    fetch_terms(&self.terms, &mut manager, Some(name)).await
+                }
+                None => fetch_terms(&self.terms, &mut manager, None).await,
             }
-            None => fetch_terms(&self.terms, manager, None).await,
         };
+
         let fetched_books = results
             .iter()
             .filter_map(|(_, res)| match res {
@@ -127,7 +134,7 @@ impl TermSequence {
 }
 
 impl FileSequence {
-    pub async fn fetch(&self, manager: &mut PluginManager) -> anyhow::Result<()> {
+    pub async fn fetch(&self) -> anyhow::Result<()> {
         let batch_size = {
             let mut config = GLOBAL_CONFIG.write().unwrap();
             config.adapt_override(self.flags.clone())?;
@@ -148,15 +155,19 @@ impl FileSequence {
             }
         }
 
-        let mut results = match self.flags.plugin.clone() {
-            Some(name) => {
-                manager.assert_exists(name.clone())?;
-                fetch_terms(&terms, manager, Some(name)).await
-            }
-            None => fetch_terms(&terms, manager, None).await,
-        };
+        let results = {
+            let mut manager = PLUGIN_MANAGER.write().unwrap();
+            let mut results = match self.flags.plugin.clone() {
+                Some(name) => {
+                    manager.assert_exists(name.clone())?;
+                    fetch_terms(&terms, &mut manager, Some(name)).await
+                }
+                None => fetch_terms(&terms, &mut manager, None).await,
+            };
 
-        results.extend(file_issues); // merge!
+            results.extend(file_issues); // merge!
+            results
+        };
 
         display_fetch_status(&results, self.flags.verbose);
 

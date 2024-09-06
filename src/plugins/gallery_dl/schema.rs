@@ -1,7 +1,9 @@
+use std::collections::HashSet;
+
 use crate::schemas::{coerce_as_opt_string_on_number, default_on_null, liftvec_on_singleton};
 use anyhow::Ok;
 use indexmap::IndexSet;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Gallery {
@@ -53,6 +55,9 @@ pub struct Gallery {
 
     #[serde(default, deserialize_with = "liftvec_on_singleton")]
     hashtags: Vec<String>,
+
+    #[serde(flatten)]
+    _remaining_fields: serde_json::Value,
 }
 
 #[derive(Debug, Serialize, Clone, Deserialize, Default)]
@@ -81,8 +86,37 @@ pub enum GalleryItem {
 }
 
 impl Gallery {
+    pub fn inspect_unprocessed_field<O: DeserializeOwned>(
+        &self,
+        field: &str,
+    ) -> anyhow::Result<Option<O>> {
+        match &self._remaining_fields {
+            serde_json::Value::Object(m) => {
+                let value = m
+                    .get(field)
+                    .map(|v| serde_json::from_value(v.clone()))
+                    .transpose()?;
+                Ok(value)
+            }
+            _ => Ok(None),
+        }
+    }
+
     pub fn get_title_or_default(&self, default: String) -> String {
-        self.title.clone().unwrap_or(default)
+        self.title.clone().unwrap_or_else(|| {
+            let title_like = &["search_tags"];
+            for title in title_like {
+                let res: anyhow::Result<Option<String>> =
+                    self.inspect_unprocessed_field(title).map_err(|e| e.into());
+                if res.is_ok() {
+                    if let Some(value) = res.unwrap() {
+                        return value.trim().to_string();
+                    }
+                }
+            }
+
+            default
+        })
     }
 
     pub fn get_id_or_default(&self, default: String) -> String {
@@ -104,6 +138,37 @@ impl Gallery {
         tags.insert(self.category.clone());
         tags.insert(self.subcategory.clone());
         tags.insert(self.language.clone());
+
+        if let serde_json::Value::Object(m) = &self._remaining_fields {
+            fn get_as_string(value: &serde_json::Value) -> Option<String> {
+                match value {
+                    serde_json::Value::Bool(b) => Some(b.to_string()),
+                    serde_json::Value::Number(n) => Some(n.to_string()),
+                    serde_json::Value::String(s) => Some(s.to_string()),
+                    _ => None,
+                }
+            }
+
+            m.iter()
+                .filter_map(|(k, v)| {
+                    if k.starts_with("tag_") {
+                        if let serde_json::Value::Array(a) = v {
+                            return Some(
+                                a.iter().filter_map(get_as_string).collect::<HashSet<_>>(),
+                            );
+                        } else if let Some(s) = get_as_string(v) {
+                            let mut ret = HashSet::new();
+                            ret.extend(s.split_whitespace().map(|s| s.to_string()));
+                            return Some(ret);
+                        }
+                    }
+                    None
+                })
+                .for_each(|set| {
+                    tags.extend(set);
+                });
+        }
+
         tags
     }
 

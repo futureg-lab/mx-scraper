@@ -1,6 +1,6 @@
 use clap::Parser;
 
-use crate::{plugins::PluginManager, GLOBAL_CONFIG};
+use crate::{GLOBAL_CONFIG, PLUGIN_MANAGER};
 
 #[derive(Parser, Debug)]
 pub struct Infos {
@@ -13,7 +13,8 @@ pub struct Infos {
 }
 
 impl Infos {
-    pub async fn display(&self, manager: &mut PluginManager) -> anyhow::Result<()> {
+    pub async fn display(&self) -> anyhow::Result<()> {
+        let manager = PLUGIN_MANAGER.read().unwrap();
         match (self.plugins, self.config) {
             (true, _) => {
                 let list = manager.list_plugins();

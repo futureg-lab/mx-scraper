@@ -118,4 +118,17 @@ mod test {
             "folder_name_ やばいタイトル _ (mx_1234)"
         );
     }
+
+    #[test]
+    fn utils_sanitize_link_into_filename() {
+        let cleaned = utils::sanitize_string_as_path(
+            "https://a.b.c/posts?tags=ayumu+&z=5.jpg&one%234whatever?-==-",
+            Some("mx_1234".to_string()),
+        );
+
+        assert_eq!(
+            cleaned.display().to_string(),
+            "https_a_b_c_posts_tags_ayumu_z_5_jpg_one_234whatever_-_- (mx_1234)"
+        );
+    }
 }

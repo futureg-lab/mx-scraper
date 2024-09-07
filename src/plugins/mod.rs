@@ -6,7 +6,7 @@ use python::PythonPlugin;
 use url::Url;
 
 use crate::{
-    schemas::book::{Book, PluginOption, SearchOption},
+    schemas::book::{Book, SearchOption},
     GLOBAL_CONFIG,
 };
 
@@ -16,9 +16,9 @@ pub mod python;
 pub trait MXPlugin {
     async fn init(&mut self) -> anyhow::Result<()>;
     async fn destroy(&mut self) -> anyhow::Result<()>;
-    fn configure(&mut self, option: PluginOption) -> anyhow::Result<()>;
     async fn get_book(&self, query: String) -> anyhow::Result<Book>;
     async fn is_supported(&self, query: String) -> anyhow::Result<bool>;
+    #[allow(unused)]
     async fn search(&self, term: String, option: SearchOption) -> anyhow::Result<Vec<Book>>;
     fn download_url(&self, dest: &Path, url: &Url) -> Option<anyhow::Result<()>>;
 }

@@ -6,9 +6,7 @@ use std::{
 
 use crate::{
     core::utils::{self, extract_filename},
-    schemas::book::{
-        Author, Book, Chapter, Metadata, Page, PluginOption, SearchOption, Tag, TitleAlias,
-    },
+    schemas::book::{Author, Book, Chapter, Metadata, Page, SearchOption, Tag, TitleAlias},
 };
 use anyhow::Ok;
 use indexmap::IndexSet;
@@ -39,10 +37,6 @@ impl MXPlugin for GalleryDLPlugin {
     }
 
     async fn destroy(&mut self) -> anyhow::Result<()> {
-        Ok(())
-    }
-
-    fn configure(&mut self, _option: PluginOption) -> anyhow::Result<()> {
         Ok(())
     }
 

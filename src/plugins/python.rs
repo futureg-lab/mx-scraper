@@ -6,7 +6,7 @@ use std::{
 
 use crate::{
     core::http::{self},
-    schemas::book::{Book, PluginOption, SearchOption},
+    schemas::book::{Book, SearchOption},
     GLOBAL_CONFIG,
 };
 use anyhow::{bail, Context, Ok};
@@ -40,10 +40,6 @@ impl MXPlugin for PythonPlugin {
     }
 
     async fn destroy(&mut self) -> anyhow::Result<()> {
-        Ok(())
-    }
-
-    fn configure(&mut self, _option: PluginOption) -> anyhow::Result<()> {
         Ok(())
     }
 

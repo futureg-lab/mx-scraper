@@ -25,6 +25,7 @@ lazy_static! {
 }
 
 #[derive(Debug)]
+#[allow(unused)]
 pub enum Failure {
     Cancelled(anyhow::Error),
     Unknown(anyhow::Error),
@@ -197,12 +198,15 @@ async fn download_page(
     let url = Url::from_str(&page.url)?;
 
     if use_custom_downloader {
-        let res = PLUGIN_MANAGER
+        match PLUGIN_MANAGER
             .read()
             .unwrap()
-            .download_url(plugin_name, &tmp_filepath, &url);
-        if res.is_none() {
-            anyhow::bail!("No custom downloader available for {plugin_name}, please disable it.");
+            .download_url(plugin_name, &tmp_filepath, &url)
+        {
+            None => anyhow::bail!(
+                "No custom downloader available for {plugin_name}, please disable it."
+            ),
+            Some(res) => res?,
         }
     } else {
         let bytes = http::fetch_async(url.clone())

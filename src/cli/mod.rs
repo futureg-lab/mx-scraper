@@ -1,9 +1,11 @@
 use clap::{Parser, Subcommand};
 use fetch::{FileSequence, TermSequence, UrlTerm};
 use infos::Infos;
+use server::ApiServer;
 
 pub mod fetch;
 pub mod infos;
+pub mod server;
 
 #[derive(Parser, Debug)]
 #[command(author = "futureg-lab", about = "mx-scraper engine")]
@@ -22,15 +24,21 @@ pub enum Commands {
     Request(UrlTerm),
     /// Display various informations
     Infos(Infos),
+    /// Spawn a graphql server
+    Server(ApiServer),
 }
 
 impl Commands {
     pub async fn run(&self) -> anyhow::Result<()> {
         match self {
-            Commands::Fetch(terms) => terms.fetch().await,
+            Commands::Fetch(terms) => {
+                terms.fetch().await?;
+                Ok(())
+            }
             Commands::FetchFiles(files) => files.fetch().await,
             Commands::Request(url_term) => url_term.fetch().await,
             Commands::Infos(infos) => infos.display().await,
+            Commands::Server(server) => server.spawn().await,
         }
     }
 }

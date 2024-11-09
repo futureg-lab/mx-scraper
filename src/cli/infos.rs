@@ -14,7 +14,7 @@ pub struct Infos {
 
 impl Infos {
     pub async fn display(&self) -> anyhow::Result<()> {
-        let manager = PLUGIN_MANAGER.read().unwrap();
+        let manager = PLUGIN_MANAGER.read().await;
         match (self.plugins, self.config) {
             (true, _) => {
                 let list = manager.list_plugins();

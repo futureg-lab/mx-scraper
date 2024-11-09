@@ -1,6 +1,7 @@
 use std::{io::Write, path::PathBuf, str::FromStr};
 
 use anyhow::Context;
+use async_graphql::InputObject;
 use clap::{Args, Parser};
 use indexmap::{IndexMap, IndexSet};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
@@ -16,7 +17,7 @@ use crate::{
     GLOBAL_CONFIG, PLUGIN_MANAGER,
 };
 
-#[derive(Args, Clone, Debug)]
+#[derive(Args, Clone, Debug, InputObject)]
 pub struct Auth {
     /// Username (Basic)
     #[arg(long)]
@@ -88,13 +89,13 @@ pub struct FileSequence {
     pub flags: SharedFetchOption,
 }
 
-enum Resolution {
+pub enum Resolution {
     Success(FetchResult),
     Fail(anyhow::Error),
 }
 
 impl TermSequence {
-    pub async fn fetch(&self) -> anyhow::Result<()> {
+    pub async fn fetch(&self) -> anyhow::Result<Vec<FetchResult>> {
         let batch_size = {
             let mut config = GLOBAL_CONFIG.write().unwrap();
             config.adapt_override(self.flags.clone())?;
@@ -102,7 +103,7 @@ impl TermSequence {
         };
 
         let results = {
-            let mut manager = PLUGIN_MANAGER.write().unwrap();
+            let mut manager = PLUGIN_MANAGER.write().await;
             match self.flags.plugin.clone() {
                 Some(name) => {
                     manager.assert_exists(name.clone())?;
@@ -129,7 +130,7 @@ impl TermSequence {
         let status: Vec<DownloadStatus> = batch_download(&fetched_books, batch_size).await;
         display_download_status(&fetched_books, &status);
 
-        Ok(())
+        Ok(fetched_books)
     }
 }
 
@@ -156,7 +157,7 @@ impl FileSequence {
         }
 
         let results = {
-            let mut manager = PLUGIN_MANAGER.write().unwrap();
+            let mut manager = PLUGIN_MANAGER.write().await;
             let mut results = match self.flags.plugin.clone() {
                 Some(name) => {
                     manager.assert_exists(name.clone())?;
@@ -238,7 +239,7 @@ impl Auth {
     }
 }
 
-async fn fetch_terms(
+pub async fn fetch_terms(
     terms: &[String],
     manager: &mut PluginManager,
     plugin: Option<String>,

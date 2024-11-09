@@ -35,6 +35,7 @@ Commands:
   fetch-files  Fetch a sequence of terms from a collection of files
   request      Request a url
   infos        Display various informations
+  server       Spawn a graphql server
   help         Print this message or the help of the given subcommand(s)
 
 Options:
@@ -71,3 +72,18 @@ Each fetch strategy will share the same configuration..
 - [ ] HtmlParser (optional feature)
   - [ ] Implement `HtmlParser.use(source).where('attr.href = ..')`
   - [ ] Wrap into a python class
+
+# GraphQL server
+
+You can also use the extractors through GraphQL queries. You will have the same
+options as the command-line interface.
+
+```
+Usage: mx-scraper server [OPTIONS]
+
+Options:
+      --port <PORT>  Server port
+  -h, --help         Print help
+```
+
+![Playground Screenshot](static/server.png "Screenshot")

@@ -1,3 +1,4 @@
+use anyhow::Context;
 use regex::Regex;
 use sha2::{Digest, Sha256};
 use std::path::PathBuf;
@@ -59,10 +60,14 @@ pub fn extract_filename(url: &Url) -> Option<String> {
 /// This can be annoying when dealing with file names infered from unsanatized \
 /// escaped japanese/chinese/korean text for example, making everything unreadable
 pub fn decode_escaped_unicode_characters(input: &str) -> String {
-    let escaped = input.replace('"', "\\\"");
-    let json_string = format!("\"{}\"", escaped);
-    serde_json::from_str::<String>(&json_string)
-        .expect("Failed to parse JSON string when attempting to decode escaped unicode")
+    let escaped_input = input.replace('"', "\\\"");
+    let json_string = format!("\"{}\"", escaped_input);
+
+    let parsed = serde_json::from_str::<serde_json::Value>(&json_string)
+        .with_context(|| format!("Failed to parse JSON string: {json_string}"))
+        .expect("JSON parsing failed unexpectedly");
+
+    parsed.as_str().unwrap().to_string()
 }
 
 pub fn compute_query_signature(term: &str, plugin_name: &str) -> String {

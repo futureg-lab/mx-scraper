@@ -1,6 +1,7 @@
 use std::{collections::HashMap, path::PathBuf};
 
 use anyhow::Context;
+use async_graphql::SimpleObject;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -9,7 +10,7 @@ use crate::{core::utils, GLOBAL_CONFIG};
 use super::config::DownloadFolder;
 use super::default_on_null;
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, SimpleObject)]
 pub struct Book {
     pub title: String,
     pub title_aliases: Vec<TitleAlias>,
@@ -24,7 +25,7 @@ pub struct Book {
     pub url: String,
 }
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, SimpleObject)]
 pub struct Chapter {
     pub title: String,
     pub description: String,
@@ -35,13 +36,13 @@ pub struct Chapter {
     pub metadata: Vec<Metadata>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, SimpleObject)]
 pub struct ParseLinkHint {
     pub selector: String,
     pub attribute: String,
 }
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, SimpleObject)]
 pub struct Page {
     pub title: String,
     pub url: String,
@@ -52,7 +53,7 @@ pub struct Page {
     pub metadata: Vec<Metadata>,
 }
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, SimpleObject)]
 pub struct Tag {
     pub name: String,
     // Account for typo
@@ -60,44 +61,44 @@ pub struct Tag {
     pub metadata: Vec<Metadata>,
 }
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, SimpleObject)]
 pub struct TitleAlias {
     pub title: String,
     pub description: String,
 }
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, SimpleObject)]
 pub struct Metadata {
     pub label: String,
     pub content: serde_json::Value,
 }
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, SimpleObject)]
 pub struct Author {
     pub name: String,
     pub description: String,
 }
 
-#[derive(Debug, Serialize, Clone, Deserialize)]
+#[derive(Debug, Serialize, Clone, Deserialize, SimpleObject)]
 pub struct DownloadBookMeta {
     pub engine: String,
     pub date: String, // Consider using a more appropriate date type, like chrono::NaiveDate
     pub book: Book,
 }
 
-#[derive(Debug, Serialize, Clone, Deserialize)]
+#[derive(Debug, Serialize, Clone, Deserialize, SimpleObject)]
 pub struct PluginOption {
     pub use_proxy: bool,
     pub proxy_url: Option<String>,
     pub proxy_port: Option<u16>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, SimpleObject)]
 pub struct SearchOption {
     pub additional_options: HashMap<String, serde_json::Value>,
 }
 
-#[derive(Serialize, Clone, Deserialize, Debug)]
+#[derive(Serialize, Clone, Deserialize, Debug, SimpleObject)]
 pub struct RawUrls {
     pub title: String,
     pub url_source: String,

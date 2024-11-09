@@ -1,6 +1,7 @@
 use std::{path::Path, time::Duration};
 
 use anyhow::Context;
+use async_graphql::SimpleObject;
 use gallery_dl::GalleryDLPlugin;
 use python::PythonPlugin;
 use url::Url;
@@ -52,7 +53,7 @@ pub struct PluginManager {
     plugins: Vec<PluginImpl>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, SimpleObject)]
 pub struct FetchResult {
     pub query_term: String,
     pub book: Book,

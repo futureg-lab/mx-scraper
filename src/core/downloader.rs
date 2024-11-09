@@ -200,7 +200,7 @@ async fn download_page(
     if use_custom_downloader {
         match PLUGIN_MANAGER
             .read()
-            .unwrap()
+            .await
             .download_url(plugin_name, &tmp_filepath, &url)
         {
             None => anyhow::bail!(

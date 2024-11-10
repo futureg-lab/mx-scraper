@@ -6,7 +6,7 @@ use url::Url;
 
 pub fn sanitize_string(s: &str) -> String {
     let s = decode_escaped_unicode_characters(s);
-    let re = Regex::new(r#"[\\/:"'*?<>.&%=\{\}|~+\n\t\r]+"#).unwrap();
+    let re = Regex::new(r#"[\\/:"'*?<>.&%=\{\}|~+]+"#).unwrap();
     let parts = re.split(&s).collect::<Vec<&str>>();
     parts.join("_")
 }
@@ -61,10 +61,16 @@ pub fn extract_filename(url: &Url) -> Option<String> {
 /// escaped japanese/chinese/korean text for example, making everything unreadable
 pub fn decode_escaped_unicode_characters(input: &str) -> String {
     let escaped_input = input.replace('"', "\\\"");
-    let json_string = format!("\"{}\"", escaped_input);
+
+    let re = Regex::new(r#"\s+"#).unwrap();
+    let no_ctrl_char_input = re.replace_all(&escaped_input, " ");
+
+    let json_string = format!("\"{}\"", no_ctrl_char_input);
 
     let parsed = serde_json::from_str::<serde_json::Value>(&json_string)
-        .with_context(|| format!("Failed to parse JSON string: {json_string}"))
+        .with_context(|| {
+            format!("Failed to parse JSON string: {json_string:?}, original: {input:?}")
+        })
         .expect("JSON parsing failed unexpectedly");
 
     parsed.as_str().unwrap().to_string()

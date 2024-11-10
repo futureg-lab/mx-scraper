@@ -104,6 +104,9 @@ mod test {
         let title = "\\u30d1\\u30f3%tsu";
         let decoded = utils::decode_escaped_unicode_characters(&title);
         assert_eq!(decoded, "パン%tsu");
+
+        let with_ctrl_char = utils::decode_escaped_unicode_characters("A |\tB");
+        assert_eq!(with_ctrl_char, "A | B");
     }
 
     #[test]

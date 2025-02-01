@@ -54,6 +54,9 @@ impl Query {
             verbose: true,
             meta_only: true,          // no effect
             custom_downloader: false, // no effect
+            rand: false,
+            asc: false,
+            reflect: false,
             batch_size: None,
         };
 

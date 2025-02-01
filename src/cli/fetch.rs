@@ -5,12 +5,14 @@ use async_graphql::InputObject;
 use clap::{Args, Parser};
 use indexmap::{IndexMap, IndexSet};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
+use rand::{seq::SliceRandom, thread_rng};
 use url::Url;
 
 use crate::{
     core::{
         downloader::{batch_download, DownloadStatus},
-        http, utils,
+        http::{self},
+        utils,
     },
     plugins::{FetchResult, PluginManager},
     schemas::config,
@@ -44,6 +46,15 @@ pub struct SharedFetchOption {
     /// Override cache status
     #[arg(required = false, long, short)]
     pub no_cache: bool,
+    /// Shuffle terms
+    #[arg(required = false, long, short)]
+    pub rand: bool,
+    /// Sort terms by page count in ascending order
+    #[arg(required = false, long, short)]
+    pub asc: bool,
+    /// Print back terms, can be affected by --asc, --rand or --verbose
+    #[arg(required = false, long)]
+    pub reflect: bool,
     /// Specifically use a plugin and bypass checks
     #[arg(long, short)]
     pub plugin: Option<String>,
@@ -95,11 +106,17 @@ pub enum Resolution {
 }
 
 impl TermSequence {
-    pub async fn fetch(&self) -> anyhow::Result<Vec<FetchResult>> {
+    pub async fn fetch(&self) -> anyhow::Result<()> {
         let batch_size = {
             let mut config = GLOBAL_CONFIG.write().unwrap();
             config.adapt_override(self.flags.clone())?;
             config.max_size_batch
+        };
+
+        let terms = {
+            let mut terms = self.terms.clone();
+            shuffle_in_place(&mut terms, self.flags.rand);
+            terms
         };
 
         let results = {
@@ -107,13 +124,13 @@ impl TermSequence {
             match self.flags.plugin.clone() {
                 Some(name) => {
                     manager.assert_exists(name.clone())?;
-                    fetch_terms(&self.terms, &mut manager, Some(name)).await
+                    fetch_terms(&terms, &mut manager, Some(name)).await
                 }
-                None => fetch_terms(&self.terms, &mut manager, None).await,
+                None => fetch_terms(&terms, &mut manager, None).await,
             }
         };
 
-        let fetched_books = results
+        let mut fetched_books = results
             .iter()
             .filter_map(|(_, res)| match res {
                 Resolution::Success(f) => Some(f.clone()),
@@ -121,16 +138,22 @@ impl TermSequence {
             })
             .collect::<Vec<_>>();
 
+        sort_in_place(&mut fetched_books, self.flags.asc);
+
         if self.flags.meta_only && self.flags.verbose {
             display_main_metadata_attributes(&fetched_books);
         }
 
         display_fetch_status(&results, self.flags.verbose);
 
-        let status: Vec<DownloadStatus> = batch_download(&fetched_books, batch_size).await;
-        display_download_status(&fetched_books, &status);
+        if self.flags.reflect {
+            reflect_back_terms(&fetched_books, self.flags.verbose);
+        } else {
+            let status: Vec<DownloadStatus> = batch_download(&fetched_books, batch_size).await;
+            display_download_status(&fetched_books, &status);
+        }
 
-        Ok(fetched_books)
+        Ok(())
     }
 }
 
@@ -148,13 +171,22 @@ impl FileSequence {
         for file in &self.files {
             match std::fs::read_to_string(file) {
                 Ok(content) => {
-                    terms.extend(content.split_whitespace().map(|s| s.to_owned()));
+                    for line in content.lines() {
+                        if !line.trim().starts_with('#') {
+                            terms.extend(line.split_whitespace().map(|s| s.to_owned()));
+                        }
+                    }
                 }
                 Err(e) => {
                     file_issues.insert(format!("File at {file:?}"), Resolution::Fail(e.into()));
                 }
             }
         }
+
+        let terms = {
+            shuffle_in_place(&mut terms, self.flags.rand);
+            terms
+        };
 
         let results = {
             let mut manager = PLUGIN_MANAGER.write().await;
@@ -172,7 +204,7 @@ impl FileSequence {
 
         display_fetch_status(&results, self.flags.verbose);
 
-        let fetched_books = results
+        let mut fetched_books = results
             .iter()
             .filter_map(|(_, res)| match res {
                 Resolution::Success(f) => Some(f.clone()),
@@ -180,12 +212,19 @@ impl FileSequence {
             })
             .collect::<Vec<_>>();
 
+        sort_in_place(&mut fetched_books, self.flags.asc);
+
         if self.flags.meta_only && self.flags.verbose {
             display_main_metadata_attributes(&fetched_books);
         }
 
-        let status = batch_download(&fetched_books, batch_size).await;
-        display_download_status(&fetched_books, &status);
+        if self.flags.reflect {
+            reflect_back_terms(&fetched_books, self.flags.verbose);
+        } else {
+            let status = batch_download(&fetched_books, batch_size).await;
+            display_download_status(&fetched_books, &status);
+        }
+
         Ok(())
     }
 }
@@ -355,5 +394,34 @@ fn display_download_status(fetched_books: &[FetchResult], results: &[DownloadSta
 fn display_main_metadata_attributes(results: &[FetchResult]) {
     for (p, item) in results.iter().enumerate() {
         println!("\n{}. ==============\n{}", p + 1, item.book.resume());
+    }
+}
+
+fn shuffle_in_place(terms: &mut Vec<String>, enable: bool) {
+    if enable {
+        terms.shuffle(&mut thread_rng());
+    }
+}
+
+fn sort_in_place(results: &mut Vec<FetchResult>, enable: bool) {
+    if enable {
+        results.sort_by_key(|f| f.count_pages());
+    }
+}
+
+fn reflect_back_terms(results: &[FetchResult], verbose: bool) {
+    for (i, fetch) in results.iter().enumerate() {
+        if verbose {
+            println!(
+                "# {}: Resolver {}, total links {}",
+                i + 1,
+                fetch.plugin_name,
+                fetch.count_pages()
+            );
+        }
+        println!("{}", fetch.query_term);
+        if verbose {
+            println!();
+        }
     }
 }

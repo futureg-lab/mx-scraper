@@ -31,10 +31,7 @@ pub enum Commands {
 impl Commands {
     pub async fn run(&self) -> anyhow::Result<()> {
         match self {
-            Commands::Fetch(terms) => {
-                terms.fetch().await?;
-                Ok(())
-            }
+            Commands::Fetch(terms) => terms.fetch().await,
             Commands::FetchFiles(files) => files.fetch().await,
             Commands::Request(url_term) => url_term.fetch().await,
             Commands::Infos(infos) => infos.display().await,

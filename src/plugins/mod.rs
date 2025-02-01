@@ -61,6 +61,17 @@ pub struct FetchResult {
     pub cached: bool,
 }
 
+impl FetchResult {
+    pub fn count_pages(&self) -> usize {
+        let mut total = 0;
+        for chapter in &self.book.chapters {
+            total += chapter.pages.len();
+        }
+
+        total
+    }
+}
+
 impl PluginManager {
     pub fn new() -> Self {
         Self { plugins: vec![] }

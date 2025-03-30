@@ -4,6 +4,11 @@ use sha2::{Digest, Sha256};
 use std::path::PathBuf;
 use url::Url;
 
+#[cfg(windows)]
+const MAX_PATH_COMPONENT_LEN: usize = 256;
+#[cfg(not(windows))]
+const MAX_PATH_COMPONENT_LEN: usize = usize::MAX;
+
 pub fn sanitize_string(s: &str) -> String {
     let s = decode_escaped_unicode_characters(s);
     let re = Regex::new(r#"[\\/:"'*?<>.&%=\{\}|~+]+"#).unwrap();
@@ -17,12 +22,20 @@ pub fn sanitize_string(s: &str) -> String {
 ///   To account for this, we trim it to `70` + `id` (optional) \
 ///   since manga titles can easily reach `255` in length alone.\
 pub fn sanitize_string_as_path(s: &str, id: Option<String>) -> PathBuf {
+    let sanitized = sanitize_string(s).trim().to_string();
     if let Some(id) = id {
-        let sanitized = sanitize_string(s).trim().to_string();
         let shortened = unicode_safe_shorten(&sanitized, sanitized.len().min(70));
         PathBuf::from(format!("{shortened} ({id})"))
     } else {
-        PathBuf::from(sanitize_string(s).trim())
+        if s.len() > MAX_PATH_COMPONENT_LEN {
+            let digest = hex::encode(Sha256::digest(format!("{sanitized}")))
+                .chars()
+                .take(5)
+                .collect::<String>();
+            return sanitize_string_as_path(s, Some(format!("long_{digest}")));
+        }
+
+        PathBuf::from(sanitized)
     }
 }
 

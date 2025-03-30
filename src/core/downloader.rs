@@ -153,7 +153,7 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
 
         if !temp_dir.exists() {
             std::fs::create_dir_all(&temp_dir)
-                .with_context(|| format!("Creating {}", temp_dir.display()))?;
+                .with_context(|| format!("Creating chapter {}", temp_dir.display()))?;
         }
 
         for page in &chapter.pages {
@@ -213,10 +213,15 @@ async fn download_page(
             .await
             .map_err(|e| anyhow::anyhow!("{e}: {original_page:?}"))?;
 
-        let mut file = std::fs::File::create(&tmp_filepath)
-            .with_context(|| format!("Creating {}", tmp_filepath.display()))?;
+        let mut file = std::fs::File::create(&tmp_filepath).with_context(|| {
+            format!(
+                "Creating page ({} KB): {}",
+                bytes.len() / 1000,
+                tmp_filepath.display()
+            )
+        })?;
         file.write(&bytes)
-            .with_context(|| format!("Downloading {url}"))?;
+            .with_context(|| format!("Downloading page: {url}"))?;
     }
     Ok(())
 }

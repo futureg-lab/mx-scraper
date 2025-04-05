@@ -1,6 +1,7 @@
 ---
 source: src/tests/gallery_dl.rs
 expression: "materialize_book(\"tw_1.json\")"
+snapshot_kind: text
 ---
 Ok(
     Book {
@@ -25,6 +26,7 @@ Ok(
                         title: "",
                         url: "https://pbs.twimg.com/media/GWUoj32a4AAwuqN?format=jpg&name=orig",
                         intermediate_link_hint: None,
+                        fetch_context: None,
                         number: 1,
                         filename: "GWUoj32a4AAwuqN.jpg",
                         metadata: [

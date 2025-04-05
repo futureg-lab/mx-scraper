@@ -1,6 +1,7 @@
 ---
 source: src/tests/gallery_dl.rs
 expression: "materialize_book(\"km_1.json\")"
+snapshot_kind: text
 ---
 Ok(
     Book {
@@ -25,6 +26,7 @@ Ok(
                         title: "近況報告",
                         url: "https://kemono.su/data/61/4a/614a37b6a25eb67ec5f72894f65129ec5383a817f86b955987f07c0e734eb9bb.jpg",
                         intermediate_link_hint: None,
+                        fetch_context: None,
                         number: 1,
                         filename: "d325fa4a-557c-482b-8d23-f406249ebc7f.jpg",
                         metadata: [

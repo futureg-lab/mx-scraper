@@ -209,9 +209,13 @@ async fn download_page(
             Some(res) => res?,
         }
     } else {
-        let bytes = http::fetch_async(url.clone())
-            .await
-            .map_err(|e| anyhow::anyhow!("{e}: {original_page:?}"))?;
+        let bytes = {
+            match &original_page.fetch_context {
+                Some(fctx) => http::fetch_with_context_async(url.clone(), fctx.clone()).await,
+                None => http::fetch_async(url.clone()).await,
+            }
+        }
+        .map_err(|e| anyhow::anyhow!("{e}: {original_page:?}"))?;
 
         let mut file = std::fs::File::create(&tmp_filepath).with_context(|| {
             format!(
@@ -228,7 +232,13 @@ async fn download_page(
 
 async fn evaluate_lazy_ops(page: Page) -> anyhow::Result<Page> {
     if let Some(hint) = &page.intermediate_link_hint {
-        let bytes = http::fetch_async(Url::from_str(&page.url)?).await?;
+        let url = Url::from_str(&page.url)?;
+        let bytes = {
+            match &page.fetch_context {
+                Some(fctx) => http::fetch_with_context_async(url.clone(), fctx.clone()).await,
+                None => http::fetch_async(url.clone()).await,
+            }
+        }?;
         let html = String::from_utf8(bytes)?;
         let document = Html::parse_document(&html);
         let selector =

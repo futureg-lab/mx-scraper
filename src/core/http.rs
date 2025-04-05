@@ -58,9 +58,13 @@ macro_rules! build_client_then_fetch {
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone)]
 pub struct FetchContext {
+    #[serde(default)]
     pub user_agent: Option<String>,
+    #[serde(default)]
     pub headers: HashMap<String, String>,
+    #[serde(default)]
     pub cookies: Vec<NetscapeCookie>,
+    #[serde(default)]
     pub auth: Option<AuthKind>,
 }
 

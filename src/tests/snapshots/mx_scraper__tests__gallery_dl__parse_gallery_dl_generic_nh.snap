@@ -1,6 +1,7 @@
 ---
 source: src/tests/gallery_dl.rs
 expression: "materialize_book(\"nh.json\")"
+snapshot_kind: text
 ---
 Ok(
     Book {
@@ -29,6 +30,7 @@ Ok(
                         title: "",
                         url: "https://link.to.page/1.jpg",
                         intermediate_link_hint: None,
+                        fetch_context: None,
                         number: 1,
                         filename: "1.jpg",
                         metadata: [

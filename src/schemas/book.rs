@@ -5,6 +5,7 @@ use async_graphql::SimpleObject;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+use crate::core::http::FetchContext;
 use crate::{core::utils, GLOBAL_CONFIG};
 
 use super::config::DownloadFolder;
@@ -47,6 +48,8 @@ pub struct Page {
     pub title: String,
     pub url: String,
     pub intermediate_link_hint: Option<ParseLinkHint>,
+    #[graphql(skip)]
+    pub fetch_context: Option<FetchContext>,
     pub number: u32,
     pub filename: String,
     #[serde(default, deserialize_with = "default_on_null")]

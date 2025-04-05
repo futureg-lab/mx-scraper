@@ -69,8 +69,9 @@ pub struct Delay {
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Request {
     pub user_agent: Option<String>,
-    pub headers: HashMap<String, String>,
+    pub headers: Option<HashMap<String, String>>,
     pub cookies: Option<HashMap<String, String>>,
+    pub extra_config: Option<HashMap<String, String>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
@@ -204,7 +205,7 @@ impl Config {
             user_agent: shared.user_agent.clone(),
             auth: auth_kind.clone(),
             cookies: NetscapeCookie::from_hashmap(&shared.cookies.clone().unwrap_or_default()),
-            headers: shared.headers.clone(),
+            headers: shared.headers.clone().unwrap_or_default(),
         };
 
         match focused_plugin {
@@ -214,7 +215,7 @@ impl Config {
                         user_agent: { req.user_agent.clone().map_or(shared_ctx.user_agent, Some) },
                         headers: {
                             let mut inherited = shared_ctx.headers.clone();
-                            inherited.extend(req.headers.clone());
+                            inherited.extend(req.headers.clone().unwrap_or_default());
                             inherited
                         },
                         cookies: {

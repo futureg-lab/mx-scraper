@@ -1,6 +1,7 @@
 ---
 source: src/tests/gallery_dl.rs
 expression: "materialize_book(\"km_2.json\")"
+snapshot_kind: text
 ---
 Ok(
     Book {
@@ -25,6 +26,7 @@ Ok(
                         title: "Tifa Example - 4K",
                         url: "https://example.su/data/e4/dc/e4dc77961fd16c74e8988355f4e070c9a58d8ec4657dbd6bbe441acfdec6c43f.mp4",
                         intermediate_link_hint: None,
+                        fetch_context: None,
                         number: 1,
                         filename: "FOO_4k.mp4",
                         metadata: [

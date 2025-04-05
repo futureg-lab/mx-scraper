@@ -7,6 +7,7 @@ use std::{
 use crate::{
     core::utils::{self, extract_filename},
     schemas::book::{Author, Book, Chapter, Metadata, Page, SearchOption, Tag, TitleAlias},
+    GLOBAL_CONFIG,
 };
 use anyhow::Ok;
 use indexmap::IndexSet;
@@ -24,9 +25,29 @@ pub struct GalleryDLPlugin {
 
 impl GalleryDLPlugin {
     pub fn new() -> Self {
+        let name = String::from("gallery-dl");
         Self {
-            name: String::from("gallery-dl"),
-            bin: PathBuf::from("gallery-dl"),
+            bin: {
+                let bin = GLOBAL_CONFIG
+                    .read()
+                    .unwrap()
+                    .request
+                    .get(&name)
+                    .map(|req| {
+                        req.extra_config
+                            .clone()
+                            .map(|cfg| cfg.get("bin").cloned())
+                            .flatten()
+                    })
+                    .flatten();
+
+                match bin {
+                    Some(path) => PathBuf::from(path),
+                    None => PathBuf::from("gallery-dl"),
+                }
+            },
+
+            name,
         }
     }
 }

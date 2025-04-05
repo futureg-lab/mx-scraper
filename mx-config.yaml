@@ -1,4 +1,4 @@
-version: 0.0.1
+version: 0.0.2
 plugins:
   location: ./plugins
   meta_only: false
@@ -19,9 +19,12 @@ request:
   _all:
     user_agent: mx-scraper/0.0.1 (windows; x86_64)
     headers:
-      Accept: '*/*'
+      Accept: "*/*"
     cookies: null
   images:
     # headers and cookies inherit _all
     headers: {}
     # user_agent: ""
+  gallery-dl:
+    extra_config:
+      bin: D:\binaries\mx-scraper\gallery-dl.exe

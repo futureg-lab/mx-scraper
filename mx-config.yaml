@@ -12,7 +12,8 @@ cache:
 delay:
   fetch: 25
   download: 25
-max_size_batch: 10
+max_size_batch: 25
+max_parallel_fetch: 3
 verbose: false
 custom_downloader: false
 request:
@@ -25,6 +26,6 @@ request:
     # headers and cookies inherit _all
     headers: {}
     # user_agent: ""
-  gallery-dl:
-    extra_config:
-      bin: D:\binaries\mx-scraper\gallery-dl.exe
+  # gallery-dl:
+  #   extra_config:
+  #     bin: D:\binaries\mx-scraper\gallery-dl.exe

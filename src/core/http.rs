@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
+use tokio::sync::Semaphore;
 
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::HashMap, str::FromStr, sync::Arc};
 
 use reqwest::{
     blocking::{self},
@@ -13,7 +14,7 @@ use url::Url;
 
 use crate::{
     schemas::{config::AuthKind, cookies::NetscapeCookie},
-    GLOBAL_CONFIG,
+    FETCH_SEMAPHORE, GLOBAL_CONFIG,
 };
 
 macro_rules! build_client_then_fetch {
@@ -125,6 +126,9 @@ pub async fn fetch_async(url: Url) -> anyhow::Result<Vec<u8>> {
 
 /// Perform a fetch using a custom context
 pub async fn fetch_with_context_async(url: Url, context: FetchContext) -> anyhow::Result<Vec<u8>> {
+    let rw = FETCH_SEMAPHORE.read().await;
+    let _permit = rw.acquire().await;
+
     let FetchContext {
         user_agent,
         headers,
@@ -148,4 +152,14 @@ pub async fn fetch_with_context_async(url: Url, context: FetchContext) -> anyhow
     let bytes = build_client_then_fetch!(true, url, req_headers, auth).await?;
 
     Ok(bytes.to_vec())
+}
+
+pub async fn update_fetch_semaphore_count(new_count: usize) {
+    // Drain all permits
+    let old_semaphore = FETCH_SEMAPHORE.read().await.clone();
+    let available = old_semaphore.available_permits();
+    let _ = old_semaphore.acquire_many_owned(available as u32).await;
+
+    let mut rw = FETCH_SEMAPHORE.write().await;
+    *rw = Arc::new(Semaphore::new(new_count));
 }

@@ -1,6 +1,6 @@
 # mx-scraper
 
-Download image galleries or metadata accross the web
+Download image galleries or metadata on the web.
 
 > This rewrite is expected to support previous implementation's metadata format.
 >
@@ -16,7 +16,7 @@ pip install beautifulsoup4
 mx-scraper fetch https://www.google.com --plugin images -v
 
 # Alternatively, for a sequence of non-uniform terms, prefixing is often required
-# Generally speaking, it is unnecessary but it is definitely required for generic ones (like ids or names)
+# It is unnecessary but it not required for generic ones (like ids or names)
 # The behavior of how each term is parsed depends on the plugin implementation
 mx-scraper fetch --meta-only -v img:https://www.google.com to:https://mto.to/series/68737
 

@@ -1,11 +1,10 @@
-use std::{io::Write, path::PathBuf, str::FromStr};
-
 use anyhow::Context;
 use async_graphql::InputObject;
 use clap::{Args, Parser};
 use indexmap::{IndexMap, IndexSet};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use rand::{seq::SliceRandom, thread_rng};
+use std::{io::Write, path::PathBuf, str::FromStr};
 use url::Url;
 
 use crate::{
@@ -66,6 +65,8 @@ pub struct SharedFetchOption {
     pub custom_downloader: bool,
     #[command(flatten)]
     pub auth: Option<Auth>,
+    #[arg(long, short = 'f')]
+    pub max_parallel_fetch: Option<usize>,
 }
 
 #[derive(Parser, Debug)]
@@ -107,6 +108,12 @@ pub enum Resolution {
 
 impl TermSequence {
     pub async fn fetch(&self) -> anyhow::Result<()> {
+        {
+            if let Some(max_fetch) = self.flags.max_parallel_fetch {
+                http::update_fetch_semaphore_count(max_fetch).await;
+            }
+        }
+
         let batch_size = {
             let mut config = GLOBAL_CONFIG.write().unwrap();
             config.adapt_override(self.flags.clone())?;
@@ -159,6 +166,12 @@ impl TermSequence {
 
 impl FileSequence {
     pub async fn fetch(&self) -> anyhow::Result<()> {
+        {
+            if let Some(max_fetch) = self.flags.max_parallel_fetch {
+                http::update_fetch_semaphore_count(max_fetch).await;
+            }
+        }
+
         let batch_size = {
             let mut config = GLOBAL_CONFIG.write().unwrap();
             config.adapt_override(self.flags.clone())?;

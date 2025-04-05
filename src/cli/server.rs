@@ -45,6 +45,7 @@ impl Query {
         no_cache: Option<bool>,
         cookies_path: Option<String>,
         auth: Option<Auth>,
+        max_parallel_fetch: Option<usize>,
     ) -> anyhow::Result<Vec<CrawlOuput>> {
         let flags = SharedFetchOption {
             plugin: plugin.clone(),
@@ -57,6 +58,7 @@ impl Query {
             rand: false,
             asc: false,
             reflect: false,
+            max_parallel_fetch,
             batch_size: None,
         };
 

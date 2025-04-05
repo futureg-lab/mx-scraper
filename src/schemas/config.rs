@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use crate::{
     cli::fetch::SharedFetchOption,
     core::{http::FetchContext, utils},
@@ -9,6 +7,7 @@ use anyhow::Context;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use std::collections::HashMap;
 use std::path::PathBuf;
 
 lazy_static! {
@@ -23,6 +22,7 @@ pub struct Config {
     pub cache: Cache,
     pub delay: Delay,
     pub max_size_batch: usize,
+    pub max_parallel_fetch: usize,
     pub verbose: bool,
     pub custom_downloader: bool,
     pub request: HashMap<String, Request>,
@@ -121,6 +121,7 @@ impl Config {
                 download: 25,
             },
             max_size_batch: 10,
+            max_parallel_fetch: 999,
             verbose: false,
             request,
             __options: AdditionalOptions {
@@ -188,6 +189,10 @@ impl Config {
         }
         if let Some(auth) = fetch_option.auth {
             self.__options.auth_kind = Some(auth.gen_basic_auth()?);
+        }
+
+        if let Some(max_parallel_fetch) = fetch_option.max_parallel_fetch {
+            self.max_parallel_fetch = max_parallel_fetch;
         }
 
         Ok(self)

@@ -13,6 +13,7 @@ use cli::MainCommand;
 use lazy_static::lazy_static;
 use plugins::PluginManager;
 use schemas::config::Config;
+use tokio::sync::Semaphore;
 
 lazy_static! {
     static ref GLOBAL_CONFIG: Arc<std::sync::RwLock<Config>> = Arc::new(std::sync::RwLock::new(
@@ -20,6 +21,10 @@ lazy_static! {
     ));
     static ref PLUGIN_MANAGER: Arc<tokio::sync::RwLock<PluginManager>> =
         Arc::new(tokio::sync::RwLock::new(PluginManager::new()));
+    static ref FETCH_SEMAPHORE: tokio::sync::RwLock::<Arc<Semaphore>> = {
+        let max_fetch = GLOBAL_CONFIG.read().unwrap().max_parallel_fetch;
+        Arc::new(Semaphore::new(max_fetch)).into()
+    };
 }
 
 #[tokio::main]

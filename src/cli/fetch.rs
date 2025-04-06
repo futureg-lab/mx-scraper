@@ -37,8 +37,14 @@ pub struct SharedFetchOption {
     #[arg(required = false, long, short)]
     pub meta_only: bool,
     /// Override the download batch amount
-    #[arg(long, short)]
+    #[arg(long)]
     pub batch_size: Option<usize>,
+    /// Override the download mini batch amount
+    #[arg(long)]
+    pub mini_batch_size: Option<usize>,
+    /// Override the number of parallel request at a time
+    #[arg(long)]
+    pub max_parallel_fetch: Option<usize>,
     /// Verbose mode
     #[arg(required = false, long, short)]
     pub verbose: bool,
@@ -65,8 +71,6 @@ pub struct SharedFetchOption {
     pub custom_downloader: bool,
     #[command(flatten)]
     pub auth: Option<Auth>,
-    #[arg(long, short = 'f')]
-    pub max_parallel_fetch: Option<usize>,
 }
 
 #[derive(Parser, Debug)]

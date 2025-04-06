@@ -22,6 +22,7 @@ pub struct Config {
     pub cache: Cache,
     pub delay: Delay,
     pub max_size_batch: usize,
+    pub max_size_mini_batch: usize,
     pub max_parallel_fetch: usize,
     pub verbose: bool,
     pub custom_downloader: bool,
@@ -121,6 +122,7 @@ impl Config {
                 download: 25,
             },
             max_size_batch: 10,
+            max_size_mini_batch: 1,
             max_parallel_fetch: 999,
             verbose: false,
             request,
@@ -179,8 +181,12 @@ impl Config {
                 .and_modify(|m| m.cookies = Some(cookies_m));
         }
 
+        // batch
         if let Some(batch_size) = fetch_option.batch_size {
             self.max_size_batch = batch_size;
+        }
+        if let Some(mini_batch_size) = fetch_option.mini_batch_size {
+            self.max_size_mini_batch = mini_batch_size;
         }
 
         // Prepare __options

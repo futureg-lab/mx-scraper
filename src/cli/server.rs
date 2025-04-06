@@ -59,6 +59,7 @@ impl Query {
             asc: false,
             reflect: false,
             max_parallel_fetch,
+            mini_batch_size: None,
             batch_size: None,
         };
 

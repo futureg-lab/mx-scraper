@@ -1,38 +1,37 @@
 [package]
+edition = "2021"
 name = "mx-scraper"
 version = "0.0.2"
-edition = "2021"
-
 
 [dependencies]
 anyhow = "1.0.86"
+async-graphql = "7.0.11"
+async-graphql-poem = "7.0.11"
 async-std = "1.12.0"
 base64 = "0.22.1"
 chrono = "0.4.38"
-clap = { version = "4.5.14", features = ["derive"] }
+clap = {version = "4.5.14", features = ["derive"]}
 futures = "0.3.30"
 hex = "0.4.3"
 indexmap = "2.3.0"
 indicatif = "0.17.8"
 lazy_static = "1.5.0"
-pyo3 = { version = "0.22.2", features = ["serde"] }
+poem = "3.1.3"
+pyo3 = {version = "0.22.2", features = ["serde"]}
+rand = "0.8.5"
 regex = "1.10.6"
-reqwest = { version = "0.12.5", features = ["blocking"] }
+reqwest = {version = "0.12.5", features = ["blocking"]}
 reqwest_cookie_store = "0.8.0"
 scraper = "0.20.0"
-serde = { version = "1.0.204", features = ["derive"] }
+serde = {version = "1.0.204", features = ["derive"]}
 serde-pyobject = "0.4.0"
 serde_json = "1.0.122"
+serde_with = "3.9.0"
 serde_yaml = "0.9.34"
 sha2 = "0.10.8"
-tokio = { version = "1.39.2", features = ["full"] }
+tokio = {version = "1.39.2", features = ["full"]}
 url = "2.5.2"
 urlencoding = "2.1.3"
-serde_with = "3.9.0"
-async-graphql = "7.0.11"
-poem = "3.1.3"
-async-graphql-poem = "7.0.11"
-rand = "0.8.5"
 
 [dev-dependencies]
 insta = "1.39.0"

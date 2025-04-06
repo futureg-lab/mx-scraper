@@ -59,6 +59,7 @@ impl Query {
             asc: false,
             reflect: false,
             max_parallel_fetch,
+            max_size_init_crawl_batch: None,
             mini_batch_size: None,
             batch_size: None,
         };
@@ -68,10 +69,7 @@ impl Query {
             config.adapt_override(flags.clone())?;
         };
 
-        let result = {
-            let mut manager = PLUGIN_MANAGER.write().await;
-            fetch_terms(&terms, &mut manager, plugin).await
-        };
+        let result = { fetch_terms(terms, plugin).await? };
 
         Ok(result
             .iter()

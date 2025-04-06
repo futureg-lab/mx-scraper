@@ -43,12 +43,11 @@ pub async fn batch_download(
     let mut status = vec![];
     let batches = utils::batch_a_list_of(fetched_book, batch_size);
     for (p, current_batch) in batches.iter().enumerate() {
-        if batches.len() > 1 {
-            println!("Batch {}/{}", p + 1, batches.len());
-        }
+        println!("Batch {}/{}", p + 1, batches.len());
         let local_status = download(current_batch).await;
         status.extend(local_status);
     }
+
     status
 }
 
@@ -156,6 +155,7 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
                 .with_context(|| format!("Creating chapter {}", temp_dir.display()))?;
         }
 
+        // TODO: refactor with futures::stream + buffered(max_size_mini_batch)
         let failed_pages = Arc::new(tokio::sync::RwLock::new(Vec::new()));
         let batches = utils::batch_a_list_of(&chapter.pages, max_size_mini_batch);
         for batch in batches.into_iter() {
@@ -170,6 +170,7 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
                     let res =
                         download_page(custom_downloader, &plugin_name, &page, &temp_dir, &down_dir)
                             .await;
+                    tokio::time::sleep(Duration::from_millis(delay.download as u64)).await;
                     (res, page_clone)
                 });
             }
@@ -179,15 +180,13 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
                     Ok((download_result, page)) => {
                         if let Err(err) = download_result {
                             failed_pages.write().await.push((page, err));
+                        } else {
+                            pb.inc(1);
                         }
                     }
-                    Err(join_err) => {
-                        eprintln!("Task panicked: {}", join_err);
-                    }
+                    Err(join_err) => eprintln!("Task panicked: {join_err:?}"),
                 }
             }
-
-            tokio::time::sleep(Duration::from_millis(delay.download as u64)).await;
         }
 
         let failed_pages = failed_pages.read().await;
@@ -197,6 +196,7 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
                 .map(|(p, err)| format!("{}: {}", p.filename, err))
                 .collect::<Vec<_>>()
                 .join("\n");
+
             anyhow::bail!(combined)
         }
     }

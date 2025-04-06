@@ -13,7 +13,7 @@ use crate::{
         http::{self},
         utils,
     },
-    plugins::{FetchResult, PluginManager},
+    plugins::FetchResult,
     schemas::config,
     GLOBAL_CONFIG, PLUGIN_MANAGER,
 };
@@ -42,6 +42,8 @@ pub struct SharedFetchOption {
     /// Override the download mini batch amount
     #[arg(long)]
     pub mini_batch_size: Option<usize>,
+    #[arg(long)]
+    pub max_size_init_crawl_batch: Option<usize>,
     /// Override the number of parallel request at a time
     #[arg(long)]
     pub max_parallel_fetch: Option<usize>,
@@ -131,15 +133,11 @@ impl TermSequence {
         };
 
         let results = {
-            let mut manager = PLUGIN_MANAGER.write().await;
             match self.flags.plugin.clone() {
-                Some(name) => {
-                    manager.assert_exists(name.clone())?;
-                    fetch_terms(&terms, &mut manager, Some(name)).await
-                }
-                None => fetch_terms(&terms, &mut manager, None).await,
+                Some(name) => fetch_terms(terms, Some(name)).await,
+                None => fetch_terms(terms, None).await,
             }
-        };
+        }?;
 
         let mut fetched_books = results
             .iter()
@@ -206,14 +204,14 @@ impl FileSequence {
         };
 
         let results = {
-            let mut manager = PLUGIN_MANAGER.write().await;
+            let manager = PLUGIN_MANAGER.read().await;
             let mut results = match self.flags.plugin.clone() {
                 Some(name) => {
                     manager.assert_exists(name.clone())?;
-                    fetch_terms(&terms, &mut manager, Some(name)).await
+                    fetch_terms(terms, Some(name)).await
                 }
-                None => fetch_terms(&terms, &mut manager, None).await,
-            };
+                None => fetch_terms(terms, None).await,
+            }?;
 
             results.extend(file_issues); // merge!
             results
@@ -296,11 +294,16 @@ impl Auth {
 }
 
 pub async fn fetch_terms(
-    terms: &[String],
-    manager: &mut PluginManager,
+    terms: Vec<String>,
     plugin: Option<String>,
-) -> IndexMap<String, Resolution> {
-    let terms: IndexSet<&String> = IndexSet::from_iter(terms.iter());
+) -> anyhow::Result<IndexMap<String, Resolution>> {
+    if let Some(plugin) = &plugin {
+        PLUGIN_MANAGER.read().await.assert_exists(plugin.clone())?;
+    }
+    let crawl_batch = { GLOBAL_CONFIG.read().unwrap().max_size_init_crawl_batch };
+
+    let terms: IndexSet<String> = IndexSet::from_iter(terms.to_owned().into_iter());
+    let terms = Vec::from_iter(terms.into_iter());
 
     let m = MultiProgress::new();
     let spinner = ProgressStyle::with_template("{prefix:.bold.dim} {spinner} {wide_msg}")
@@ -321,40 +324,67 @@ pub async fn fetch_terms(
     let mut results = IndexMap::new();
     let mut fetched_count = 0;
     let mut cached_count = 0;
-    for (p, term) in terms.iter().enumerate() {
-        local_pb.set_prefix(format!("[{}/{}]", p + 1, terms.len()));
-        local_pb.set_message(term.trim().to_string());
 
-        // TODO: parallel fetch (actual scraping), +abuse disclaimer
-        let res = match plugin {
-            Some(ref name) => manager.fetch(term.to_string(), name.to_owned()).await,
-            None => manager.auto_fetch(term.to_string()).await,
-        };
-        results.insert(
-            term.to_string(),
+    let batches = utils::batch_a_list_of(&terms, crawl_batch);
+    let mut done = 0;
+    for batch in batches {
+        local_pb.set_prefix(format!("[{}/{}]", done, terms.len()));
+
+        let mut join_set = tokio::task::JoinSet::new();
+        for term in batch {
+            local_pb.set_message(term.trim().to_string());
+            let plugin = plugin.clone();
+            join_set.spawn(async move {
+                let manager = PLUGIN_MANAGER.read().await;
+                (
+                    term.clone(),
+                    match plugin {
+                        Some(ref name) => manager.fetch(term.to_string(), name.to_owned()).await,
+                        None => manager.auto_fetch(term.to_string()).await,
+                    },
+                )
+            });
+        }
+
+        while let Some(res) = join_set.join_next().await {
+            done += 1;
             match res {
-                Ok(fetched) => {
-                    if fetched.cached {
-                        local_pb.set_message(format!("{} [cached]", term.to_string().trim()));
-                        cached_count += 1;
-                    } else {
-                        fetched_count += 1
-                    }
+                Ok((term, crawl_result)) => {
+                    local_pb.set_prefix(format!("[{}/{}]", done, terms.len()));
+                    local_pb.set_message(term.trim().to_string());
 
-                    status_pb.set_message(format!(
-                        "{fetched_count} fetched, {cached_count} cached, {} left",
-                        terms.len() - (fetched_count + cached_count)
-                    ));
-                    local_pb.inc(1);
+                    results.insert(
+                        term.to_string(),
+                        match crawl_result {
+                            Ok(fetched) => {
+                                if fetched.cached {
+                                    local_pb.set_message(format!(
+                                        "{} [cached]",
+                                        term.to_string().trim()
+                                    ));
+                                    cached_count += 1;
+                                } else {
+                                    fetched_count += 1
+                                }
 
-                    Resolution::Success(fetched)
+                                status_pb.set_message(format!(
+                                    "{fetched_count} fetched, {cached_count} cached, {} left",
+                                    terms.len() - (fetched_count + cached_count)
+                                ));
+                                local_pb.inc(1);
+
+                                Resolution::Success(fetched)
+                            }
+                            Err(e) => Resolution::Fail(e),
+                        },
+                    );
                 }
-                Err(e) => Resolution::Fail(e),
-            },
-        );
+                Err(join_err) => eprintln!("Task panicked: {join_err:?}"),
+            }
+        }
     }
 
-    results
+    Ok(results)
 }
 
 fn display_fetch_status(results: &IndexMap<String, Resolution>, verbose: bool) {

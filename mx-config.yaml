@@ -12,8 +12,10 @@ cache:
 delay:
   fetch: 25
   download: 25
-max_size_batch: 25
-max_parallel_fetch: 3
+max_size_batch: 25 # titles
+max_size_init_crawl_batch: 3 # number of terms to process at init (metadata retrieval)
+max_size_mini_batch: 3 # items in titles to process at a time (pages)
+max_parallel_fetch: 100 # global fetch limit at a time (set high if target website does not whine much)
 verbose: false
 custom_downloader: false
 request:

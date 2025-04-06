@@ -4,6 +4,7 @@ mod plugins;
 mod schemas;
 mod tests;
 
+use core::http;
 use std::sync::Arc;
 
 use anyhow::Context;
@@ -21,15 +22,18 @@ lazy_static! {
     ));
     static ref PLUGIN_MANAGER: Arc<tokio::sync::RwLock<PluginManager>> =
         Arc::new(tokio::sync::RwLock::new(PluginManager::new()));
-    static ref FETCH_SEMAPHORE: tokio::sync::RwLock::<Arc<Semaphore>> = {
-        let max_fetch = GLOBAL_CONFIG.read().unwrap().max_parallel_fetch;
-        Arc::new(Semaphore::new(max_fetch)).into()
-    };
+    static ref FETCH_SEMAPHORE: tokio::sync::RwLock::<Arc<Semaphore>> =
+        Arc::new(Semaphore::new(9999)).into();
 }
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let parser = MainCommand::parse();
+    {
+        // This avoids poison panics when config is invalid (vs when init lazy)
+        let max_fetch = GLOBAL_CONFIG.read().unwrap().max_parallel_fetch;
+        http::update_fetch_semaphore_count(max_fetch).await;
+    }
 
     {
         PLUGIN_MANAGER.write().await.init().await?;

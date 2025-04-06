@@ -1,11 +1,10 @@
-use std::{error::Error, io::Write, path::Path, str::FromStr, sync::Arc, time::Duration};
-
 use anyhow::Context;
 use chrono::Local;
 use futures::future::join_all;
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use lazy_static::lazy_static;
 use scraper::{Html, Selector};
+use std::{error::Error, io::Write, path::Path, str::FromStr, sync::Arc, time::Duration};
 use tokio::task;
 use url::Url;
 
@@ -44,12 +43,11 @@ pub async fn batch_download(
     let mut status = vec![];
     let batches = utils::batch_a_list_of(fetched_book, batch_size);
     for (p, current_batch) in batches.iter().enumerate() {
-        if batches.len() > 1 {
-            println!("Batch {}/{}", p + 1, batches.len());
-        }
+        println!("Batch {}/{}", p + 1, batches.len());
         let local_status = download(current_batch).await;
         status.extend(local_status);
     }
+
     status
 }
 
@@ -94,13 +92,14 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
         plugin_name,
         cached,
     } = fetch_result;
-    let (meta_only, delay, verbose, custom_downloader) = {
+    let (meta_only, delay, verbose, custom_downloader, max_size_mini_batch) = {
         let config = GLOBAL_CONFIG.read().unwrap();
         (
             config.plugins.meta_only,
             config.delay.clone(),
             config.verbose,
             config.custom_downloader,
+            config.max_size_mini_batch,
         )
     };
 
@@ -156,10 +155,49 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
                 .with_context(|| format!("Creating chapter {}", temp_dir.display()))?;
         }
 
-        for page in &chapter.pages {
-            download_page(custom_downloader, &plugin_name, page, &temp_dir, &down_dir).await?;
-            tokio::time::sleep(Duration::from_millis(delay.download as u64)).await;
-            pb.inc(1);
+        // TODO: refactor with futures::stream + buffered(max_size_mini_batch)
+        let failed_pages = Arc::new(tokio::sync::RwLock::new(Vec::new()));
+        let batches = utils::batch_a_list_of(&chapter.pages, max_size_mini_batch);
+        for batch in batches.into_iter() {
+            let mut join_set = tokio::task::JoinSet::new();
+            for page in batch {
+                let custom_downloader = custom_downloader.clone();
+                let plugin_name = plugin_name.clone();
+                let temp_dir = temp_dir.clone();
+                let down_dir = down_dir.clone();
+                join_set.spawn(async move {
+                    let page_clone = page.clone();
+                    let res =
+                        download_page(custom_downloader, &plugin_name, &page, &temp_dir, &down_dir)
+                            .await;
+                    tokio::time::sleep(Duration::from_millis(delay.download as u64)).await;
+                    (res, page_clone)
+                });
+            }
+
+            while let Some(res) = join_set.join_next().await {
+                match res {
+                    Ok((download_result, page)) => {
+                        if let Err(err) = download_result {
+                            failed_pages.write().await.push((page, err));
+                        } else {
+                            pb.inc(1);
+                        }
+                    }
+                    Err(join_err) => eprintln!("Task panicked: {join_err:?}"),
+                }
+            }
+        }
+
+        let failed_pages = failed_pages.read().await;
+        if !failed_pages.is_empty() {
+            let combined = failed_pages
+                .iter()
+                .map(|(p, err)| format!("{}: {}", p.filename, err))
+                .collect::<Vec<_>>()
+                .join("\n");
+
+            anyhow::bail!(combined)
         }
     }
 

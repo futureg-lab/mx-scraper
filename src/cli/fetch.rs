@@ -42,6 +42,7 @@ pub struct SharedFetchOption {
     /// Override the download mini batch amount
     #[arg(long)]
     pub mini_batch_size: Option<usize>,
+    /// Override the number of terms to process at init (metadata retrieval)
     #[arg(long)]
     pub max_size_init_crawl_batch: Option<usize>,
     /// Override the number of parallel request at a time
@@ -62,7 +63,7 @@ pub struct SharedFetchOption {
     /// Print back terms, can be affected by --asc, --rand or --verbose
     #[arg(required = false, long)]
     pub reflect: bool,
-    /// Specifically use a plugin and bypass checks
+    /// Force use a plugin and bypass term pattern checks
     #[arg(long, short)]
     pub plugin: Option<String>,
     /// Load cookies from a file

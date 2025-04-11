@@ -10,16 +10,15 @@ Download image galleries or metadata on the web.
 # Usage
 
 ```bash
-# the `images` plugin uses bs4
+# pip install beautifulsoup4
+
+# The `images` plugin uses bs4
 # This will for example download all image links using the `images` plugin.
-pip install beautifulsoup4
 mx-scraper fetch https://www.google.com --plugin images -v
 
-# Alternatively, for a sequence of non-uniform terms, prefixing is often required
-# It is unnecessary but it not required for generic ones (like ids or names)
-# The behavior of how each term is parsed depends on the plugin implementation
-mx-scraper fetch --meta-only -v img:https://www.google.com to:https://mto.to/series/68737
-
+# Alternatively, for batched terms targeting various sources, prefixing is often required (e.g. id or name)
+mx-scraper fetch --meta-only -v img:https://www.google.com https://mto.to/series/68737
+mx-scraper fetch --meta-only -v nh:177013
 mx-scraper fetch --meta-only -v https://twitter.com/imigimuru/status/1829913427373953259
 ```
 

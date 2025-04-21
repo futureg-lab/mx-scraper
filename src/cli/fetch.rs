@@ -93,7 +93,7 @@ pub struct UrlTerm {
     #[arg(required = false, long, short = 't')]
     pub print: bool,
     /// File destination
-    #[arg(required = false, long, short)]
+    #[arg(required = false, long)]
     pub dest: Option<PathBuf>,
     #[command(flatten)]
     pub flags: SharedFetchOption,

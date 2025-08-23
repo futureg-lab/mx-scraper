@@ -66,7 +66,7 @@ document.getElementById("sendBtn").addEventListener("click", async () => {
         json?.data ?? json?.error
       }\n`;
     } catch (e) {
-      document.getElementById("output").value += `CLIENT: ${payload}`;
+      document.getElementById("output").innerText += `CLIENT: ${payload}\n`;
     }
   });
 });

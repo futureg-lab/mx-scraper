@@ -75,7 +75,7 @@ pub struct SharedFetchOption {
     pub custom_downloader: bool,
     #[command(flatten)]
     pub auth: Option<Auth>,
-    /// Wait for a cookie sent from a callback
+    /// Wait for cookies sent from a callback
     #[arg(long, short = 'l')]
     pub listen_cookies: bool,
 }

@@ -71,7 +71,7 @@ pub struct FetchContext {
 
 impl FetchContext {
     pub fn override_inherit_from(&mut self, other: &FetchContext) {
-        if self.user_agent.is_none() {
+        if other.user_agent.is_some() {
             self.user_agent = other.user_agent.clone();
         }
 
@@ -83,7 +83,7 @@ impl FetchContext {
 
         self.cookies.extend(other.cookies.iter().cloned());
 
-        if self.auth.is_none() {
+        if other.user_agent.is_some() {
             self.auth = other.auth.clone();
         }
     }

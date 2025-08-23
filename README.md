@@ -68,9 +68,10 @@ Each fetch strategy will share the same configuration..
   - [x] gallery-dl extractors
   - [ ] Subprocess (e.g. imgbrd-grabber)
 
-- [ ] HtmlParser (optional feature)
-  - [ ] Implement `HtmlParser.use(source).where('attr.href = ..')`
-  - [ ] Wrap into a python class
+- [ ] Send context from an external source (e.g. browser)
+  - [x] Cookies, UA (through `--listen-cookies`, will open a callback url that
+        can receive a `FetchContext` object)
+  - [ ] Rendered HTML page
 
 # GraphQL server
 

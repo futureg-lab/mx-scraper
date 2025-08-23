@@ -30,9 +30,12 @@ pub struct Config {
     pub request: HashMap<String, Request>,
     #[serde(skip)]
     pub __options: AdditionalOptions,
+    #[serde(skip)]
+    pub __known_fetch_context: Option<FetchContext>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(tag = "type")]
 pub enum AuthKind {
     Basic {
         user: String,
@@ -131,6 +134,7 @@ impl Config {
             __options: AdditionalOptions {
                 ..Default::default()
             },
+            __known_fetch_context: None,
             custom_downloader: false,
         }
     }
@@ -149,7 +153,7 @@ impl Config {
             return serde_yaml::from_str(&content).map_err(|e| e.into());
         }
 
-        println!(
+        tracing::info!(
             "Creating configuration file at {}",
             std::env::current_dir().unwrap().to_string_lossy()
         );
@@ -224,7 +228,7 @@ impl Config {
             headers: shared.headers.clone().unwrap_or_default(),
         };
 
-        match focused_plugin {
+        let mut fetch_context = match focused_plugin {
             Some(plugin_name) => {
                 if let Some(req) = self.request.get(plugin_name) {
                     return FetchContext {
@@ -249,7 +253,13 @@ impl Config {
                 shared_ctx
             }
             None => shared_ctx,
+        };
+
+        if let Some(ext) = &self.__known_fetch_context {
+            fetch_context.override_inherit_from(ext);
         }
+
+        fetch_context
     }
 
     pub fn get_cache_file_path(&self, term: &str, plugin_name: &str) -> PathBuf {

@@ -15,6 +15,7 @@ use lazy_static::lazy_static;
 use plugins::PluginManager;
 use schemas::config::Config;
 use tokio::sync::Semaphore;
+use tracing_subscriber::EnvFilter;
 
 lazy_static! {
     static ref GLOBAL_CONFIG: Arc<std::sync::RwLock<Config>> = Arc::new(std::sync::RwLock::new(
@@ -28,6 +29,16 @@ lazy_static! {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    if std::env::var("RUST_LOG").is_err() {
+        let filter_str = format!("{}=info", env!("CARGO_PKG_NAME").replace("-", "_"));
+        std::env::set_var("RUST_LOG", &filter_str);
+    }
+
+    tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::from_default_env())
+        .without_time()
+        .init();
+
     let parser = MainCommand::parse();
     {
         // This avoids poison panics when config is invalid (vs when init lazy)

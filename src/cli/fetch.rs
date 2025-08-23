@@ -8,9 +8,10 @@ use std::{io::Write, path::PathBuf, str::FromStr};
 use url::Url;
 
 use crate::{
+    cli::server::OneshotHttpListener,
     core::{
         downloader::{batch_download, DownloadStatus},
-        http::{self},
+        http::{self, FetchContext},
         utils,
     },
     plugins::FetchResult,
@@ -74,6 +75,9 @@ pub struct SharedFetchOption {
     pub custom_downloader: bool,
     #[command(flatten)]
     pub auth: Option<Auth>,
+    /// Wait for cookies sent from a callback
+    #[arg(long, short = 'l')]
+    pub listen_cookies: bool,
 }
 
 #[derive(Parser, Debug)]
@@ -118,6 +122,16 @@ impl TermSequence {
         {
             if let Some(max_fetch) = self.flags.max_parallel_fetch {
                 http::update_fetch_semaphore_count(max_fetch).await;
+            }
+        }
+
+        {
+            if self.flags.listen_cookies {
+                let listener = OneshotHttpListener { port: 5678 };
+                let context = listener.block_and_listen::<FetchContext>("context").await?;
+                let mut config = GLOBAL_CONFIG.write().unwrap();
+                tracing::debug!("New fetch context will be injected: {context:?}");
+                config.__known_fetch_context = Some(context);
             }
         }
 
@@ -172,6 +186,16 @@ impl FileSequence {
         {
             if let Some(max_fetch) = self.flags.max_parallel_fetch {
                 http::update_fetch_semaphore_count(max_fetch).await;
+            }
+        }
+
+        {
+            if self.flags.listen_cookies {
+                let listener = OneshotHttpListener { port: 5678 };
+                let context = listener.block_and_listen::<FetchContext>("context").await?;
+                let mut config = GLOBAL_CONFIG.write().unwrap();
+                tracing::debug!("New fetch context will be injected: {context:?}");
+                config.__known_fetch_context = Some(context);
             }
         }
 
@@ -250,6 +274,16 @@ impl UrlTerm {
         {
             let mut config = GLOBAL_CONFIG.write().unwrap();
             config.adapt_override(self.flags.clone())?;
+        }
+
+        {
+            if self.flags.listen_cookies {
+                let listener = OneshotHttpListener { port: 5678 };
+                let context = listener.block_and_listen::<FetchContext>("context").await?;
+                let mut config = GLOBAL_CONFIG.write().unwrap();
+                tracing::debug!("New fetch context will be injected: {context:?}");
+                config.__known_fetch_context = Some(context);
+            }
         }
 
         let url = Url::from_str(&self.url)?;

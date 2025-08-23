@@ -69,6 +69,26 @@ pub struct FetchContext {
     pub auth: Option<AuthKind>,
 }
 
+impl FetchContext {
+    pub fn override_inherit_from(&mut self, other: &FetchContext) {
+        if other.user_agent.is_some() {
+            self.user_agent = other.user_agent.clone();
+        }
+
+        for (key, value) in &other.headers {
+            self.headers
+                .entry(key.clone())
+                .or_insert_with(|| value.clone());
+        }
+
+        self.cookies.extend(other.cookies.iter().cloned());
+
+        if other.user_agent.is_some() {
+            self.auth = other.auth.clone();
+        }
+    }
+}
+
 /// Perform a fetch using the global config as context
 pub fn fetch(url: Url) -> anyhow::Result<Vec<u8>> {
     let context = {

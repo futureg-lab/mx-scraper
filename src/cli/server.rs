@@ -1,5 +1,8 @@
 use clap::Parser;
-use std::path::PathBuf;
+use reqwest::StatusCode;
+use serde::Deserialize;
+use serde_json::json;
+use std::{path::PathBuf, sync::Arc};
 
 #[derive(Parser, Debug)]
 pub struct ApiServer {
@@ -62,6 +65,7 @@ impl Query {
             max_size_init_crawl_batch: None,
             mini_batch_size: None,
             batch_size: None,
+            listen_cookies: false,
         };
 
         let _ = {
@@ -111,5 +115,102 @@ impl ApiServer {
             .await?;
 
         Ok(())
+    }
+}
+
+#[derive(Debug)]
+pub struct OneshotHttpListener {
+    pub port: u16,
+}
+
+#[handler]
+async fn wait_handler(
+    web::Json(payload): web::Json<serde_json::Value>,
+    tx: web::Data<
+        &Arc<tokio::sync::Mutex<Option<tokio::sync::oneshot::Sender<serde_json::Value>>>>,
+    >,
+) -> impl IntoResponse {
+    tracing::debug!("Received payload {payload}");
+    let mut tx = tx.lock().await;
+    if let Some(tx) = tx.take() {
+        tracing::debug!("Sending payload {payload}");
+
+        return match tx.send(payload.clone()) {
+            Ok(_) => Response::builder()
+                .status(StatusCode::OK)
+                .content_type("application/json")
+                .body(
+                    serde_json::to_string(&json!({
+                        "data": "Data received and processed"
+                    }))
+                    .unwrap(),
+                ),
+            Err(e) => Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .content_type("application/json")
+                .body(
+                    serde_json::to_string(&json!({
+                        "error": format!("Data received but failed sending it: {}",e.to_string())
+                    }))
+                    .unwrap(),
+                ),
+        };
+    }
+
+    tracing::warn!("Failed sending payload {payload}");
+    Response::builder()
+        .status(StatusCode::INTERNAL_SERVER_ERROR)
+        .body(Body::from(format!(
+            "Fatal: data received but unable to send signal from a potentially already used sender."
+        )))
+}
+
+impl OneshotHttpListener {
+    /// Waiting for `POST` request at `http://localhost:{port}/{callback}`
+    pub async fn block_and_listen<O>(self, callback: &str) -> anyhow::Result<O>
+    where
+        O: for<'a> Deserialize<'a>,
+    {
+        let port = self.port;
+        let (tx, rx) = tokio::sync::oneshot::channel::<serde_json::Value>();
+        let tx = Arc::new(tokio::sync::Mutex::new(Some(tx))); // Option hack
+        let ret = Arc::new(tokio::sync::Mutex::new(None::<serde_json::Value>));
+        let err = Arc::new(tokio::sync::Mutex::new(None::<String>));
+
+        println!("Waiting for a callback http://localhost:{port}/{callback}");
+
+        let ret_server = ret.clone();
+        let err_server = err.clone();
+        Server::new(TcpListener::bind(format!("0.0.0.0:{port}")))
+            .run_with_graceful_shutdown(
+                Route::new().at(format!("/{callback}"), post(wait_handler).data(tx)),
+                async move {
+                    tracing::debug!("oneshot server kill signal init");
+                    match rx.await {
+                        Ok(payload) => {
+                            let mut ret = ret_server.lock().await;
+                            *ret = Some(payload);
+                        }
+                        Err(e) => {
+                            let mut err = err_server.lock().await;
+                            *err = Some(e.to_string());
+                        }
+                    }
+                },
+                None,
+            )
+            .await?;
+
+        let mut ret = ret.lock().await;
+        if let Some(payload) = ret.take() {
+            return serde_json::from_value::<O>(payload).map_err(|e| e.into());
+        }
+
+        let mut err = err.lock().await;
+        if let Some(err) = err.take() {
+            anyhow::bail!(err);
+        }
+
+        unreachable!("Invalid state: no response received yet no error was caught")
     }
 }

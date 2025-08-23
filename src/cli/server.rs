@@ -1,6 +1,7 @@
 use clap::Parser;
 use reqwest::StatusCode;
 use serde::Deserialize;
+use serde_json::json;
 use std::{path::PathBuf, sync::Arc};
 
 #[derive(Parser, Debug)]
@@ -137,13 +138,22 @@ async fn wait_handler(
         return match tx.send(payload.clone()) {
             Ok(_) => Response::builder()
                 .status(StatusCode::OK)
-                .body(Body::from("Data received and processed.")),
+                .content_type("application/json")
+                .body(
+                    serde_json::to_string(&json!({
+                        "data": "Data received and processed"
+                    }))
+                    .unwrap(),
+                ),
             Err(e) => Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .body(Body::from(format!(
-                    "Data received but failed sending it: {}",
-                    e.to_string()
-                ))),
+                .content_type("application/json")
+                .body(
+                    serde_json::to_string(&json!({
+                        "error": format!("Data received but failed sending it: {}",e.to_string())
+                    }))
+                    .unwrap(),
+                ),
         };
     }
 
@@ -159,7 +169,7 @@ impl OneshotHttpListener {
     /// Waiting for `POST` request at `http://localhost:{port}/{callback}`
     pub async fn block_and_listen<O>(self, callback: &str) -> anyhow::Result<O>
     where
-        O: for<'a> Deserialize<'a> + Sync + Send,
+        O: for<'a> Deserialize<'a>,
     {
         let port = self.port;
         let (tx, rx) = tokio::sync::oneshot::channel::<serde_json::Value>();

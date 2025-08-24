@@ -257,7 +257,7 @@ async fn download_page(
     } else {
         let bytes = {
             downloader
-                .get_async(
+                .download(
                     url.clone(),
                     match &page.fetch_context {
                         Some(fctx) => ContextProvider::Concrete(fctx.clone()),
@@ -284,10 +284,10 @@ async fn download_page(
 async fn evaluate_lazy_ops(page: Page) -> anyhow::Result<Page> {
     if let Some(hint) = &page.intermediate_link_hint {
         let url = Url::from_str(&page.url)?;
-        let downloader = MxScraperHttpClient::new(Arc::new(BasicRequestResolver));
+        let client = MxScraperHttpClient::new(Arc::new(BasicRequestResolver));
         let bytes = {
-            downloader
-                .get_async(
+            client
+                .download(
                     url.clone(),
                     match &page.fetch_context {
                         Some(fctx) => ContextProvider::Concrete(fctx.clone()),

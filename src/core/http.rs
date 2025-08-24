@@ -118,6 +118,13 @@ impl MxScraperHttpClient {
 
         self.resolver.get_async(url, context).await
     }
+
+    pub async fn download(&self, url: Url, context: ContextProvider) -> anyhow::Result<Vec<u8>> {
+        let rw = FETCH_SEMAPHORE.read().await;
+        let _permit = rw.acquire().await;
+
+        BasicRequestResolver.get_async(url, context).await
+    }
 }
 
 #[derive(Clone)]

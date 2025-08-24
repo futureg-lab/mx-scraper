@@ -1,14 +1,17 @@
 use crate::{
     cli::fetch::SharedFetchOption,
-    core::{http::FetchContext, utils},
+    core::{
+        http::{BasicRequestResolver, FetchContext, MxScraperHttpClient},
+        utils,
+    },
     schemas::cookies::NetscapeCookie,
 };
 use anyhow::Context;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::collections::HashMap;
 use std::path::PathBuf;
+use std::{collections::HashMap, sync::Arc};
 
 lazy_static! {
     static ref ALL: String = String::from("_all");
@@ -27,6 +30,7 @@ pub struct Config {
     pub max_parallel_fetch: usize,
     pub verbose: bool,
     pub custom_downloader: bool,
+    pub http_client: Option<HttpClientResolverKind>,
     pub request: HashMap<String, Request>,
     #[serde(skip)]
     pub __options: AdditionalOptions,
@@ -69,6 +73,13 @@ pub struct Cache {
 pub struct Delay {
     pub fetch: u32,
     pub download: u32,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum HttpClientResolverKind {
+    Default,
+    FlareSolverr,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
@@ -136,6 +147,7 @@ impl Config {
             },
             __known_fetch_context: None,
             custom_downloader: false,
+            http_client: None,
         }
     }
 
@@ -265,5 +277,20 @@ impl Config {
     pub fn get_cache_file_path(&self, term: &str, plugin_name: &str) -> PathBuf {
         let signature = utils::compute_query_signature(term, plugin_name);
         self.cache.folder.join(format!("{signature}.json"))
+    }
+
+    pub fn get_http_client(&self) -> MxScraperHttpClient {
+        if let Some(kind) = &self.http_client {
+            return match kind {
+                HttpClientResolverKind::Default => {
+                    MxScraperHttpClient::new(Arc::new(BasicRequestResolver))
+                }
+                HttpClientResolverKind::FlareSolverr => {
+                    MxScraperHttpClient::new(Arc::new(BasicRequestResolver))
+                }
+            };
+        }
+
+        MxScraperHttpClient::new(Arc::new(BasicRequestResolver))
     }
 }

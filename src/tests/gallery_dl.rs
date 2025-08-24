@@ -1,5 +1,5 @@
-use async_std::path::Path;
 use insta::assert_debug_snapshot;
+use std::path::Path;
 
 use crate::{
     plugins::{

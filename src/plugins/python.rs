@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::{
-    core::http::{self},
+    core::http::ContextProvider,
     schemas::book::{Book, SearchOption},
     GLOBAL_CONFIG,
 };
@@ -155,13 +155,17 @@ impl MxRequest {
         context: Option<Bound<PyAny>>,
     ) -> PyResult<Py<PyBytes>> {
         let url = can_throw_exception!(Url::from_str(&url));
+        let client = {
+            let config = GLOBAL_CONFIG.read().unwrap();
+            config.get_http_client()
+        };
 
         let bytes = can_throw_exception!(match context {
             Some(py_context) => {
                 let context = from_pyobject(py_context)?;
-                http::fetch_with_context(url, context)
+                client.get(url.into(), ContextProvider::Concrete(context))
             }
-            None => http::fetch(url),
+            None => client.get(url.into(), ContextProvider::None),
         });
 
         let bytes = PyBytes::new_bound(py, bytes.as_ref()).unbind();

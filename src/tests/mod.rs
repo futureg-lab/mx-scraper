@@ -8,10 +8,12 @@ mod parser;
 mod test {
     use std::path::PathBuf;
     use std::str::FromStr;
+    use std::sync::Arc;
 
     use url::Url;
 
-    use crate::core::{http, utils};
+    use crate::core::http::{BasicRequestResolver, ContextProvider, MxScraperHttpClient};
+    use crate::core::utils;
     use crate::plugins::python::PythonPlugin;
     use crate::plugins::MXPlugin;
     use crate::schemas::book::Book;
@@ -43,14 +45,19 @@ mod test {
     #[test]
     fn perform_fetch_using_config_as_context() {
         let example = Url::from_str("http://example.com").unwrap();
-        let _bytes = http::fetch(example).unwrap();
+        let client = MxScraperHttpClient::new(Arc::new(BasicRequestResolver));
+        let _bytes = client.get(example.into(), ContextProvider::None).unwrap();
     }
 
     #[tokio::test]
     async fn fetch_async_and_sync_have_the_same_output() {
         let example = Url::from_str("http://example.com").unwrap();
-        let bytes_a = http::fetch(example.clone()).unwrap();
-        let bytes_b = http::fetch_async(example.clone()).await.unwrap();
+        let client = MxScraperHttpClient::new(Arc::new(BasicRequestResolver));
+        let bytes_a = client.get(example.clone(), ContextProvider::None).unwrap();
+        let bytes_b = client
+            .get_async(example.clone(), ContextProvider::None)
+            .await
+            .unwrap();
         assert_eq!(bytes_a, bytes_b)
     }
 

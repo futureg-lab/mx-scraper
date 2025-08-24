@@ -1,3 +1,10 @@
+use super::utils;
+use crate::{
+    core::http::{BasicRequestResolver, ContextProvider, MxScraperHttpClient},
+    plugins::FetchResult,
+    schemas::book::{Book, CacheFile, Page},
+    GLOBAL_CONFIG, PLUGIN_MANAGER,
+};
 use anyhow::Context;
 use chrono::Local;
 use futures::future::join_all;
@@ -7,17 +14,6 @@ use scraper::{Html, Selector};
 use std::{error::Error, io::Write, path::Path, str::FromStr, sync::Arc, time::Duration};
 use tokio::task;
 use url::Url;
-
-use crate::{
-    plugins::FetchResult,
-    schemas::book::{Book, CacheFile, Page},
-    GLOBAL_CONFIG, PLUGIN_MANAGER,
-};
-
-use super::{
-    http::{self},
-    utils,
-};
 
 lazy_static! {
     static ref MULTI_PROGRESS: Arc<MultiProgress> = Arc::new(MultiProgress::new());
@@ -92,7 +88,8 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
         plugin_name,
         cached,
     } = fetch_result;
-    let (meta_only, delay, verbose, custom_downloader, max_size_mini_batch) = {
+    let (meta_only, delay, verbose, custom_downloader, max_size_mini_batch, downloader) = {
+        // TODO: refactor
         let config = GLOBAL_CONFIG.read().unwrap();
         (
             config.plugins.meta_only,
@@ -100,6 +97,7 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
             config.verbose,
             config.custom_downloader,
             config.max_size_mini_batch,
+            Arc::new(config.get_http_client()),
         )
     };
 
@@ -165,11 +163,20 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
                 let plugin_name = plugin_name.clone();
                 let temp_dir = temp_dir.clone();
                 let down_dir = down_dir.clone();
+                let downloader = downloader.clone();
+
                 join_set.spawn(async move {
                     let page_clone = page.clone();
-                    let res =
-                        download_page(custom_downloader, &plugin_name, &page, &temp_dir, &down_dir)
-                            .await;
+                    let res = download_page(
+                        custom_downloader,
+                        downloader.clone(),
+                        &plugin_name,
+                        &page,
+                        &temp_dir,
+                        &down_dir,
+                    )
+                    .await;
+
                     tokio::time::sleep(Duration::from_millis(delay.download as u64)).await;
                     (res, page_clone)
                 });
@@ -218,6 +225,7 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
 
 async fn download_page(
     use_custom_downloader: bool,
+    downloader: Arc<MxScraperHttpClient>,
     plugin_name: &str,
     original_page: &Page,
     tmp_dir: &Path,
@@ -248,10 +256,15 @@ async fn download_page(
         }
     } else {
         let bytes = {
-            match &original_page.fetch_context {
-                Some(fctx) => http::fetch_with_context_async(url.clone(), fctx.clone()).await,
-                None => http::fetch_async(url.clone()).await,
-            }
+            downloader
+                .get_async(
+                    url.clone(),
+                    match &page.fetch_context {
+                        Some(fctx) => ContextProvider::Concrete(fctx.clone()),
+                        None => ContextProvider::None,
+                    },
+                )
+                .await
         }
         .map_err(|e| anyhow::anyhow!("{e}: {original_page:?}"))?;
 
@@ -271,11 +284,17 @@ async fn download_page(
 async fn evaluate_lazy_ops(page: Page) -> anyhow::Result<Page> {
     if let Some(hint) = &page.intermediate_link_hint {
         let url = Url::from_str(&page.url)?;
+        let downloader = MxScraperHttpClient::new(Arc::new(BasicRequestResolver));
         let bytes = {
-            match &page.fetch_context {
-                Some(fctx) => http::fetch_with_context_async(url.clone(), fctx.clone()).await,
-                None => http::fetch_async(url.clone()).await,
-            }
+            downloader
+                .get_async(
+                    url.clone(),
+                    match &page.fetch_context {
+                        Some(fctx) => ContextProvider::Concrete(fctx.clone()),
+                        None => ContextProvider::None,
+                    },
+                )
+                .await
         }?;
         let html = String::from_utf8(bytes)?;
         let document = Html::parse_document(&html);

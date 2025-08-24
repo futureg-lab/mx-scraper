@@ -1,12 +1,13 @@
 use crate::{
     cli::fetch::SharedFetchOption,
     core::{
-        http::{BasicRequestResolver, FetchContext, MxScraperHttpClient},
+        http::{BasicRequestResolver, FetchContext, FlareSolverrResolver, MxScraperHttpClient},
         utils,
     },
     schemas::cookies::NetscapeCookie,
 };
 use anyhow::Context;
+use base64::{prelude::BASE64_STANDARD, Engine};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -50,6 +51,22 @@ pub enum AuthKind {
     },
 }
 
+impl AuthKind {
+    pub fn stringify(&self) -> String {
+        match &self {
+            AuthKind::Basic { user, password } => {
+                let up = [Some(user.clone()), password.clone()]
+                    .into_iter()
+                    .filter_map(|s| s)
+                    .collect::<Vec<_>>()
+                    .join(":");
+                format!("Basic {}", BASE64_STANDARD.encode(up))
+            }
+            AuthKind::Bearer { token } => format!("Bearer {}", token.trim()),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct AdditionalOptions {
     focused_plugin: Option<String>,
@@ -76,10 +93,10 @@ pub struct Delay {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "lowercase", tag = "use")]
 pub enum HttpClientResolverKind {
     Default,
-    FlareSolverr,
+    FlareSolverr { config: FlareSolverrResolver },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
@@ -285,8 +302,8 @@ impl Config {
                 HttpClientResolverKind::Default => {
                     MxScraperHttpClient::new(Arc::new(BasicRequestResolver))
                 }
-                HttpClientResolverKind::FlareSolverr => {
-                    MxScraperHttpClient::new(Arc::new(BasicRequestResolver))
+                HttpClientResolverKind::FlareSolverr { config: resolver } => {
+                    MxScraperHttpClient::new(Arc::new(resolver.clone()))
                 }
             };
         }

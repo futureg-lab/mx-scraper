@@ -18,6 +18,13 @@ max_size_mini_batch: 3 # items in titles to process at a time (pages)
 max_parallel_fetch: 100 # global fetch limit at a time (set high if target website does not whine much)
 verbose: false
 custom_downloader: false
+http_client:
+  use: default
+  # use: flaresolverr
+  # config:
+  #   endpoint: http://localhost:8191/v1
+  #   max_timeout: 60000
+  #   session_ttl_minutes: 5 #rotate expired sessions
 request:
   _all:
     user_agent: mx-scraper/0.0.1 (windows; x86_64)

@@ -1,14 +1,18 @@
 use crate::{
     cli::fetch::SharedFetchOption,
-    core::{http::FetchContext, utils},
+    core::{
+        http::{BasicRequestResolver, FetchContext, FlareSolverrResolver, MxScraperHttpClient},
+        utils,
+    },
     schemas::cookies::NetscapeCookie,
 };
 use anyhow::Context;
+use base64::{prelude::BASE64_STANDARD, Engine};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::collections::HashMap;
 use std::path::PathBuf;
+use std::{collections::HashMap, sync::Arc};
 
 lazy_static! {
     static ref ALL: String = String::from("_all");
@@ -27,6 +31,7 @@ pub struct Config {
     pub max_parallel_fetch: usize,
     pub verbose: bool,
     pub custom_downloader: bool,
+    pub http_client: Option<HttpClientResolverKind>,
     pub request: HashMap<String, Request>,
     #[serde(skip)]
     pub __options: AdditionalOptions,
@@ -44,6 +49,22 @@ pub enum AuthKind {
     Bearer {
         token: String,
     },
+}
+
+impl AuthKind {
+    pub fn stringify(&self) -> String {
+        match &self {
+            AuthKind::Basic { user, password } => {
+                let up = [Some(user.clone()), password.clone()]
+                    .into_iter()
+                    .filter_map(|s| s)
+                    .collect::<Vec<_>>()
+                    .join(":");
+                format!("Basic {}", BASE64_STANDARD.encode(up))
+            }
+            AuthKind::Bearer { token } => format!("Bearer {}", token.trim()),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
@@ -69,6 +90,13 @@ pub struct Cache {
 pub struct Delay {
     pub fetch: u32,
     pub download: u32,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "lowercase", tag = "use")]
+pub enum HttpClientResolverKind {
+    Default,
+    FlareSolverr { config: FlareSolverrResolver },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
@@ -136,6 +164,7 @@ impl Config {
             },
             __known_fetch_context: None,
             custom_downloader: false,
+            http_client: None,
         }
     }
 
@@ -265,5 +294,20 @@ impl Config {
     pub fn get_cache_file_path(&self, term: &str, plugin_name: &str) -> PathBuf {
         let signature = utils::compute_query_signature(term, plugin_name);
         self.cache.folder.join(format!("{signature}.json"))
+    }
+
+    pub fn get_http_client(&self) -> MxScraperHttpClient {
+        if let Some(kind) = &self.http_client {
+            return match kind {
+                HttpClientResolverKind::Default => {
+                    MxScraperHttpClient::new(Arc::new(BasicRequestResolver))
+                }
+                HttpClientResolverKind::FlareSolverr { config: resolver } => {
+                    MxScraperHttpClient::new(Arc::new(resolver.clone()))
+                }
+            };
+        }
+
+        MxScraperHttpClient::new(Arc::new(BasicRequestResolver))
     }
 }

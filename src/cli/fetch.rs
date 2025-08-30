@@ -11,7 +11,7 @@ use crate::{
     cli::server::OneshotHttpListener,
     core::{
         downloader::{batch_download, DownloadStatus},
-        http::{self, FetchContext},
+        http::{self, ContextProvider, FetchContext},
         utils,
     },
     plugins::FetchResult,
@@ -271,10 +271,11 @@ impl FileSequence {
 
 impl UrlTerm {
     pub async fn fetch(&self) -> anyhow::Result<()> {
-        {
+        let client = {
             let mut config = GLOBAL_CONFIG.write().unwrap();
             config.adapt_override(self.flags.clone())?;
-        }
+            config.get_http_client()
+        };
 
         {
             if self.flags.listen_cookies {
@@ -287,7 +288,7 @@ impl UrlTerm {
         }
 
         let url = Url::from_str(&self.url)?;
-        let bytes = http::fetch_async(url.clone()).await?;
+        let bytes = client.get_async(url.clone(), ContextProvider::None).await?;
         if self.print || self.dest.is_none() {
             std::io::stdout().write_all(&bytes)?;
         } else {

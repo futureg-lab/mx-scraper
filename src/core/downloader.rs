@@ -1,6 +1,6 @@
 use super::utils;
 use crate::{
-    core::http::{BasicRequestResolver, ContextProvider, MxScraperHttpClient},
+    core::http::{ContextProvider, MxScraperHttpClient},
     plugins::FetchResult,
     schemas::book::{Book, CacheFile, Page},
     GLOBAL_CONFIG, PLUGIN_MANAGER,
@@ -33,7 +33,7 @@ pub enum DownloadStatus {
 }
 
 pub async fn batch_download(
-    fetched_book: &[FetchResult],
+    fetched_book: &[Box<FetchResult>],
     batch_size: usize,
 ) -> Vec<DownloadStatus> {
     let mut status = vec![];
@@ -47,7 +47,7 @@ pub async fn batch_download(
     status
 }
 
-pub async fn download(fetched_book: &[FetchResult]) -> Vec<DownloadStatus> {
+pub async fn download(fetched_book: &[Box<FetchResult>]) -> Vec<DownloadStatus> {
     let handles = fetched_book
         .iter()
         .map(|f| task::spawn(download_book(f.clone())));
@@ -81,13 +81,13 @@ pub async fn download(fetched_book: &[FetchResult]) -> Vec<DownloadStatus> {
         .collect()
 }
 
-pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
+pub async fn download_book(fetch_result: Box<FetchResult>) -> anyhow::Result<()> {
     let FetchResult {
         query_term,
         book,
         plugin_name,
         cached,
-    } = fetch_result;
+    } = *fetch_result;
     let (meta_only, delay, verbose, custom_downloader, max_size_mini_batch, downloader) = {
         // TODO: refactor
         let config = GLOBAL_CONFIG.read().unwrap();
@@ -159,7 +159,6 @@ pub async fn download_book(fetch_result: FetchResult) -> anyhow::Result<()> {
         for batch in batches.into_iter() {
             let mut join_set = tokio::task::JoinSet::new();
             for page in batch {
-                let custom_downloader = custom_downloader.clone();
                 let plugin_name = plugin_name.clone();
                 let temp_dir = temp_dir.clone();
                 let down_dir = down_dir.clone();
@@ -240,7 +239,7 @@ async fn download_page(
         return Ok(());
     }
 
-    let page = evaluate_lazy_ops(original_page.clone()).await?;
+    let page = evaluate_lazy_ops(downloader.clone(), original_page.clone()).await?;
     let url = Url::from_str(&page.url)?;
 
     if use_custom_downloader {
@@ -281,10 +280,9 @@ async fn download_page(
     Ok(())
 }
 
-async fn evaluate_lazy_ops(page: Page) -> anyhow::Result<Page> {
+async fn evaluate_lazy_ops(client: Arc<MxScraperHttpClient>, page: Page) -> anyhow::Result<Page> {
     if let Some(hint) = &page.intermediate_link_hint {
         let url = Url::from_str(&page.url)?;
-        let client = MxScraperHttpClient::new(Arc::new(BasicRequestResolver));
         let bytes = {
             client
                 .download(

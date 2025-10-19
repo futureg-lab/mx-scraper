@@ -28,7 +28,7 @@ pub fn sanitize_string_as_path(s: &str, id: Option<String>) -> PathBuf {
         PathBuf::from(format!("{shortened} ({id})"))
     } else {
         if s.len() > MAX_PATH_COMPONENT_LEN {
-            let digest = hex::encode(Sha256::digest(format!("{sanitized}")))
+            let digest = hex::encode(Sha256::digest(sanitized))
                 .chars()
                 .take(5)
                 .collect::<String>();

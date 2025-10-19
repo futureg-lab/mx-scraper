@@ -106,8 +106,7 @@ impl Gallery {
         self.title.clone().unwrap_or_else(|| {
             let title_like = &["search_tags"];
             for title in title_like {
-                let res: anyhow::Result<Option<String>> =
-                    self.inspect_unprocessed_field(title).map_err(|e| e.into());
+                let res: anyhow::Result<Option<String>> = self.inspect_unprocessed_field(title);
                 if res.is_ok() {
                     if let Some(value) = res.unwrap() {
                         return value.trim().to_string();

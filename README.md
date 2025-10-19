@@ -12,14 +12,19 @@ Download image galleries or metadata on the web.
 ```bash
 # pip install beautifulsoup4
 
-# The `images` plugin uses bs4
-# This will for example download all image links using the `images` plugin.
-mx-scraper fetch https://www.google.com --plugin images -v
+# Plugins can be specified with -p or --plugin
+# By default, it will be inferred from the args
+# Each plugin may have its own set of dependencies that are independent from mx-scraper
+# Uses bs4
+mx-scraper fetch --plugin images https://www.google.com
+# Uses gallery-dl
+mx-scraper fetch --meta-only -v https://x.com/afmikasenpai/status/1901323062949159354
+mx-scraper fetch -p gallery-dl https://x.com/afmikasenpai/status/1901323062949159354
 
-# Alternatively, for batched terms targeting various sources, prefixing is often required (e.g. id or name)
+# Alternatively, to infer batched terms targeting various sources/plugins, prefixing is often required (e.g. id or name)
+# The prefix is plugin specific (refer to plugin_name/__init__.py :: mx_is_supported)
 mx-scraper fetch --meta-only -v img:https://www.google.com https://mto.to/series/68737
 mx-scraper fetch --meta-only -v nh:177013
-mx-scraper fetch --meta-only -v https://twitter.com/imigimuru/status/1829913427373953259
 ```
 
 ## Commands
@@ -34,7 +39,7 @@ Commands:
   fetch-files  Fetch a sequence of terms from a collection of files
   request      Request a url
   infos        Display various informations
-  server       Spawn a graphql server
+  server       Spawn a graphql server interfacing mx-scraper
   help         Print this message or the help of the given subcommand(s)
 
 Options:
@@ -57,10 +62,11 @@ Each fetch strategy will share the same configuration..
   - [x] Loading from a file (Netscape format, key-value)
   - [x] Loading from the config (key-value)
 
-- [x] Downloader
+- [x] Http Client/Downloader
   - [x] Support of older mx-scraper book schema
   - [x] Download
   - [x] Cache support (can be disabled with `--no-cache` or from config)
+  - [x] Configurable Http Client (default, Flaresolverr, cfworker)
 
 - [ ] Plugins
   - [x] Python plugin

@@ -13,8 +13,8 @@ Download image galleries or metadata on the web.
 # pip install beautifulsoup4
 
 # Plugins can be specified with -p or --plugin
-# By default, it will be inferred from the 
-# Each plugin have its own set of dependencies that are independent from mx-scraper
+# By default, it will be inferred from the args
+# Each plugin may have its own set of dependencies that are independent from mx-scraper
 # Uses bs4
 mx-scraper fetch --plugin images https://www.google.com
 # Uses gallery-dl

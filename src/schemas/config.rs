@@ -1,7 +1,10 @@
 use crate::{
     cli::fetch::SharedFetchOption,
     core::{
-        http::{BasicRequestResolver, FetchContext, FlareSolverrResolver, MxScraperHttpClient},
+        http::{
+            basic::BasicRequestResolver, cf_worker::CloudflareWorkerResolver,
+            flaresolverr::FlareSolverrResolver, FetchContext, MxScraperHttpClient,
+        },
         utils,
     },
     schemas::cookies::NetscapeCookie,
@@ -57,7 +60,7 @@ impl AuthKind {
             AuthKind::Basic { user, password } => {
                 let up = [Some(user.clone()), password.clone()]
                     .into_iter()
-                    .filter_map(|s| s)
+                    .flatten()
                     .collect::<Vec<_>>()
                     .join(":");
                 format!("Basic {}", BASE64_STANDARD.encode(up))
@@ -97,6 +100,7 @@ pub struct Delay {
 pub enum HttpClientResolverKind {
     Default,
     FlareSolverr { config: FlareSolverrResolver },
+    CfWorker { config: CloudflareWorkerResolver },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
@@ -303,6 +307,9 @@ impl Config {
                     MxScraperHttpClient::new(Arc::new(BasicRequestResolver))
                 }
                 HttpClientResolverKind::FlareSolverr { config: resolver } => {
+                    MxScraperHttpClient::new(Arc::new(resolver.clone()))
+                }
+                HttpClientResolverKind::CfWorker { config: resolver } => {
                     MxScraperHttpClient::new(Arc::new(resolver.clone()))
                 }
             };

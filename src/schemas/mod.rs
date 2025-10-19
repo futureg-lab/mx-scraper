@@ -8,7 +8,7 @@ pub mod cookies;
 /// * `value => Vec<O>`
 /// * `Array[.. values] => Vec<O>`
 /// * Null => vec![] (Vec<O>)`
-fn liftvec_singleton<'de, O>(value: serde_json::Value) -> anyhow::Result<Vec<O>>
+fn liftvec_singleton<O>(value: serde_json::Value) -> anyhow::Result<Vec<O>>
 where
     O: DeserializeOwned,
 {

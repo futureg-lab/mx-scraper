@@ -12,7 +12,7 @@ mod test {
 
     use url::Url;
 
-    use crate::core::http::{BasicRequestResolver, ContextProvider, MxScraperHttpClient};
+    use crate::core::http::{basic::BasicRequestResolver, ContextProvider, MxScraperHttpClient};
     use crate::core::utils;
     use crate::plugins::python::PythonPlugin;
     use crate::plugins::MXPlugin;

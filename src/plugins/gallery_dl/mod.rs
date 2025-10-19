@@ -33,13 +33,11 @@ impl GalleryDLPlugin {
                     .unwrap()
                     .request
                     .get(&name)
-                    .map(|req| {
+                    .and_then(|req| {
                         req.extra_config
                             .clone()
-                            .map(|cfg| cfg.get("bin").cloned())
-                            .flatten()
-                    })
-                    .flatten();
+                            .and_then(|cfg| cfg.get("bin").cloned())
+                    });
 
                 match bin {
                     Some(path) => PathBuf::from(path),
@@ -110,10 +108,9 @@ impl MXPlugin for GalleryDLPlugin {
                 // dl expects dest to be a directory, which is not the case
                 // actual/path/page.jpg_temp/custom_name_by_dl.jpg
                 // => actual/path/page.jpg
-                for entry in std::fs::read_dir(&tmp_dest)? {
+                if let Some(entry) = (std::fs::read_dir(&tmp_dest)?).next() {
                     std::fs::rename(&tmp_dest.join(entry?.file_name()), &dest)?;
                     std::fs::remove_dir_all(&tmp_dest)?;
-                    break;
                 }
             }
 

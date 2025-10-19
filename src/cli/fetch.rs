@@ -113,7 +113,7 @@ pub struct FileSequence {
 }
 
 pub enum Resolution {
-    Success(FetchResult),
+    Success(Box<FetchResult>),
     Fail(anyhow::Error),
 }
 
@@ -338,7 +338,7 @@ pub async fn fetch_terms(
     }
     let crawl_batch = { GLOBAL_CONFIG.read().unwrap().max_size_init_crawl_batch };
 
-    let terms: IndexSet<String> = IndexSet::from_iter(terms.to_owned().into_iter());
+    let terms: IndexSet<String> = IndexSet::from_iter(terms.iter().cloned());
     let terms = Vec::from_iter(terms.into_iter());
 
     let m = MultiProgress::new();
@@ -409,7 +409,7 @@ pub async fn fetch_terms(
                                 ));
                                 local_pb.inc(1);
 
-                                Resolution::Success(fetched)
+                                Resolution::Success(fetched.into())
                             }
                             Err(e) => Resolution::Fail(e),
                         },
@@ -448,7 +448,7 @@ fn display_fetch_status(results: &IndexMap<String, Resolution>, verbose: bool) {
     }
 }
 
-fn display_download_status(fetched_books: &[FetchResult], results: &[DownloadStatus]) {
+fn display_download_status(fetched_books: &[Box<FetchResult>], results: &[DownloadStatus]) {
     assert!(fetched_books.len() == results.len(), "Size preserved");
 
     let mut fail_messages = vec![];
@@ -474,25 +474,25 @@ fn display_download_status(fetched_books: &[FetchResult], results: &[DownloadSta
     }
 }
 
-fn display_main_metadata_attributes(results: &[FetchResult]) {
+fn display_main_metadata_attributes(results: &[Box<FetchResult>]) {
     for (p, item) in results.iter().enumerate() {
         println!("\n{}. ==============\n{}", p + 1, item.book.resume());
     }
 }
 
-fn shuffle_in_place(terms: &mut Vec<String>, enable: bool) {
+fn shuffle_in_place(terms: &mut [String], enable: bool) {
     if enable {
         terms.shuffle(&mut thread_rng());
     }
 }
 
-fn sort_in_place(results: &mut Vec<FetchResult>, enable: bool) {
+fn sort_in_place(results: &mut [Box<FetchResult>], enable: bool) {
     if enable {
         results.sort_by_key(|f| f.count_pages());
     }
 }
 
-fn reflect_back_terms(results: &[FetchResult], verbose: bool) {
+fn reflect_back_terms(results: &[Box<FetchResult>], verbose: bool) {
     for (i, fetch) in results.iter().enumerate() {
         if verbose {
             println!(

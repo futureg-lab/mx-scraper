@@ -68,10 +68,10 @@ impl Query {
             listen_cookies: false,
         };
 
-        let _ = {
+        {
             let mut config = GLOBAL_CONFIG.write().unwrap();
             config.adapt_override(flags.clone())?;
-        };
+        }
 
         let result = { fetch_terms(terms, plugin).await? };
 
@@ -81,7 +81,7 @@ impl Query {
                 term: term.to_owned(),
                 result: match res {
                     Resolution::Success(fetch_result) => {
-                        CrawlResult::Resolved(fetch_result.to_owned())
+                        CrawlResult::Resolved(*fetch_result.clone())
                     }
                     Resolution::Fail(error) => CrawlResult::Failed(FetchError {
                         error: error.to_string(),
@@ -160,9 +160,7 @@ async fn wait_handler(
     tracing::warn!("Failed sending payload {payload}");
     Response::builder()
         .status(StatusCode::INTERNAL_SERVER_ERROR)
-        .body(Body::from(format!(
-            "Fatal: data received but unable to send signal from a potentially already used sender."
-        )))
+        .body(Body::from("Fatal: data received but unable to send signal from a potentially already used sender.".to_owned()))
 }
 
 impl OneshotHttpListener {

@@ -25,6 +25,9 @@ http_client:
   #   endpoint: http://localhost:8191/v1
   #   max_timeout: 60000
   #   session_ttl_minutes: 5 #rotate expired sessions
+  # use: cfworker
+  # config:
+  #   worker_url: https://fake.worker.example.com
 request:
   _all:
     user_agent: mx-scraper/0.0.1 (windows; x86_64)

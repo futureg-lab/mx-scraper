@@ -1,0 +1,95 @@
+# mx-scraper
+
+Download image galleries or metadata on the web.
+
+> This rewrite is expected to support previous implementation's metadata format.
+>
+> The main idea was to separate the core (mx-scraper) from the plugins (user
+> defined) as it was not possible from previous implementations.
+
+# Usage
+
+```bash
+# pip install beautifulsoup4
+
+# Plugins can be specified with -p or --plugin
+# By default, it will be inferred from the 
+# Each plugin have its own set of dependencies that are independent from mx-scraper
+# Uses bs4
+mx-scraper fetch --plugin images https://www.google.com
+# Uses gallery-dl
+mx-scraper fetch --meta-only -v https://x.com/afmikasenpai/status/1901323062949159354
+mx-scraper fetch -p gallery-dl https://x.com/afmikasenpai/status/1901323062949159354
+
+# Alternatively, to infer batched terms targeting various sources/plugins, prefixing is often required (e.g. id or name)
+# The prefix is plugin specific (refer to plugin_name/__init__.py :: mx_is_supported)
+mx-scraper fetch --meta-only -v img:https://www.google.com https://mto.to/series/68737
+mx-scraper fetch --meta-only -v nh:177013
+```
+
+## Commands
+
+```bash
+mx-scraper engine
+
+Usage: mx-scraper <COMMAND>
+
+Commands:
+  fetch        Fetch a sequence of terms
+  fetch-files  Fetch a sequence of terms from a collection of files
+  request      Request a url
+  infos        Display various informations
+  server       Spawn a graphql server interfacing mx-scraper
+  help         Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help  Print help
+```
+
+Each fetch strategy will share the same configuration..
+
+# Features
+
+- [x] CLI
+  - [x] Fetch a list of terms
+  - [x] Fetch a list of terms from a collection of files⌈
+  - [x] Generic URL Request
+    - [x] Print as text
+    - [x] Download `--dest` flag
+  - [x] Authentications (Basic, Bearer token)
+
+- [x] Cookies
+  - [x] Loading from a file (Netscape format, key-value)
+  - [x] Loading from the config (key-value)
+
+- [x] Http Client/Downloader
+  - [x] Support of older mx-scraper book schema
+  - [x] Download
+  - [x] Cache support (can be disabled with `--no-cache` or from config)
+  - [x] Configurable Http Client (default, Flaresolverr, cfworker)
+
+- [ ] Plugins
+  - [x] Python plugin
+    - [x] `MxRequest` with runtime context (headers, cookies, auth)
+  - [x] gallery-dl extractors
+  - [ ] Subprocess (e.g. imgbrd-grabber)
+
+- [ ] Send context from an external source (e.g. browser)
+  - [x] Cookies, UA (through `--listen-cookies`, will open a callback url that
+        can receive a `FetchContext` object)
+  - [ ] Rendered HTML page
+
+# GraphQL server
+
+You can also use the extractors through GraphQL queries. You will have the same
+options as the command-line interface.
+
+```
+Usage: mx-scraper server [OPTIONS]
+
+Options:
+      --port <PORT>  Server port
+  -h, --help         Print help
+```
+
+![Playground Screenshot](static/server.png "Screenshot")

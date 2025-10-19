@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Context capture</title>
+  <style>
+    body { font-family: sans-serif; padding: 10px; }
+    label { display: block; margin: 5px 0; }
+    #sendBtn { margin-top: 10px; }
+    #output { margin-top: 10px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Context capture</h1>
+  <h2>Options</h2>
+  <label>
+    <input type="checkbox" id="uaCheckbox" checked>
+    User Agent
+  </label>
+  <label>
+    <input type="checkbox" id="cookiesCheckbox" checked>
+    Cookies
+  </label>
+  <button id="sendBtn">Capture context</button>
+  
+	<label>Logs</label>
+	<textarea id="output" cols="50" rows="5"></textarea>
+	
+  <script src="index.js"></script>
+</body>
+</html>

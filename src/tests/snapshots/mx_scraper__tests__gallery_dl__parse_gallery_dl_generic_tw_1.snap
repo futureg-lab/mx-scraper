@@ -1,0 +1,121 @@
+---
+source: src/tests/gallery_dl.rs
+expression: "materialize_book(\"tw_1.json\")"
+snapshot_kind: text
+---
+Ok(
+    Book {
+        title: "http://some.website/a/b/c",
+        title_aliases: [],
+        source_id: "http://some.website/a/b/c",
+        description: "",
+        authors: [
+            Author {
+                name: "imigimuru",
+                description: "",
+            },
+        ],
+        chapters: [
+            Chapter {
+                title: "http://some.website/a/b/c",
+                description: "",
+                url: "http://some.website/a/b/c",
+                number: 1,
+                pages: [
+                    Page {
+                        title: "",
+                        url: "https://pbs.twimg.com/media/GWUoj32a4AAwuqN?format=jpg&name=orig",
+                        intermediate_link_hint: None,
+                        fetch_context: None,
+                        number: 1,
+                        filename: "GWUoj32a4AAwuqN.jpg",
+                        metadata: [
+                            Metadata {
+                                label: "GWUoj32a4AAwuqN.jpg",
+                                content: Object {
+                                    "author": Object {
+                                        "date": String("2012-02-04 06:50:39"),
+                                        "description": String("漫画家。『この美術部には問題がある！』連載中。【FGO/概念礼装】【負けヒロインが多すぎる！/イラスト】【リコリス・リコイル/キャラクターデザイン】初画集『fruits』発売中。お仕事はこちら→ayac2006☆http://yahoo.co.jp (☆→@) アーセナルが好き⚽\u{fe0f}"),
+                                        "favourites_count": Number(20696),
+                                        "followers_count": Number(350281),
+                                        "friends_count": Number(1214),
+                                        "id": Number(482708089),
+                                        "listed_count": Number(3142),
+                                        "location": String("兵庫県"),
+                                        "media_count": Number(1853),
+                                        "name": String("imigimuru"),
+                                        "nick": String("いみぎむる"),
+                                        "profile_banner": String("https://pbs.twimg.com/profile_banners/482708089/1399750342"),
+                                        "profile_image": String("https://pbs.twimg.com/profile_images/875689427502223360/dl_quOOM.jpg"),
+                                        "statuses_count": Number(58129),
+                                        "verified": Bool(false),
+                                    },
+                                    "category": String("twitter"),
+                                    "content": String("「負けヒロインが多すぎる！」第8話ご視聴ありがとうございました🚰\n次回もぜひよろしくお願いします❤\u{fe0f}\u{200d}🩹\n\n#マケイン"),
+                                    "conversation_id": Number(1829913427373953259),
+                                    "count": Number(1),
+                                    "date": String("2024-08-31 16:05:33"),
+                                    "description": Null,
+                                    "extension": String("jpg"),
+                                    "favorite_count": Number(24634),
+                                    "filename": String("GWUoj32a4AAwuqN"),
+                                    "hashtags": Array [
+                                        String("マケイン"),
+                                    ],
+                                    "height": Number(1270),
+                                    "lang": String("ja"),
+                                    "num": Number(1),
+                                    "quote_count": Number(72),
+                                    "quote_id": Number(0),
+                                    "reply_count": Number(74),
+                                    "reply_id": Number(0),
+                                    "retweet_count": Number(3711),
+                                    "retweet_id": Number(0),
+                                    "sensitive": Bool(false),
+                                    "source": String("Twitter for iPhone"),
+                                    "subcategory": String("tweet"),
+                                    "tweet_id": Number(1829913427373953259),
+                                    "user": Object {
+                                        "date": String("2012-02-04 06:50:39"),
+                                        "description": String("漫画家。『この美術部には問題がある！』連載中。【FGO/概念礼装】【負けヒロインが多すぎる！/イラスト】【リコリス・リコイル/キャラクターデザイン】初画集『fruits』発売中。お仕事はこちら→ayac2006☆http://yahoo.co.jp (☆→@) アーセナルが好き⚽\u{fe0f}"),
+                                        "favourites_count": Number(20696),
+                                        "followers_count": Number(350281),
+                                        "friends_count": Number(1214),
+                                        "id": Number(482708089),
+                                        "listed_count": Number(3142),
+                                        "location": String("兵庫県"),
+                                        "media_count": Number(1853),
+                                        "name": String("imigimuru"),
+                                        "nick": String("いみぎむる"),
+                                        "profile_banner": String("https://pbs.twimg.com/profile_banners/482708089/1399750342"),
+                                        "profile_image": String("https://pbs.twimg.com/profile_images/875689427502223360/dl_quOOM.jpg"),
+                                        "statuses_count": Number(58129),
+                                        "verified": Bool(false),
+                                    },
+                                    "width": Number(1300),
+                                },
+                            },
+                        ],
+                    },
+                ],
+                metadata: [],
+            },
+        ],
+        tags: [
+            Tag {
+                name: "マケイン",
+                metadata: [],
+            },
+            Tag {
+                name: "twitter",
+                metadata: [],
+            },
+            Tag {
+                name: "tweet",
+                metadata: [],
+            },
+        ],
+        metadata: [],
+        url: "http://some.website/a/b/c",
+    },
+)

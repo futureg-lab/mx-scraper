@@ -96,6 +96,10 @@ pub struct FlareSolverrOutput {
 
 #[async_trait::async_trait]
 impl MxScraperHttpResolver for FlareSolverrResolver {
+    fn can_download(&self) -> bool {
+        false
+    }
+
     async fn get_async(&self, url: Url, context: ContextProvider) -> anyhow::Result<Vec<u8>> {
         let payload = self.create_payload(&url, &context)?;
         tracing::debug!("async: payload {payload}");

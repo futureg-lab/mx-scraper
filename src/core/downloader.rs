@@ -1,6 +1,6 @@
 use super::utils;
 use crate::{
-    core::http::{basic::BasicRequestResolver, ContextProvider, MxScraperHttpClient},
+    core::http::{ContextProvider, MxScraperHttpClient},
     plugins::FetchResult,
     schemas::book::{Book, CacheFile, Page},
     GLOBAL_CONFIG, PLUGIN_MANAGER,
@@ -239,7 +239,7 @@ async fn download_page(
         return Ok(());
     }
 
-    let page = evaluate_lazy_ops(original_page.clone()).await?;
+    let page = evaluate_lazy_ops(downloader.clone(), original_page.clone()).await?;
     let url = Url::from_str(&page.url)?;
 
     if use_custom_downloader {
@@ -280,10 +280,9 @@ async fn download_page(
     Ok(())
 }
 
-async fn evaluate_lazy_ops(page: Page) -> anyhow::Result<Page> {
+async fn evaluate_lazy_ops(client: Arc<MxScraperHttpClient>, page: Page) -> anyhow::Result<Page> {
     if let Some(hint) = &page.intermediate_link_hint {
         let url = Url::from_str(&page.url)?;
-        let client = MxScraperHttpClient::new(Arc::new(BasicRequestResolver));
         let bytes = {
             client
                 .download(

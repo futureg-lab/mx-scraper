@@ -74,6 +74,7 @@ pub async fn update_fetch_semaphore_count(new_count: usize) {
 
 #[async_trait::async_trait]
 pub trait MxScraperHttpResolver: Sync + Send {
+    fn can_download(&self) -> bool;
     fn get(&self, url: Url, context: ContextProvider) -> anyhow::Result<Vec<u8>>;
     async fn get_async(&self, url: Url, context: ContextProvider) -> anyhow::Result<Vec<u8>>;
 }
@@ -119,6 +120,10 @@ impl MxScraperHttpClient {
     pub async fn download(&self, url: Url, context: ContextProvider) -> anyhow::Result<Vec<u8>> {
         let rw = FETCH_SEMAPHORE.read().await;
         let _permit = rw.acquire().await;
+
+        if self.resolver.can_download() {
+            return self.resolver.get_async(url, context).await;
+        }
 
         BasicRequestResolver.get_async(url, context).await
     }

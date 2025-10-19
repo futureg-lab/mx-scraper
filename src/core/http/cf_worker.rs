@@ -5,6 +5,7 @@ use url::Url;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CloudflareWorkerResolver {
     worker_url: Url,
+    override_downloader: bool,
 }
 
 impl CloudflareWorkerResolver {
@@ -17,6 +18,10 @@ impl CloudflareWorkerResolver {
 
 #[async_trait::async_trait]
 impl MxScraperHttpResolver for CloudflareWorkerResolver {
+    fn can_download(&self) -> bool {
+        self.override_downloader
+    }
+
     fn get(&self, url: Url, context: ContextProvider) -> anyhow::Result<Vec<u8>> {
         BasicRequestResolver.get(self.actual_url(url), context)
     }

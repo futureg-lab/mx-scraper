@@ -14,6 +14,10 @@ pub struct BasicRequestResolver;
 
 #[async_trait::async_trait]
 impl MxScraperHttpResolver for BasicRequestResolver {
+    fn can_download(&self) -> bool {
+        true
+    }
+
     fn get(&self, url: Url, context: ContextProvider) -> anyhow::Result<Vec<u8>> {
         let context = context.get();
         let req_headers = context.to_headermap()?;

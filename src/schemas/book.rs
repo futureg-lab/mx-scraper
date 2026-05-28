@@ -82,20 +82,6 @@ pub struct Author {
     pub description: String,
 }
 
-#[derive(Debug, Serialize, Clone, Deserialize, SimpleObject)]
-pub struct DownloadBookMeta {
-    pub engine: String,
-    pub date: String, // Consider using a more appropriate date type, like chrono::NaiveDate
-    pub book: Book,
-}
-
-#[derive(Debug, Serialize, Clone, Deserialize, SimpleObject)]
-pub struct PluginOption {
-    pub use_proxy: bool,
-    pub proxy_url: Option<String>,
-    pub proxy_port: Option<u16>,
-}
-
 #[derive(Debug, Serialize, Deserialize, SimpleObject)]
 pub struct SearchOption {
     pub additional_options: HashMap<String, serde_json::Value>,

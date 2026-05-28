@@ -12,41 +12,63 @@ use crate::{
 use anyhow::Ok;
 use indexmap::IndexSet;
 use schema::{FirstGalleryEntry, GalleryItem, GalleryPage, UrlGalleryEntry};
+use serde::{Deserialize, Serialize};
 use url::Url;
 
 use super::MXPlugin;
 pub mod schema;
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ExtraConfig {
+    pub bin: PathBuf,
+    pub argv: Vec<String>,
+}
+
 #[derive(Debug, Clone)]
 pub struct GalleryDLPlugin {
     pub name: String,
-    pub bin: PathBuf,
+    pub extra_config: ExtraConfig,
 }
 
 impl GalleryDLPlugin {
     pub fn new() -> Self {
+        // TODO:
+        // Rewrite everything to be generator based
+        // - metadata can still be oneshoted at init
+        // Rewrite downloading to be localized within the plugin and not global
+        // - Still have a generic 'global' downloader for most usecases
+        // - Allow custom downloading process to be taken over by the plugin
+        //   - the plugin should emit instead progress events
+        //   - progress can be unlimited
         let name = String::from("gallery-dl");
-        Self {
-            bin: {
-                let bin = GLOBAL_CONFIG
-                    .read()
-                    .unwrap()
-                    .request
-                    .get(&name)
-                    .and_then(|req| {
-                        req.extra_config
-                            .clone()
-                            .and_then(|cfg| cfg.get("bin").cloned())
-                    });
+        let extra_config = GLOBAL_CONFIG
+            .read()
+            .unwrap()
+            .request
+            .get(&name)
+            .and_then(|req| {
+                let bin = req
+                    .extra_config
+                    .clone()
+                    .and_then(|cfg| cfg.get("bin").cloned());
+                let argv = req
+                    .extra_config
+                    .clone()
+                    .and_then(|cfg| cfg.get("argv").cloned());
 
-                match bin {
-                    Some(path) => PathBuf::from(path),
-                    None => PathBuf::from("gallery-dl"),
-                }
-            },
+                Some(ExtraConfig {
+                    bin: bin
+                        .map(PathBuf::from)
+                        .unwrap_or(PathBuf::from("gallery-dl")),
+                    argv: shlex::split(&argv.unwrap_or("".to_owned())).unwrap_or(vec![]),
+                })
+            })
+            .unwrap_or(ExtraConfig {
+                bin: PathBuf::from("gallery-dl"),
+                argv: vec![],
+            });
 
-            name,
-        }
+        Self { extra_config, name }
     }
 }
 
@@ -60,8 +82,14 @@ impl MXPlugin for GalleryDLPlugin {
     }
 
     async fn get_book(&self, term: String) -> anyhow::Result<Book> {
-        let mut command = Command::new(&self.bin);
-        let output = command.arg(&term).arg("--dump-json").output()?;
+        let mut command = Command::new(&self.extra_config.bin);
+        let command = command.arg(&term).arg("--dump-json");
+        if !self.extra_config.argv.is_empty() {
+            for arg in &self.extra_config.argv {
+                command.arg(arg);
+            }
+        }
+        let output = command.output()?;
 
         if !output.status.success() {
             let lines = &[
@@ -86,14 +114,14 @@ impl MXPlugin for GalleryDLPlugin {
     }
 
     async fn is_supported(&self, term: String) -> anyhow::Result<bool> {
-        let mut command = Command::new(&self.bin);
+        let mut command = Command::new(&self.extra_config.bin);
         let output = command.arg(&term).arg("--extractor-info").output()?;
         Ok(output.status.success())
     }
 
     fn download_url(&self, dest: &Path, url: &Url) -> Option<anyhow::Result<()>> {
         let body = || -> anyhow::Result<()> {
-            let mut command = Command::new(&self.bin);
+            let mut command = Command::new(&self.extra_config.bin);
             let parent = dest.parent().unwrap();
             let filename = dest.file_name().unwrap();
             let tmp_dest = parent.join(format!("{}_temp", filename.to_string_lossy()));
@@ -133,7 +161,7 @@ pub fn generate_book(term: String, items: Vec<GalleryItem>) -> anyhow::Result<Bo
     for (p, item) in items.iter().enumerate() {
         match item {
             GalleryItem::TwoElementTuple(FirstGalleryEntry(_len, gl)) => {
-                title = gl.get_title_or_default(term.clone());
+                title = extract_title_if_url(gl.get_title_or_default(term.clone()));
                 gallery_id = gl.get_id_or_default(term.clone());
 
                 title_aliases.extend(gl.get_title_aliases());
@@ -238,4 +266,21 @@ fn print_command_invocation(command: &Command) -> String {
         .collect();
 
     format!("{} {}", bin, args.join(" "))
+}
+
+fn extract_title_if_url(maybe_url: String) -> String {
+    let std::result::Result::Ok(url) = Url::parse(&maybe_url) else {
+        return maybe_url;
+    };
+    let Some(host) = url.host_str() else {
+        return maybe_url;
+    };
+    match host {
+        "x.com" | "www.x.com" | "twitter.com" | "www.twitter.com" => url
+            .path_segments()
+            .and_then(|mut s| s.find(|s| !s.is_empty()))
+            .map(str::to_string)
+            .unwrap_or(maybe_url),
+        _ => maybe_url,
+    }
 }

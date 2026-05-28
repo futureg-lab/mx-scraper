@@ -1,72 +1,66 @@
 document.getElementById("sendBtn").addEventListener("click", async () => {
-  const [tab] = await chrome.tabs.query({
-    active: true,
-    currentWindow: true,
-  });
-
   const includeUA = document.getElementById("uaCheckbox").checked;
   const includeCookies = document.getElementById("cookiesCheckbox").checked;
 
-  // Replaces content.js
-  chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    func: () => {
-      const userAgent = navigator.userAgent;
-      const cookies = document.cookie.split("; ").filter(Boolean).map(
-        (cookieStr) => {
-          const [name, ...valParts] = cookieStr.split("=");
-          return {
-            name: name,
-            value: valParts.join("="),
-            domain: window.location.hostname,
-            path: "/",
-            expiration_date: null,
-            host_only: true,
-            http_only: null,
-            same_site: null,
-            secure: location.protocol === "https:",
-            session: true,
-            store_id: null,
-          };
-        },
-      );
+  let cookies = [];
+  let partitioned = [];
 
-      return {
-        user_agent: userAgent,
-        headers: {
-          // "User-Agent": userAgent, // done mx-scraper side
-          "Referer": document.referrer || "",
-        },
-        cookies,
-        auth: null,
-      };
-    },
-  }, async (results) => {
-    console.log(includeUA, includeCookies);
+  try {
+    cookies = await chrome.cookies.getAll({});
+  } catch {}
 
-    let fetchContext = results[0].result;
-    fetchContext = {
-      ...fetchContext,
-      user_agent: includeUA ? fetchContext.user_agent : null,
-      cookies: includeCookies ? fetchContext.cookies : [],
-    };
+  // Chrome 119+ partitioned cookies
+  try {
+    partitioned = await chrome.cookies.getAll({ partitionKey: {} });
+  } catch {}
 
-    const response = await fetch("http://localhost:5678/context", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(fetchContext),
-    });
-
-    const payload = await response.text();
-    console.log("Context sent:", fetchContext);
-    console.log("Received", payload);
-    try {
-      const json = JSON.parse(payload);
-      document.getElementById("output").innerText += `SERVER: ${
-        json?.data ?? json?.error
-      }\n`;
-    } catch (e) {
-      document.getElementById("output").innerText += `CLIENT: ${payload}\n`;
-    }
+  const seen = new Set();
+  const merged = [...cookies, ...partitioned].filter((c) => {
+    const key = `${c.name}|${c.domain}|${c.path}|${c.storeId}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
   });
+
+  const normalizedCookies = includeCookies
+    ? merged.map((c) => ({
+      name: c.name,
+      value: c.value,
+      domain: c.domain,
+      path: c.path,
+      expiration_date: c.expirationDate ?? null,
+      host_only: !c.domain.startsWith("."),
+      http_only: c.httpOnly,
+      same_site: c.sameSite ?? null,
+      secure: c.secure,
+      session: c.session,
+      store_id: c.storeId ?? null,
+    }))
+    : [];
+
+  const fetchContext = {
+    user_agent: includeUA ? navigator.userAgent : null,
+    headers: {},
+    cookies: normalizedCookies,
+    auth: null,
+  };
+
+  const response = await fetch("http://localhost:5678/context", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(fetchContext),
+  });
+
+  const payload = await response.text();
+  console.log("Context sent:", fetchContext);
+  console.log("Received", payload);
+
+  try {
+    const json = JSON.parse(payload);
+    document.getElementById("output").innerText += `SERVER: ${
+      json?.data ?? json?.error
+    }\n`;
+  } catch {
+    document.getElementById("output").innerText += `CLIENT: ${payload}\n`;
+  }
 });

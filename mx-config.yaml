@@ -45,3 +45,8 @@ request:
   # gallery-dl:
   #   extra_config:
   #     bin: D:\binaries\mx-scraper\gallery-dl.exe
+  gallery-dl:
+    headers: {}
+    extra_config:
+      # bin: ./gallery-dl.exe
+      argv: "--cookies example.txt"
